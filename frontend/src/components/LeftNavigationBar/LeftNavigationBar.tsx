@@ -10,10 +10,11 @@ import SubscriptionsRoundedIcon from "@mui/icons-material/SubscriptionsRounded";
 import StarsRoundedIcon from "@mui/icons-material/StarsRounded";
 import ForumRoundedIcon from "@mui/icons-material/ForumRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
-import BookmarkRoundedIcon from "@mui/icons-material/BookmarkRounded";
+import BookmarksRoundedIcon from "@mui/icons-material/BookmarksRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import sections from "../Sections";
 import { useState, useEffect } from "react";
+import { Button } from "@mui/material";
 
 interface Prop {
 	drawerWidth: number;
@@ -29,7 +30,7 @@ const LeftNavigationBar = ({
 	leftNavBarStatus,
 	closeLeftNavBar,
 	handleLeftBarTransitionEnd,
-	setCurrentSection
+	setCurrentSection,
 }: Prop) => {
 	const [height, setHeight] = useState(80);
 
@@ -45,7 +46,7 @@ const LeftNavigationBar = ({
 			<List sx={{ marginTop: 2 }}>
 				{sections[0].map((text, index) => (
 					<ListItem key={text} disablePadding>
-						<ListItemButton>
+						<ListItemButton onClick={() => setCurrentSection(text)}>
 							<ListItemIcon sx={{ marginLeft: "13%", color: "common-black" }}>
 								{index === 0 ? (
 									<HomeRoundedIcon
@@ -81,14 +82,12 @@ const LeftNavigationBar = ({
 			<List>
 				{sections[1].map((text, index) => (
 					<ListItem key={text} disablePadding>
-						<ListItemButton>
+						<ListItemButton onClick={() => setCurrentSection(text)}>
 							<ListItemIcon sx={{ marginLeft: "13%", color: "common.black" }}>
 								{index === 0 ? (
-									<ForumRoundedIcon />
-								) : index === 1 ? (
 									<CategoryRoundedIcon />
-								) : index === 2 ? (
-									<BookmarkRoundedIcon />
+								) : index === 1 ? (
+									<BookmarksRoundedIcon />
 								) : (
 									<FavoriteRoundedIcon />
 								)}

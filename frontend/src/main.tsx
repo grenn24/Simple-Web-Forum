@@ -4,12 +4,17 @@ import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "@emotion/react";
 import { createTheme } from "@mui/material";
+import { grey } from "@mui/material/colors";
 
 const theme = createTheme({
 	palette: {
 		mode: "light",
 		primary: {
 			main: "#9ece00",
+		},
+		secondary: {
+			main: "#000000",
+			light: "#a3a3a3",
 		},
 	},
 	typography: {

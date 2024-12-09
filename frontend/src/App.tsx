@@ -27,7 +27,7 @@ function App() {
 
 	return (
 		<>
-			<TopHeader openLeftNavBar={openLeftNavBar} />
+			<TopHeader openLeftNavBar={openLeftNavBar} setCurrentSection={setCurrentSection} />
 			<Divider />
 			<MainBody
 				setLeftNavBarStatus={setleftNavBarStatus}

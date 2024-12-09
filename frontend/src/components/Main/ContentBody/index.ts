@@ -1,3 +1,3 @@
-import Threads from "./Threads";
+import Threads from "./Following";
 
 export default Threads;

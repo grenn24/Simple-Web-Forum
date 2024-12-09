@@ -11,11 +11,15 @@ import { useState } from "react";
 import rightMenuOptions from "./RightMenuOptions";
 import SearchBar from "./SearchBar";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
 
 interface Prop {
 	openLeftNavBar: () => void;
+	setCurrentSection: (currentSection: string) => void
 }
-export const TopHeader = ({openLeftNavBar} : Prop) => {
+export const TopHeader = ({openLeftNavBar, setCurrentSection} : Prop) => {
 	const [showMenu, setShowMenu] = useState<null | HTMLElement>(null);
 
 	const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -70,8 +74,13 @@ export const TopHeader = ({openLeftNavBar} : Prop) => {
 					>
 						NUS Forum
 					</Typography>
-					<IconButton aria-label="delete" color="primary" sx={{display: {sm: "block", md:"none"}}} onClick={openLeftNavBar}>
-						<MenuRoundedIcon sx={{color:"common.black"}}/>
+					<IconButton
+						aria-label="delete"
+						color="secondary"
+						sx={{ display: { sm: "block", md: "none" } }}
+						onClick={openLeftNavBar}
+					>
+						<MenuRoundedIcon sx={{ color: "common.black" }} />
 					</IconButton>
 
 					<SearchBar placeholder="Search for a thread" />
@@ -106,9 +115,22 @@ export const TopHeader = ({openLeftNavBar} : Prop) => {
 							open={showMenu !== null}
 							onClose={handleCloseUserMenu}
 						>
-							{rightMenuOptions.map((setting) => (
-								<MenuItem key={setting} onClick={handleCloseUserMenu}>
+							{rightMenuOptions.map((setting, index) => (
+								<MenuItem
+									key={setting}
+									onClick={() => {
+										handleCloseUserMenu();
+										setCurrentSection(setting);
+									}}
+								>
 									<Typography sx={{ textAlign: "center" }}>
+										{index === 0 ? (
+											<PersonOutlineRoundedIcon sx={{ marginRight: 2 }} />
+										) : index === 1 ? (
+											<SettingsRoundedIcon sx={{ marginRight: 2 }} />
+										) : (
+											<LogoutRoundedIcon sx={{ marginRight: 2 }} />
+										)}
 										{setting}
 									</Typography>
 								</MenuItem>
