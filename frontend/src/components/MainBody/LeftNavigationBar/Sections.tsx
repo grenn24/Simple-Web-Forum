@@ -1,1 +1,0 @@
-export default ["Threads", "Topics", "Bookmarked", "Liked"];

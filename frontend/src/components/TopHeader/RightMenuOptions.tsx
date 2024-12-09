@@ -1,1 +1,1 @@
-export default ["Profile", "Settings", "Sign Up"];
+export default ["Profile", "Settings", "Sign Out"];
