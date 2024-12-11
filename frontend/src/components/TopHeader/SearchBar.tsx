@@ -15,10 +15,11 @@ const SearchBar = ({ placeholder }: Prop) => {
 			backgroundColor: alpha(theme.palette.common.black, 0.15),
 		},
 		marginLeft: 0,
-		width: "25%",
-		[theme.breakpoints.up("xs")]: {
-			marginLeft: theme.spacing(1),
+		[theme.breakpoints.up("sm")]: {
 			width: "auto",
+		},
+		[theme.breakpoints.down("sm")]: {
+			width: "50%",
 		},
 	}));
 
@@ -33,7 +34,7 @@ const SearchBar = ({ placeholder }: Prop) => {
 	}));
 
 	const StyledInputBase = styled(InputBase)(({ theme }) => ({
-		color: "inherit",
+		color: "primary",
 		width: "100%",
 		"& .MuiInputBase-input": {
 			padding: theme.spacing(1, 1, 1, 0),
@@ -42,7 +43,7 @@ const SearchBar = ({ placeholder }: Prop) => {
 			[theme.breakpoints.up("xs")]: {
 				width: "17ch",
 			},
-			[theme.breakpoints.up("sm")]: {
+			[theme.breakpoints.up("xs")]: {
 				width: "17ch",
 				"&:focus": {
 					width: "25ch",
@@ -56,7 +57,7 @@ const SearchBar = ({ placeholder }: Prop) => {
 	return (
 		<Search sx={{ border: "5px" }}>
 			<SearchIconWrapper>
-				<SearchIcon />
+				<SearchIcon color="primary" />
 			</SearchIconWrapper>
 			<StyledInputBase
 				placeholder={placeholder}

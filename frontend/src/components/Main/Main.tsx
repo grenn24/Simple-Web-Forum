@@ -1,24 +1,34 @@
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
 import LeftNavigationBar from "../LeftNavigationBar/LeftNavigationBar";
-import RightContentBody from "./ContentBody";
+import Bookmarked from "./ContentBody/Bookmarked";
+import Following from "./ContentBody/Following";
+import Recommended from "./ContentBody/Recommended";
+import Topics from "./ContentBody/Topics";
+import Profile from "./ContentBody/Profile";
+import WelcomeScreen from "./ContentBody/WelcomeScreen";
+import Home from "./ContentBody/Home";
+import ContentBody from "./ContentBody";
 
 const drawerWidth = 300;
 
+
 interface Prop {
-	leftNavBarStatus: boolean;
-	setLeftNavBarStatus: (x: boolean) => void;
+	leftNavBarExpandedStatus: boolean;
+	setLeftNavBarExpandedStatus: (x: boolean) => void;
 	closeLeftNavBar: () => void;
 	openLeftNavBar: () => void;
-	handleLeftBarTransitionEnd: () => void;
-	setCurrentSection: (currentSection: string)=>void;
+	handleLeftBarCloseTransitionEnd: () => void;
+	setCurrentSection: (currentSection: string) => void;
+	currentSection: string;
 }
 export default function MainBody({
-	leftNavBarStatus,
-	setLeftNavBarStatus,
+	leftNavBarExpandedStatus,
+	setLeftNavBarExpandedStatus,
 	closeLeftNavBar,
-	handleLeftBarTransitionEnd,
-	setCurrentSection
+	handleLeftBarCloseTransitionEnd,
+	setCurrentSection,
+	currentSection,
 }: Prop) {
 	const [height, setHeight] = useState(80);
 	useEffect(() => {
@@ -28,6 +38,9 @@ export default function MainBody({
 		}
 	}, []);
 
+	const CurrentContentBody =
+		ContentBody[currentSection as keyof typeof ContentBody];
+
 	return (
 		<>
 			{/*Left Navigation Bar and Right Content Page*/}
@@ -35,15 +48,14 @@ export default function MainBody({
 				sx={{ display: "flex", minHeight: "100vh", marginTop: `${height}px` }}
 			>
 				<LeftNavigationBar
-					drawerWidth={drawerWidth}
-					leftNavBarStatus={leftNavBarStatus}
-					setLeftNavBarStatus={setLeftNavBarStatus}
+					leftNavBarExpandedStatus={leftNavBarExpandedStatus}
+					setLeftNavBarStatus={setLeftNavBarExpandedStatus}
 					closeLeftNavBar={closeLeftNavBar}
-					handleLeftBarTransitionEnd={handleLeftBarTransitionEnd}
+					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 					setCurrentSection={setCurrentSection}
 				/>
 
-				<RightContentBody />
+				<CurrentContentBody />
 			</Box>
 		</>
 	);

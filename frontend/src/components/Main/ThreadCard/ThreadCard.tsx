@@ -18,13 +18,10 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import likeSound from "../../assets/Like Sound.mp3";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import menuOptions from "./MenuOptions";
-import RemoveCircleOutlineRoundedIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
-import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
-import OutlinedFlagRoundedIcon from "@mui/icons-material/OutlinedFlagRounded";
+import likeSound from "../../../assets/audio/Like Sound.mp3";
+import Menu from "../ContentBody/Menu";
+import MenuExpandedIcons from "./MenuExpandedIcons";
+import MenuExpandedItems from "./MenuExpandedItems";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -79,11 +76,13 @@ const ThreadCard = ({
 	};
 
 	const [playSound] = useSound(likeSound, {
-		volume: 0.8,
+		volume: 0.9,
+		sprite: {
+			default: [90, 3000]
+		},
 	});
 
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-	const open = Boolean(anchorEl);
 	const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
 		setAnchorEl(event.currentTarget);
 	};
@@ -93,58 +92,29 @@ const ThreadCard = ({
 
 	return (
 		<>
-			<Card sx={{ maxWidth: "50%", margin: "auto", minWidth: "400px", marginTop: 3, marginBottom: 3 }}>
+			<Card
+				sx={{
+					my: 3
+				}}
+			>
 				<CardHeader
-					avatar={<Avatar sx={{ bgcolor: red[500] }} aria-label="recipe" />}
+					avatar={<Avatar sx={{ bgcolor: red[500] }} />}
 					action={
 						<>
-							<IconButton aria-label="settings" onClick={handleMenuClick}>
-								<MoreVertIcon />
-							</IconButton>
 							<Menu
-								id="long-menu"
-								MenuListProps={{
-									"aria-labelledby": "long-button",
-								}}
-								anchorEl={anchorEl}
-								open={open}
-								onClose={handleMenuClose}
-								slotProps={{
-									paper: {
-										style: {
-											width: "20ch",
-										},
-									},
-								}}
-							>
-								{menuOptions.map((option, index) => (
-									<MenuItem
-										key={option}
-										selected={option === "Pyxis"}
-										onClick={handleMenuClose}
-									>
-										{index === 0 ? (
-											<RemoveCircleOutlineRoundedIcon sx={{ marginRight: 2 }} />
-										) : index === 1 ? (
-											<BookmarkBorderRoundedIcon sx={{ marginRight: 2 }} />
-										) : (
-											<OutlinedFlagRoundedIcon sx={{ marginRight: 2 }} />
-										)}
-
-										{option}
-									</MenuItem>
-								))}
-							</Menu>
+								menuIcon={<MoreVertIcon />}
+								menuExpandedIconsArray={MenuExpandedIcons}
+								menuExpandedItemsArray={MenuExpandedItems}
+								toolTipText="More"
+								scrollLock={true}
+							/>
 						</>
 					}
 					title={threadAuthor}
 					subheader={threadDate}
 				/>
 				<CardContent>
-					<Typography
-						variant="h5"
-						sx={{ color: "text.primary", fontFamily: "Open Sans" }}
-					>
+					<Typography variant="h5" color="text.primary" fontFamily="Open Sans">
 						{threadTitle}
 					</Typography>
 				</CardContent>
@@ -177,17 +147,19 @@ const ThreadCard = ({
 								<FavoriteBorderRoundedIcon />
 							)
 						}
-						color="secondary"
+						color="primary"
 						sx={{
 							borderRadius: "10px",
 							border: 1,
 							marginLeft: 1,
 							marginRight: 1,
-							borderColor: "secondary.light",
+							borderColor: "primary.light",
 						}}
 						onClick={() => {
 							setLikeStatus(!likeStatus);
-							playSound();
+							{
+								!likeStatus ? playSound({id: "default"}) : null;
+							}
 						}}
 					>
 						{threadLikeCount}
@@ -198,12 +170,12 @@ const ThreadCard = ({
 						variant="outlined"
 						tabIndex={-1}
 						startIcon={<CommentRoundedIcon />}
-						color="secondary"
+						color="primary"
 						sx={{
 							borderRadius: "10px",
 							border: 1,
 							marginRight: 1,
-							borderColor: "secondary.light",
+							borderColor: "primary.light",
 						}}
 					>
 						{threadCommentCount}
@@ -214,12 +186,12 @@ const ThreadCard = ({
 						variant="outlined"
 						tabIndex={-1}
 						startIcon={<ShareRoundedIcon />}
-						color="secondary"
+						color="primary"
 						sx={{
 							borderRadius: "10px",
 							border: 1,
 							marginRight: 1,
-							borderColor: "secondary.light",
+							borderColor: "primary.light",
 						}}
 					>
 						&nbsp;
@@ -228,7 +200,6 @@ const ThreadCard = ({
 						expand={expanded}
 						onClick={handleExpandClick}
 						aria-expanded={expanded}
-						aria-label="show more"
 					>
 						<ExpandMoreIcon />
 					</ExpandMore>

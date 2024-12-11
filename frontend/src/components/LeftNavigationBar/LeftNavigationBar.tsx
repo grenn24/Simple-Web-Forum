@@ -5,96 +5,79 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import SubscriptionsRoundedIcon from "@mui/icons-material/SubscriptionsRounded";
-import StarsRoundedIcon from "@mui/icons-material/StarsRounded";
-import ForumRoundedIcon from "@mui/icons-material/ForumRounded";
-import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
-import BookmarksRoundedIcon from "@mui/icons-material/BookmarksRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import sections from "../Sections";
 import { useState, useEffect } from "react";
-import { Button } from "@mui/material";
+import DrawerItems from "./DrawerItems";
+import DrawerIcons from "./DrawerIcons";
 
 interface Prop {
-	drawerWidth: number;
-	leftNavBarStatus: boolean;
+	leftNavBarExpandedStatus: boolean;
 	setLeftNavBarStatus: (x: boolean) => void;
 	closeLeftNavBar: () => void;
-	handleLeftBarTransitionEnd: () => void;
+	handleLeftBarCloseTransitionEnd: () => void;
 	setCurrentSection: (currentSection: string) => void;
 }
 
 const LeftNavigationBar = ({
-	drawerWidth,
-	leftNavBarStatus,
+	leftNavBarExpandedStatus,
 	closeLeftNavBar,
-	handleLeftBarTransitionEnd,
+	handleLeftBarCloseTransitionEnd,
 	setCurrentSection,
 }: Prop) => {
-	const [height, setHeight] = useState(80);
+	const [offsetHeight, setOffsetHeight] = useState(80);
 
 	useEffect(() => {
 		const x = document.getElementById("AppBar")?.offsetHeight;
 		if (x) {
-			setHeight(x);
+			setOffsetHeight(x);
 		}
 	}, []);
 
-	const drawer = (
-		<Box sx={{ marginTop: `${height}px` }}>
-			<List sx={{ marginTop: 2 }}>
-				{sections[0].map((text, index) => (
-					<ListItem key={text} disablePadding>
-						<ListItemButton onClick={() => setCurrentSection(text)}>
-							<ListItemIcon sx={{ marginLeft: "13%", color: "common-black" }}>
-								{index === 0 ? (
-									<HomeRoundedIcon
-										sx={{
-											fontSize: "1.7em",
-											marginLeft: 0,
-											color: "#2bffbc",
-										}}
-									/>
-								) : index === 1 ? (
-									<SubscriptionsRoundedIcon
-										sx={{
-											color: "#ff722b",
-										}}
-									/>
-								) : (
-									<StarsRoundedIcon
-										sx={{
-											color: "#ffce2e",
-										}}
-									/>
-								)}
-							</ListItemIcon>
-							<ListItemText primary={text} />
-						</ListItemButton>
-					</ListItem>
-				))}
-			</List>
-			<br />
-			<br />
-			<br />
-			<br />
-			<List>
-				{sections[1].map((text, index) => (
-					<ListItem key={text} disablePadding>
-						<ListItemButton onClick={() => setCurrentSection(text)}>
-							<ListItemIcon sx={{ marginLeft: "13%", color: "common.black" }}>
-								{index === 0 ? (
-									<CategoryRoundedIcon />
-								) : index === 1 ? (
-									<BookmarksRoundedIcon />
-								) : (
-									<FavoriteRoundedIcon />
-								)}
-							</ListItemIcon>
-							<ListItemText primary={text} />
-						</ListItemButton>
-					</ListItem>
+	const drawerContent = (
+		<Box
+			sx={{
+				marginTop: `${offsetHeight}px`,
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+			}}
+		>
+			<List
+				sx={{
+					marginTop: 2,
+					width: "100%",
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "center",
+				}}
+			>
+				{DrawerItems.map((text, index) => (
+					<Box key={text} width="100%" >
+						<ListItem  disablePadding >
+							<ListItemButton onClick={() => {setCurrentSection(text);
+								leftNavBarExpandedStatus ? closeLeftNavBar() : null;
+							}}>
+								<ListItemIcon
+									sx={{
+										display: "flex",
+										justifyContent: "center",
+										marginRight:1,
+										marginLeft:1
+									}}
+								>
+									{DrawerIcons[index]}
+								</ListItemIcon>
+								<ListItemText primary={text} />
+							</ListItemButton>
+						</ListItem>
+						{index === 2 ? (
+							<>
+								<br />
+								<br />
+								<br />
+								<br />
+							</>
+						) : null}
+					</Box>
 				))}
 			</List>
 		</Box>
@@ -104,43 +87,46 @@ const LeftNavigationBar = ({
 
 	return (
 		<Box
+			id="leftNavigationBarContainer"
 			component="nav"
 			sx={{
-				width: { md: drawerWidth },
+				width: { xs: "0px", sm: "0px", md: "300px" },
 				flexShrink: { md: 0 },
 			}}
 		>
 			<Drawer
+				id="leftNavigationBarTemporaryDrawer"
 				container={container}
 				variant="temporary"
-				open={leftNavBarStatus}
-				onTransitionEnd={handleLeftBarTransitionEnd}
+				open={leftNavBarExpandedStatus}
+				onTransitionEnd={handleLeftBarCloseTransitionEnd}
 				onClose={closeLeftNavBar}
 				ModalProps={{
 					keepMounted: true, // Better open performance on mobile.
 				}}
 				sx={{
-					display: { xs: "block", md: "none" },
+					display: { xs: "block", sm: "block", md: "none" },
 					"& .MuiDrawer-paper": {
 						boxSizing: "border-box",
-						width: drawerWidth,
+						width: "300px",
 					},
 				}}
 			>
-				{drawer}
+				{drawerContent}
 			</Drawer>
 			<Drawer
+				id="leftNavigationBarPermanentDrawer"
 				variant="permanent"
 				sx={{
-					display: { xs: "none", md: "block" },
+					display: { xs: "none", sm: "none", md: "block" },
 					"& .MuiDrawer-paper": {
 						boxSizing: "border-box",
-						width: drawerWidth,
+						width: "300px",
 					},
 				}}
 				open
 			>
-				{drawer}
+				{drawerContent}
 			</Drawer>
 		</Box>
 	);

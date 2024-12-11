@@ -1,41 +1,47 @@
 import TopHeader from "./components/TopHeader";
-import MainBody from "./components/Main";
+import Main from "./components/Main";
 import "./App.css";
 import { Divider } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
-	const [leftNavBarStatus, setleftNavBarStatus] = useState(false);
+	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
+		useState(false);
 	const [isClosing, setIsClosing] = useState(false);
 
 	const closeLeftNavBar = () => {
 		setIsClosing(true);
-		setleftNavBarStatus(false);
+		setleftNavBarExpandedStatus(false);
 	};
 
-	const handleLeftBarTransitionEnd = () => {
+	const handleLeftBarCloseTransitionEnd = () => {
 		setIsClosing(false);
 	};
 
 	const openLeftNavBar = () => {
 		if (!isClosing) {
-			setleftNavBarStatus(!leftNavBarStatus);
+			setleftNavBarExpandedStatus(!leftNavBarExpandedStatus);
 		}
 	};
 
-	const [currentSection, setCurrentSection] = useState("Home");
+	const [currentSection, setCurrentSection] = useState<string>("Home");
 
 	return (
 		<>
-			<TopHeader openLeftNavBar={openLeftNavBar} setCurrentSection={setCurrentSection} />
+			<TopHeader
+				openLeftNavBar={openLeftNavBar}
+				setCurrentSection={setCurrentSection}
+				leftNavBarStatus={leftNavBarExpandedStatus}
+			/>
 			<Divider />
-			<MainBody
-				setLeftNavBarStatus={setleftNavBarStatus}
+			<Main
+				setLeftNavBarExpandedStatus={setleftNavBarExpandedStatus}
 				openLeftNavBar={openLeftNavBar}
 				closeLeftNavBar={closeLeftNavBar}
-				leftNavBarStatus={leftNavBarStatus}
-				handleLeftBarTransitionEnd={handleLeftBarTransitionEnd}
+				leftNavBarExpandedStatus={leftNavBarExpandedStatus}
+				handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 				setCurrentSection={setCurrentSection}
+				currentSection={currentSection}
 			/>
 		</>
 	);
