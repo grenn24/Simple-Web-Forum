@@ -76,7 +76,7 @@ const ThreadCard = ({
 	avatarClickHandlerFunction,
 }: Prop) => {
 	const [expanded, setExpanded] = React.useState(false);
-	const [likeStatus, setLikeStatus] = React.useState(false);
+	const [likeClickStatus, setLikeClickStatus] = React.useState(false);
 
 	const handleExpandClick = () => {
 		setExpanded(!expanded);
@@ -104,7 +104,6 @@ const ThreadCard = ({
 			<Card
 				sx={{
 					my: 3,
-					
 				}}
 			>
 				<CardHeader
@@ -142,11 +141,16 @@ const ThreadCard = ({
 						</>
 					}
 					title={threadAuthor}
-					titleTypographyProps={{fontWeight:750}}
+					titleTypographyProps={{ fontWeight: 750 }}
 					subheader={threadDate}
 				/>
 				<CardContent>
-					<Typography variant="h5" color="text.primary" fontFamily="Open Sans" fontWeight={650}>
+					<Typography
+						variant="h5"
+						color="text.primary"
+						fontFamily="Open Sans"
+						fontWeight={650}
+					>
 						{threadTitle}
 					</Typography>
 				</CardContent>
@@ -172,7 +176,7 @@ const ThreadCard = ({
 						variant="outlined"
 						tabIndex={-1}
 						startIcon={
-							likeStatus ? (
+							likeClickStatus ? (
 								<FavoriteRoundedIcon color="warning" />
 							) : (
 								<FavoriteBorderRoundedIcon />
@@ -187,10 +191,8 @@ const ThreadCard = ({
 							borderColor: "primary.light",
 						}}
 						onClick={() => {
-							setLikeStatus(!likeStatus);
-							{
-								!likeStatus ? playSound({ id: "default" }) : null;
-							}
+							setLikeClickStatus(!likeClickStatus);
+							!likeClickStatus && playSound({ id: "default" });
 						}}
 					>
 						{threadLikeCount}

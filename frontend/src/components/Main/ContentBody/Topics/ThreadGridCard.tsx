@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { styled } from "@mui/material/styles";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
@@ -6,9 +6,9 @@ import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import Menu from "../../Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
+import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -55,9 +55,10 @@ const ThreadGridCard = ({
 	threadContentSummarised,
 	avatarClickHandlerFunction,
 }: Prop) => {
+	const [bookMarkedClickedStatus, setBookmarkClickedStatus] = useState(false);
 	return (
 		<>
-			<Card sx={{borderRadius:0.7}}>
+			<Card sx={{ borderRadius: 0.7 }}>
 				<CardHeader
 					avatar={
 						<Menu
@@ -84,18 +85,27 @@ const ThreadGridCard = ({
 					action={
 						<>
 							<Menu
-								menuIcon={<BookmarkBorderRoundedIcon />}
+								menuIcon={
+									!bookMarkedClickedStatus ? (
+										<BookmarkBorderRoundedIcon />
+									) : (
+										<BookmarkRemoveRoundedIcon />
+									)
+								}
 								menuExpandedItemsArray={[]}
-								toolTipText="Bookmark"
+								toolTipText={!bookMarkedClickedStatus ? "Add Bookmark" : "Remove Bookmark"}
 								scrollLock={true}
 								showMenuExpandedOnClick={false}
+								handleMenuIconClick={() =>
+									setBookmarkClickedStatus(!bookMarkedClickedStatus)
+								}
 							/>
 						</>
 					}
 					title={threadAuthor}
 					subheader={threadDate}
 					titleTypographyProps={{ fontWeight: 750 }}
-                    sx={{paddingBottom: 0.5}}
+					sx={{ paddingBottom: 0.5 }}
 				/>
 				<CardContent sx={{ py: 0, my: 0 }}>
 					<Typography
