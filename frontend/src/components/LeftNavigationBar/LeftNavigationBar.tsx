@@ -8,6 +8,8 @@ import ListItemText from "@mui/material/ListItemText";
 import { useState, useEffect } from "react";
 import DrawerItems from "./DrawerItems";
 import DrawerIcons from "./DrawerIcons";
+import { useNavigate } from "react-router-dom";
+import Routes from "./Routes";
 
 interface Prop {
 	leftNavBarExpandedStatus: boolean;
@@ -32,6 +34,8 @@ const LeftNavigationBar = ({
 		}
 	}, []);
 
+	const navigate = useNavigate();
+
 	const drawerContent = (
 		<Box
 			sx={{
@@ -55,6 +59,7 @@ const LeftNavigationBar = ({
 						<ListItem  disablePadding >
 							<ListItemButton onClick={() => {setCurrentSection(text);
 								leftNavBarExpandedStatus ? closeLeftNavBar() : null;
+								navigate(Routes[index]);
 							}}>
 								<ListItemIcon
 									sx={{

@@ -1,14 +1,10 @@
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
-import LeftNavigationBar from "../LeftNavigationBar/LeftNavigationBar";
-import Bookmarked from "./ContentBody/Bookmarked";
-import Following from "./ContentBody/Following/Following";
-import Recommended from "./ContentBody/Recommended";
-import Topics from "./ContentBody/Topics/Topics";
-import Profile from "./ContentBody/Profile";
-import WelcomeScreen from "./ContentBody/WelcomeScreen";
-import Home from "./ContentBody/Home";
-import ContentBody from "./ContentBody";
+import LeftNavigationBar from "../components/LeftNavigationBar";
+import ContentBody from "../components/Main/ContentBody";
+import { Outlet, Link } from "react-router-dom";
+import TopHeader from "../components/TopHeader";
+import Divider from "@mui/material/Divider";
 
 const drawerWidth = 300;
 
@@ -28,6 +24,7 @@ export default function MainBody({
 	handleLeftBarCloseTransitionEnd,
 	setCurrentSection,
 	currentSection,
+	openLeftNavBar
 }: Prop) {
 	const [offsetHeight, setOffsetHeight] = useState(80);
 	useEffect(() => {
@@ -42,6 +39,12 @@ export default function MainBody({
 
 	return (
 		<>
+			<TopHeader
+				openLeftNavBar={openLeftNavBar}
+				setCurrentSection={setCurrentSection}
+				leftNavBarStatus={leftNavBarExpandedStatus}
+			/>
+			<Divider />
 			{/*Left Navigation Bar and Right Content Page*/}
 			<Box
 				sx={{
@@ -58,7 +61,7 @@ export default function MainBody({
 					setCurrentSection={setCurrentSection}
 				/>
 				<Box sx={{ width: "100%", position: "relative" }}>
-					<CurrentContentBody setCurrentSection={setCurrentSection} />
+					<Outlet />
 				</Box>
 			</Box>
 		</>

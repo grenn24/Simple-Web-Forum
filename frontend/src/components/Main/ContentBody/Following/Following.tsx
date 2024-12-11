@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import React, { useState, useEffect } from "react";
-import ThreadCard from "../ThreadCard";
+import ThreadCard from "../../ThreadCard";
 import { styled, alpha } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import Menu, { MenuProps } from "@mui/material/Menu";
@@ -13,6 +13,8 @@ import Divider from "@mui/material/Divider";
 import Tooltip from "@mui/material/Tooltip";
 import { Typography } from "@mui/material";
 import Container from "@mui/material/Container";
+import Threads from "./Threads";
+import { useNavigate } from "react-router-dom";
 
 const MenuExpanded = styled((props: MenuProps) => (
 	<Menu
@@ -57,7 +59,11 @@ const MenuExpanded = styled((props: MenuProps) => (
 	},
 }));
 
-const Following = () => {
+interface Prop {
+	setCurrentSection: (currentSection: string) => void;
+}
+
+const Following = ({ setCurrentSection }: Prop) => {
 	const [showMenuExpanded, setShowMenuExpanded] = useState<null | HTMLElement>(
 		null
 	);
@@ -70,14 +76,21 @@ const Following = () => {
 			setSortingOrder(event.currentTarget.dataset.value);
 	};
 
-	const [offsetWidth, setOffsetWidth] = useState(0);
+	const [boxWidth, setBoxWidth] = useState(0);
 
 	useEffect(() => {
-		const x = document.getElementById(
-			"leftNavigationBarContainer"
-		)?.offsetWidth;
+		const x = document.getElementById("followingPageContainer")?.offsetWidth;
 		if (x) {
-			setOffsetWidth(x);
+			setBoxWidth(x);
+		}
+	}, []);
+
+	const [leftNavBarWidth, setLeftNavBarWidth] = useState(300);
+
+	useEffect(() => {
+		const x = document.getElementById("leftNavigationBarTemporaryDrawer")?.offsetWidth;
+		if (x) {
+			setLeftNavBarWidth(x);
 		}
 	}, []);
 
@@ -92,14 +105,16 @@ const Following = () => {
 
 	const [sortingOrder, setSortingOrder] = useState("Best");
 
+	const navigate = useNavigate();
+
 	return (
 		<>
 			<Box
 				sx={{
-					position: "fixed",
-					top: `${offsetHeight + 20}px`,
-					left: `${offsetWidth + 24}px`,
-					width:"100vw"
+					position: "absolute",
+					top: `30px`,
+					left: `${(boxWidth) * 0.45}px`,
+					width: "100vw",
 				}}
 			>
 				<Tooltip title="Sort By">
@@ -141,7 +156,7 @@ const Following = () => {
 				</MenuExpanded>
 			</Box>
 			<Box
-				component="main"
+				id="followingPageContainer"
 				sx={{
 					flexGrow: 1,
 					bgcolor: "background.default",
@@ -159,10 +174,10 @@ const Following = () => {
 					}}
 				>
 					<Typography
-						textAlign={"center"}
+						textAlign={"left"}
 						fontFamily="Open Sans"
 						fontWeight={700}
-						fontSize={25}
+						fontSize={30}
 						color="primary.dark"
 					>
 						Following
@@ -170,46 +185,31 @@ const Following = () => {
 				</Box>
 				<Divider />
 				<Container
-					sx={{ width: {xs:"100%", sm:"100%", md:"50%", lg:"50%", xl:"50%"}, my: 5 }}
+					sx={{
+						width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
+						my: 5,
+					}}
 					disableGutters
-					
 				>
-					<ThreadCard
-						threadTitle="Hello wetiuhawuithiatuhiuh iweuthwiuthwiehtuiw we wetwetwet  wtt"
-						threadAuthor="Gren"
-						threadDate="12/12/2022"
-						threadLikeCount="12"
-						threadCommentCount="12"
-						threadContentSummarised="Hello How are you"
-					/>
-					<Divider />
-					<ThreadCard
-						threadTitle="Hello wetiuhawuithiatuhiuh iweuthwiuthwiehtuiw we wetwetwet  wtt"
-						threadAuthor="Gren"
-						threadDate="12/12/2022"
-						threadLikeCount="12"
-						threadCommentCount="12"
-						threadContentSummarised="Hello How are you"
-					/>
-					<Divider />
-					<ThreadCard
-						threadTitle="Hello wetiuhawuithiatuhiuh iweuthwiuthwiehtuiw we wetwetwet  wtt"
-						threadAuthor="Gren"
-						threadDate="12/12/2022"
-						threadLikeCount="12"
-						threadCommentCount="12"
-						threadContentSummarised="Hello How are you"
-					/>
-					<Divider />
-					<ThreadCard
-						threadTitle="Hello wetiuhawuithiatuhiuh iweuthwiuthwiehtuiw we wetwetwet  wtt"
-						threadAuthor="Gren"
-						threadDate="12/12/2022"
-						threadLikeCount="12"
-						threadCommentCount="12"
-						threadContentSummarised="Hello How are you"
-					/>
-					<Divider />
+					{Threads.map((thread) => (
+						<Box key={thread.id}>
+							<ThreadCard
+								threadTitle={thread.title}
+								threadAuthor={thread.author}
+								threadDate={thread.date}
+								threadLikeCount={thread.likeCount}
+								threadCommentCount={thread.commentCount}
+								threadContentSummarised={thread.contentSummarised}
+								threadImageLink={thread.imageLink}
+								avatarIconLink={thread.avatarIconLink}
+								avatarClickHandlerFunction={() => {
+									setCurrentSection("Profile");
+									navigate("../Profile");
+								}}
+							/>
+							<Divider />
+						</Box>
+					))}
 				</Container>
 			</Box>
 		</>

@@ -2,7 +2,7 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Menu from "../Main/ContentBody/Menu";
+import Menu from "../Main/Menu";
 import Avatar from "@mui/material/Avatar";
 import { useState } from "react";
 import SearchBar from "./SearchBar";
@@ -11,6 +11,7 @@ import MenuExpandedItems from "./MenuExpandedItems";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import MenuExpandedDataValues from "./MenuExpandedDataValues";
+import { useNavigate } from "react-router-dom";
 
 interface Prop {
 	openLeftNavBar: () => void;
@@ -31,6 +32,8 @@ export const TopHeader = ({
 	const handleCloseUserMenu = () => {
 		setShowMenu(null);
 	};
+
+	const navigate = useNavigate();
 
 	return (
 		<>
@@ -105,8 +108,14 @@ export const TopHeader = ({
 						menuIcon={
 							<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
 						}
-						menuExpandedItemStateUpdater={setCurrentSection}
-						iconStyle={{
+						handleMenuExpandedItemsClick={(event: React.MouseEvent<HTMLElement>) => {
+							event.currentTarget.dataset.value && setCurrentSection(
+								event.currentTarget.dataset.value
+							);
+							event.currentTarget.dataset.value &&
+								navigate(`../${event.currentTarget.dataset.value}`);
+						}}
+						menuIconStyle={{
 							padding: 1,
 							"&:hover": {
 								filter: "brightness(0.9)",

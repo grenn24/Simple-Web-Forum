@@ -8,30 +8,36 @@ interface Prop {
 	menuExpandedItemsArray: string[];
 	menuExpandedIconsArray?: JSX.Element[];
 	menuExpandedDataValuesArray?: string[];
-	menuExpandedItemStateUpdater?: (state: string) => void;
+	handleMenuExpandedItemsClick?: (event: React.MouseEvent<HTMLElement>) => void;
+	handleMenuIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	menuIcon: JSX.Element;
+	menuIconDataValue?: string;
 	toolTipText?: string;
 	defaultSelectedItem?: string;
-	iconStyle?: Object;
+	menuIconStyle?: Object;
 	menuExpandedPosition?: {
 		vertical: "top" | "bottom";
 		horizontal: "left" | "right";
 	};
 	dividerIndex?: number;
 	scrollLock?: boolean;
+	showMenuExpandedOnClick?: boolean;
 }
 const Menu = ({
 	menuExpandedIconsArray,
 	menuExpandedItemsArray,
-	menuExpandedItemStateUpdater,
+	handleMenuExpandedItemsClick,
+	handleMenuIconClick,
 	menuIcon,
+	menuIconDataValue,
 	toolTipText,
 	defaultSelectedItem,
-	iconStyle,
+	menuIconStyle,
 	menuExpandedPosition,
 	dividerIndex,
 	scrollLock = false,
-	menuExpandedDataValuesArray
+	menuExpandedDataValuesArray,
+	showMenuExpandedOnClick = true,
 }: Prop) => {
 	const [showMenuExpanded, setShowMenuExpanded] = useState<null | HTMLElement>(
 		null
@@ -39,34 +45,39 @@ const Menu = ({
 
 	const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setShowMenuExpanded(event.currentTarget);
+		handleMenuIconClick && handleMenuIconClick(event);
 	};
 
 	const handleCloseMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setShowMenuExpanded(null);
-		event.currentTarget.dataset.value &&
-			menuExpandedItemStateUpdater &&
-			menuExpandedItemStateUpdater(event.currentTarget.dataset.value);
+		handleMenuExpandedItemsClick && handleMenuExpandedItemsClick(event);
 	};
 
 	return (
 		<>
 			<Tooltip title={toolTipText ? toolTipText : ""}>
-				<IconButton onClick={handleOpenMenu} sx={iconStyle}>
+				<IconButton
+					onClick={handleOpenMenu}
+					sx={menuIconStyle}
+					data-value={menuIconDataValue}
+				>
 					{menuIcon}
 				</IconButton>
 			</Tooltip>
 
-			<MenuExpanded
-				itemsArray={menuExpandedItemsArray}
-				iconsArray={menuExpandedIconsArray}
-				handleCloseMenu={handleCloseMenu}
-				defaultSelectedItem={defaultSelectedItem}
-				dividerIndex={dividerIndex}
-				scrollLock={scrollLock}
-				showMenuExpanded={showMenuExpanded}
-				menuExpandedPosition={menuExpandedPosition}
-				dataValuesArray={menuExpandedDataValuesArray}
-			/>
+			{showMenuExpandedOnClick ? (
+				<MenuExpanded
+					itemsArray={menuExpandedItemsArray}
+					iconsArray={menuExpandedIconsArray}
+					handleCloseMenu={handleCloseMenu}
+					defaultSelectedItem={defaultSelectedItem}
+					dividerIndex={dividerIndex}
+					scrollLock={scrollLock}
+					showMenuExpanded={showMenuExpanded}
+					menuExpandedPosition={menuExpandedPosition}
+					dataValuesArray={menuExpandedDataValuesArray}
+				/>
+			) : null}
 		</>
 	);
 };

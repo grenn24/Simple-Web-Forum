@@ -1,1 +1,1 @@
-export default ["Profile", "Settings", "WelcomeScreen"];
+export default ["Profile", "Settings", "Welcome"];

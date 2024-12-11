@@ -20,7 +20,7 @@ const theme = createTheme({
 		},
 	},
 	typography: {
-		fontFamily: "Nunito",
+		fontFamily: "Nunito, Open Sans, Poppins",
 		fontSize: 16,
 		fontWeightRegular: 550,
 	},

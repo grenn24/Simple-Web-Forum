@@ -19,9 +19,10 @@ import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import likeSound from "../../../assets/audio/Like Sound.mp3";
-import Menu from "../ContentBody/Menu";
+import Menu from "../Menu";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedItems from "./MenuExpandedItems";
+import { useNavigate } from "react-router-dom";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -55,9 +56,12 @@ interface Prop {
 	threadTitle: string;
 	threadAuthor: string;
 	threadDate: string;
-	threadLikeCount: string;
-	threadCommentCount: string;
+	threadLikeCount: number;
+	threadCommentCount: number;
 	threadContentSummarised: string;
+	threadImageLink?: string;
+	avatarIconLink: string;
+	avatarClickHandlerFunction?: () => void;
 }
 
 const ThreadCard = ({
@@ -67,6 +71,9 @@ const ThreadCard = ({
 	threadLikeCount,
 	threadCommentCount,
 	threadContentSummarised,
+	threadImageLink,
+	avatarIconLink,
+	avatarClickHandlerFunction,
 }: Prop) => {
 	const [expanded, setExpanded] = React.useState(false);
 	const [likeStatus, setLikeStatus] = React.useState(false);
@@ -78,7 +85,7 @@ const ThreadCard = ({
 	const [playSound] = useSound(likeSound, {
 		volume: 0.9,
 		sprite: {
-			default: [90, 3000]
+			default: [90, 3000],
 		},
 	});
 
@@ -90,15 +97,39 @@ const ThreadCard = ({
 		setAnchorEl(null);
 	};
 
+	const navigate = useNavigate();
+
 	return (
 		<>
 			<Card
 				sx={{
-					my: 3
+					my: 3,
+					
 				}}
 			>
 				<CardHeader
-					avatar={<Avatar sx={{ bgcolor: red[500] }} />}
+					avatar={
+						<Menu
+							menuExpandedItemsArray={[]}
+							menuIcon={<Avatar src={avatarIconLink} />}
+							menuIconStyle={{
+								padding: 0,
+								"&:hover": {
+									filter: "brightness(0.9)",
+								},
+							}}
+							menuIconDataValue="Profile"
+							menuExpandedPosition={{
+								vertical: "top",
+								horizontal: "right",
+							}}
+							dividerIndex={2}
+							menuExpandedDataValuesArray={[]}
+							toolTipText="View Profile"
+							handleMenuIconClick={avatarClickHandlerFunction}
+							showMenuExpandedOnClick={false}
+						/>
+					}
 					action={
 						<>
 							<Menu
@@ -111,18 +142,18 @@ const ThreadCard = ({
 						</>
 					}
 					title={threadAuthor}
+					titleTypographyProps={{fontWeight:750}}
 					subheader={threadDate}
 				/>
 				<CardContent>
-					<Typography variant="h5" color="text.primary" fontFamily="Open Sans">
+					<Typography variant="h5" color="text.primary" fontFamily="Open Sans" fontWeight={650}>
 						{threadTitle}
 					</Typography>
 				</CardContent>
 				<CardMedia
 					component="img"
 					height="194"
-					image="https://media.self.com/photos/57d8952946d0cb351c8c50c9/master/w_1600%2Cc_limit/DELICIOUS-1-POT-Lentil-and-Black-Bean-Chili-Smoky-hearty-PROTEIN-and-fiber-packed-vegan-glutenfree-lentils-chili-healthy-recipe2.jpg"
-					alt="Paella dish"
+					image={threadImageLink}
 					sx={{ height: "auto", objectFit: "contain" }}
 				/>
 
@@ -158,7 +189,7 @@ const ThreadCard = ({
 						onClick={() => {
 							setLikeStatus(!likeStatus);
 							{
-								!likeStatus ? playSound({id: "default"}) : null;
+								!likeStatus ? playSound({ id: "default" }) : null;
 							}
 						}}
 					>
