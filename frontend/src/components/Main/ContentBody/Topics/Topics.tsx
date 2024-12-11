@@ -8,12 +8,16 @@ import Container from "@mui/material/Container";
 import ThreadGridCard from "./ThreadGridCard";
 import { useNavigate } from "react-router-dom";
 import ThreadGroups from "./Threads";
+import { useWindowSize } from "@uidotdev/usehooks";
+import { ThemeProvider } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 interface Prop {
 	setCurrentSection: (currentSection: string) => void;
 }
 const Topics = ({ setCurrentSection }: Prop) => {
 	const navigate = useNavigate();
+	const screenWidth = useWindowSize().width as number;
 	return (
 		<>
 			<Box
@@ -43,13 +47,19 @@ const Topics = ({ setCurrentSection }: Prop) => {
 						Explore Topics
 					</Typography>
 				</Box>
-				<Divider/>
+				<Divider />
 				{ThreadGroups.map((threadGroup) => (
 					<Box marginBottom={10} key={threadGroup.topic}>
 						<Box
 							sx={{
 								marginX: "auto",
-								width: { xs: "100%", sm: "100%", md: "85%", lg: "85%", xl:"70%" },
+								width: {
+									xs: "100%",
+									sm: "100%",
+									md: "95%",
+									lg: "85%",
+									xl: "70%",
+								},
 								marginTop: 3,
 							}}
 						>
@@ -64,12 +74,21 @@ const Topics = ({ setCurrentSection }: Prop) => {
 							<Box>
 								<Grid
 									container
-									columnSpacing={3}
-									rowSpacing={4}
+									columnSpacing={2.5}
+									rowSpacing={2}
 									sx={{ marginTop: 2 }}
 								>
 									{threadGroup.threads.map((thread) => (
-										<Grid size={4} key={thread.id}>
+										<Grid
+											size={
+												screenWidth > useTheme().breakpoints.values.md
+													? 4
+													: screenWidth > useTheme().breakpoints.values.sm
+													? 6
+													: 12
+											}
+											key={thread.id}
+										>
 											<ThreadGridCard
 												threadAuthor={thread.author}
 												threadTitle={thread.title}

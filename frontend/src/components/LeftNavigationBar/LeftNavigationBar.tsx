@@ -95,7 +95,7 @@ const LeftNavigationBar = ({
 			id="leftNavigationBarContainer"
 			component="nav"
 			sx={{
-				width: { xs: "0px", sm: "0px", md: "300px" },
+				width: { xs: "0px", sm: "0px", md: "250px", lg: "300px", xl: "300px" },
 				flexShrink: { md: 0 },
 			}}
 		>
@@ -110,10 +110,22 @@ const LeftNavigationBar = ({
 					keepMounted: true, // Better open performance on mobile.
 				}}
 				sx={{
-					display: { xs: "block", sm: "block", md: "none" },
+					display: {
+						xs: "block",
+						sm: "block",
+						md: "none",
+						lg: "none",
+						xl: "none",
+					},
 					"& .MuiDrawer-paper": {
 						boxSizing: "border-box",
-						width: "300px",
+						width: {
+							xs: "250px",
+							sm: "300px",
+							md: "0px",
+							lg: "0px",
+							xl: "0px",
+						},
 					},
 				}}
 			>
@@ -123,10 +135,22 @@ const LeftNavigationBar = ({
 				id="leftNavigationBarPermanentDrawer"
 				variant="permanent"
 				sx={{
-					display: { xs: "none", sm: "none", md: "block" },
+					display: {
+						xs: "none",
+						sm: "none",
+						md: "block",
+						lg: "block",
+						xl: "block",
+					},
 					"& .MuiDrawer-paper": {
 						boxSizing: "border-box",
-						width: "300px",
+						width: {
+							xs: "0px",
+							sm: "0px",
+							md: "250px",
+							lg: "300px",
+							xl: "300px",
+						},
 					},
 				}}
 				open

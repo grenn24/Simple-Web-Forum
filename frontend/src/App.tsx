@@ -64,7 +64,7 @@ function App() {
 						<Route path="Recommended" element={<Recommended />} />
 						<Route
 							path="Topics"
-							element={<Topics setCurrentSection={setCurrentSection} />}
+							element={<Topics setCurrentSection={setCurrentSection}/>}
 						/>
 						<Route path="Bookmarked" element={<Bookmarked />} />
 						<Route path="Liked" element={<Liked />} />
