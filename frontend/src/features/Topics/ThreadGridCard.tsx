@@ -6,7 +6,7 @@ import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Menu from "../../Menu";
+import Menu from "../../components/Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
 import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
 
@@ -93,7 +93,9 @@ const ThreadGridCard = ({
 									)
 								}
 								menuExpandedItemsArray={[]}
-								toolTipText={!bookMarkedClickedStatus ? "Add Bookmark" : "Remove Bookmark"}
+								toolTipText={
+									!bookMarkedClickedStatus ? "Add Bookmark" : "Remove Bookmark"
+								}
 								scrollLock={true}
 								showMenuExpandedOnClick={false}
 								handleMenuIconClick={() =>

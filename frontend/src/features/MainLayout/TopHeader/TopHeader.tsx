@@ -2,7 +2,7 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Menu from "../Main/Menu";
+import Menu from "../../../components/Menu";
 import Avatar from "@mui/material/Avatar";
 import { useState } from "react";
 import SearchBar from "./SearchBar";
@@ -16,11 +16,9 @@ import { useNavigate } from "react-router-dom";
 interface Prop {
 	openLeftNavBar: () => void;
 	leftNavBarStatus: boolean;
-	setCurrentSection: (currentSection: string) => void;
 }
 export const TopHeader = ({
 	openLeftNavBar,
-	setCurrentSection,
 	leftNavBarStatus,
 }: Prop) => {
 	const [showMenu, setShowMenu] = useState<null | HTMLElement>(null);
@@ -108,10 +106,9 @@ export const TopHeader = ({
 						menuIcon={
 							<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
 						}
-						handleMenuExpandedItemsClick={(event: React.MouseEvent<HTMLElement>) => {
-							event.currentTarget.dataset.value && setCurrentSection(
-								event.currentTarget.dataset.value
-							);
+						handleMenuExpandedItemsClick={(
+							event: React.MouseEvent<HTMLElement>
+						) => {
 							event.currentTarget.dataset.value &&
 								navigate(`../${event.currentTarget.dataset.value}`);
 						}}

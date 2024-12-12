@@ -22,7 +22,7 @@ export default [
 			color: "#ffce2e",
 		}}
 	/>,
-	<CategoryRoundedIcon color="primary" />,
-	<BookmarksRoundedIcon color="primary" />,
-	<FavoriteRoundedIcon color="primary" />,
+	<CategoryRoundedIcon sx={{ color: "primary.dark" }} />,
+	<BookmarksRoundedIcon sx={{ color: "primary.dark" }} />,
+	<FavoriteRoundedIcon sx={{color:"primary.dark"}} />,
 ];

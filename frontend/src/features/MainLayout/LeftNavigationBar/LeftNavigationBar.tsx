@@ -16,14 +16,12 @@ interface Prop {
 	setLeftNavBarStatus: (x: boolean) => void;
 	closeLeftNavBar: () => void;
 	handleLeftBarCloseTransitionEnd: () => void;
-	setCurrentSection: (currentSection: string) => void;
 }
 
 const LeftNavigationBar = ({
 	leftNavBarExpandedStatus,
 	closeLeftNavBar,
 	handleLeftBarCloseTransitionEnd,
-	setCurrentSection,
 }: Prop) => {
 	const [offsetHeight, setOffsetHeight] = useState(80);
 
@@ -57,7 +55,7 @@ const LeftNavigationBar = ({
 				{DrawerItems.map((text, index) => (
 					<Box key={text} width="100%" >
 						<ListItem  disablePadding >
-							<ListItemButton onClick={() => {setCurrentSection(text);
+							<ListItemButton onClick={() => {
 								leftNavBarExpandedStatus ? closeLeftNavBar() : null;
 								navigate(Routes[index]);
 							}}>

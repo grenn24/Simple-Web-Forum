@@ -1,9 +1,8 @@
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
-import LeftNavigationBar from "../components/LeftNavigationBar";
-import ContentBody from "../components/Main/ContentBody";
+import LeftNavigationBar from "../features/MainLayout/LeftNavigationBar";
 import { Outlet, Link } from "react-router-dom";
-import TopHeader from "../components/TopHeader";
+import TopHeader from "../features/MainLayout/TopHeader";
 import Divider from "@mui/material/Divider";
 
 const drawerWidth = 300;
@@ -14,17 +13,13 @@ interface Prop {
 	closeLeftNavBar: () => void;
 	openLeftNavBar: () => void;
 	handleLeftBarCloseTransitionEnd: () => void;
-	setCurrentSection: (currentSection: string) => void;
-	currentSection: string;
 }
 export default function MainBody({
 	leftNavBarExpandedStatus,
 	setLeftNavBarExpandedStatus,
 	closeLeftNavBar,
 	handleLeftBarCloseTransitionEnd,
-	setCurrentSection,
-	currentSection,
-	openLeftNavBar
+	openLeftNavBar,
 }: Prop) {
 	const [offsetHeight, setOffsetHeight] = useState(80);
 	useEffect(() => {
@@ -34,14 +29,11 @@ export default function MainBody({
 		}
 	}, []);
 
-	const CurrentContentBody =
-		ContentBody[currentSection as keyof typeof ContentBody];
 
 	return (
 		<>
 			<TopHeader
 				openLeftNavBar={openLeftNavBar}
-				setCurrentSection={setCurrentSection}
 				leftNavBarStatus={leftNavBarExpandedStatus}
 			/>
 			<Divider />
@@ -58,7 +50,6 @@ export default function MainBody({
 					setLeftNavBarStatus={setLeftNavBarExpandedStatus}
 					closeLeftNavBar={closeLeftNavBar}
 					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
-					setCurrentSection={setCurrentSection}
 				/>
 				<Box sx={{ width: "100%", position: "relative" }}>
 					<Outlet />

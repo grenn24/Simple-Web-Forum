@@ -1,19 +1,25 @@
-import Box from "@mui/material/Box";
-import React, { useState, useEffect } from "react";
-import ThreadCard from "../../ThreadCard";
-import { styled, alpha } from "@mui/material/styles";
-import Button from "@mui/material/Button";
-import Menu, { MenuProps } from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import StarPurple500RoundedIcon from "@mui/icons-material/StarPurple500Rounded";
-import LocalFireDepartmentRoundedIcon from "@mui/icons-material/LocalFireDepartmentRounded";
-import Divider from "@mui/material/Divider";
-import Tooltip from "@mui/material/Tooltip";
-import { Typography } from "@mui/material";
-import Container from "@mui/material/Container";
-import Threads from "./Threads";
+import {
+	Box,
+	Button,
+	Divider,
+	Tooltip,
+	Typography,
+	Container,
+	MenuItem,
+	Menu,
+	MenuProps,
+	styled,
+	alpha,
+} from "@mui/material";
+import { useState, useEffect } from "react";
+import ThreadCard from "../components/ThreadCard";
+import {
+	AccessTimeRounded as AccessTimeRoundedIcon,
+	KeyboardArrowDown as KeyboardArrowDownIcon,
+	StarPurple500Rounded as StarPurple500RoundedIcon,
+	LocalFireDepartmentRounded as LocalFireDepartmentRoundedIcon,
+} from "@mui/icons-material";
+import threads from "../features/Following/threads";
 import { useNavigate } from "react-router-dom";
 
 const MenuExpanded = styled((props: MenuProps) => (
@@ -59,11 +65,7 @@ const MenuExpanded = styled((props: MenuProps) => (
 	},
 }));
 
-interface Prop {
-	setCurrentSection: (currentSection: string) => void;
-}
-
-const Following = ({ setCurrentSection }: Prop) => {
+const Following = () => {
 	const [showMenuExpanded, setShowMenuExpanded] = useState<null | HTMLElement>(
 		null
 	);
@@ -88,7 +90,9 @@ const Following = ({ setCurrentSection }: Prop) => {
 	const [leftNavBarWidth, setLeftNavBarWidth] = useState(300);
 
 	useEffect(() => {
-		const x = document.getElementById("leftNavigationBarTemporaryDrawer")?.offsetWidth;
+		const x = document.getElementById(
+			"leftNavigationBarTemporaryDrawer"
+		)?.offsetWidth;
 		if (x) {
 			setLeftNavBarWidth(x);
 		}
@@ -113,7 +117,7 @@ const Following = ({ setCurrentSection }: Prop) => {
 				sx={{
 					position: "absolute",
 					top: `30px`,
-					left: `${(boxWidth) * 0.45}px`,
+					left: `${boxWidth * 0.45}px`,
 					width: "100vw",
 				}}
 			>
@@ -191,7 +195,7 @@ const Following = ({ setCurrentSection }: Prop) => {
 					}}
 					disableGutters
 				>
-					{Threads.map((thread) => (
+					{threads.map((thread) => (
 						<Box key={thread.id}>
 							<ThreadCard
 								threadTitle={thread.title}
@@ -203,7 +207,6 @@ const Following = ({ setCurrentSection }: Prop) => {
 								threadImageLink={thread.imageLink}
 								avatarIconLink={thread.avatarIconLink}
 								avatarClickHandlerFunction={() => {
-									setCurrentSection("Profile");
 									navigate("../Profile");
 								}}
 							/>

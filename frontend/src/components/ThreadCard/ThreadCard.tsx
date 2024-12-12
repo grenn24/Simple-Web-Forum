@@ -18,7 +18,7 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import likeSound from "../../../assets/audio/Like Sound.mp3";
+import LikeSound from "../../assets/audio/Like Sound.mp3";
 import Menu from "../Menu";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedItems from "./MenuExpandedItems";
@@ -82,7 +82,7 @@ const ThreadCard = ({
 		setExpanded(!expanded);
 	};
 
-	const [playSound] = useSound(likeSound, {
+	const [playSound] = useSound(LikeSound, {
 		volume: 0.9,
 		sprite: {
 			default: [90, 3000],

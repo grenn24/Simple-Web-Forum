@@ -1,3 +1,7 @@
-import Liked from "../components/Main/ContentBody/Liked";
+import React from "react";
 
-export default Liked
+const Liked = () => {
+	return <div>Liked</div>;
+};
+
+export default Liked;

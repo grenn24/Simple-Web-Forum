@@ -1,3 +1,7 @@
-import Bookmarked from "../components/Main/ContentBody/Bookmarked";
+import React from "react";
+
+const Bookmarked = () => {
+	return <div>Bookmarked</div>;
+};
 
 export default Bookmarked;

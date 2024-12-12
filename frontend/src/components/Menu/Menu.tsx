@@ -3,6 +3,7 @@ import { Tooltip } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import MenuExpanded from "./MenuExpanded";
 import React from "react";
+import { useTheme } from "../../context/ThemeContext";
 
 interface Prop {
 	menuExpandedItemsArray: string[];
