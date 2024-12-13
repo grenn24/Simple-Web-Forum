@@ -6,9 +6,11 @@ import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Menu from "../../components/Menu";
+import Menu from "../Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
 import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
+import { CardActionArea } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -39,6 +41,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 interface Prop {
+	threadId: number;
 	threadTitle: string;
 	threadAuthor: string;
 	threadDate: string;
@@ -48,6 +51,7 @@ interface Prop {
 }
 
 const ThreadGridCard = ({
+	threadId,
 	threadTitle,
 	threadAuthor,
 	threadDate,
@@ -56,9 +60,10 @@ const ThreadGridCard = ({
 	avatarClickHandlerFunction,
 }: Prop) => {
 	const [bookMarkedClickedStatus, setBookmarkClickedStatus] = useState(false);
+	const navigate = useNavigate();
 	return (
 		<>
-			<Card sx={{ borderRadius: 0.7 }}>
+			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
 				<CardHeader
 					avatar={
 						<Menu
@@ -75,7 +80,6 @@ const ThreadGridCard = ({
 								vertical: "top",
 								horizontal: "right",
 							}}
-							dividerIndex={2}
 							menuExpandedDataValuesArray={[]}
 							toolTipText="View Profile"
 							handleMenuIconClick={avatarClickHandlerFunction}
@@ -109,20 +113,25 @@ const ThreadGridCard = ({
 					titleTypographyProps={{ fontWeight: 750 }}
 					sx={{ paddingBottom: 0.5 }}
 				/>
-				<CardContent sx={{ py: 0, my: 0 }}>
-					<Typography
-						fontSize={20}
-						color="text.primary"
-						fontFamily="Open Sans"
-						fontWeight={600}
-					>
-						{threadTitle}
-					</Typography>
-				</CardContent>
+				<CardActionArea
+					sx={{ borderRadius: 0 }}
+					onClick={() => navigate(`../Thread/${threadId}`)}
+				>
+					<CardContent sx={{ py: 0, my: 0 }}>
+						<Typography
+							fontSize={20}
+							color="text.primary"
+							fontFamily="Open Sans"
+							fontWeight={600}
+						>
+							{threadTitle}
+						</Typography>
+					</CardContent>
 
-				<CardContent sx={{ py: 0, my: 0 }}>
-					<Typography fontSize={14}>{threadContentSummarised}</Typography>
-				</CardContent>
+					<CardContent sx={{ py: 0, marginBottom: 1 }}>
+						<Typography fontSize={14}>{threadContentSummarised}</Typography>
+					</CardContent>
+				</CardActionArea>
 			</Card>
 		</>
 	);

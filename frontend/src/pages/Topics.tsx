@@ -1,12 +1,23 @@
-import {Box, Grid2 as Grid, Typography, Divider, useTheme} from "@mui/material";
-import ThreadGridCard from "../features/Topics/ThreadGridCard";
-import { useNavigate } from "react-router-dom";
-import threadGroups from "../features/Topics/threadGroups";
+import {
+	Box,
+	Grid2 as Grid,
+	Typography,
+	Divider,
+	useTheme,
+} from "@mui/material";
+import ThreadGridCard from "../components/ThreadCardMinimised/ThreadCardMinimised";
+import { useNavigate, useLocation } from "react-router-dom";
+import threadGroups from "../features/Topics/topicsDataSample";
 import { useWindowSize } from "@uidotdev/usehooks";
 
 const Topics = () => {
 	const navigate = useNavigate();
 	const screenWidth = useWindowSize().width as number;
+
+	const location = useLocation();
+	const queryParamaters = new URLSearchParams(location.search);
+	const topicName = queryParamaters.get("topicName");
+
 	return (
 		<>
 			<Box
@@ -57,6 +68,10 @@ const Topics = () => {
 								fontFamily="Open Sans"
 								color="primary.dark"
 								fontWeight={700}
+								onClick={() =>
+									navigate(`../Topics/?topicName=${threadGroup.topic}`)
+								}
+								sx={{ cursor: "pointer" }}
 							>
 								{threadGroup.topic}
 							</Typography>
@@ -79,13 +94,14 @@ const Topics = () => {
 											key={thread.id}
 										>
 											<ThreadGridCard
+												threadId={thread.id}
 												threadAuthor={thread.author}
 												threadTitle={thread.title}
 												threadDate={thread.date}
 												avatarIconLink={thread.avatarIconLink}
 												threadContentSummarised={thread.contentSummarised}
 												avatarClickHandlerFunction={() => {
-													navigate("../Profile");
+													navigate(`../Profile/${thread.authorId}`);
 												}}
 											/>
 										</Grid>

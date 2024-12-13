@@ -1,7 +1,6 @@
 import "./styles/App.css";
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import ThemeContext from "./context/ThemeContext";
 import WelcomeScreen from "./pages/WelcomeScreen";
 import Following from "./pages/Following";
 import MainLayout from "./pages/MainLayout";
@@ -13,6 +12,7 @@ import Bookmarked from "./pages/Bookmarked";
 import Liked from "./pages/Liked";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Thread from "./pages/Thread";
 import Theme from "./styles/Theme";
 import { ThemeProvider } from "@emotion/react";
 
@@ -41,7 +41,7 @@ function App() {
 			<ThemeProvider theme={Theme}>
 				<BrowserRouter>
 					<Routes>
-						{/*Main Layout*/}
+						{/*Pages using Main Layout*/}
 						<Route
 							path="/"
 							element={
@@ -57,22 +57,18 @@ function App() {
 							}
 						>
 							<Route index element={<Home />} />
-							<Route
-								path="Following"
-								element={<Following />}
-							/>
+							<Route path="Following" element={<Following />} />
 							<Route path="Recommended" element={<Recommended />} />
-							<Route
-								path="Topics"
-								element={<Topics />}
-							/>
+							<Route path="Topics" element={<Topics />} />
 							<Route path="Bookmarked" element={<Bookmarked />} />
 							<Route path="Liked" element={<Liked />} />
 							<Route path="Settings" element={<Settings />} />
-							<Route path="Profile" element={<Profile />} />
+							<Route path="Profile/:authorId" element={<Profile />} />
+							<Route path="Thread/:threadId" element={<Thread />} />
 						</Route>
-						{/*No Layout*/}
+						{/*Pages without Layout*/}
 						<Route path="Welcome" element={<WelcomeScreen />} />
+						{/*Missed Routes*/}
 						<Route path="*" element={<Error />} />
 					</Routes>
 				</BrowserRouter>

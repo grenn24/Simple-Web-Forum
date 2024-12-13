@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Tooltip } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
 import MenuExpanded from "./MenuExpanded";
 import React from "react";
-import { useTheme } from "../../context/ThemeContext";
+import { Button, IconButton } from "@mui/material";
 
 interface Prop {
 	menuExpandedItemsArray: string[];
@@ -14,15 +13,18 @@ interface Prop {
 	menuIcon: JSX.Element;
 	menuIconDataValue?: string;
 	toolTipText?: string;
-	defaultSelectedItem?: string;
-	menuIconStyle?: Object;
+	defaultSelectedItemIndex?: number;
+	menuStyle?: Object;
 	menuExpandedPosition?: {
 		vertical: "top" | "bottom";
 		horizontal: "left" | "right";
 	};
-	dividerIndex?: number;
+	dividerPositions?: number[];
 	scrollLock?: boolean;
-	showMenuExpandedOnClick?: boolean;
+	showMenuExpandedOnClick?: boolean
+	children?: React.ReactNode;
+	variant?: "outlined" | "contained" | "text";
+	allCaps?: boolean
 }
 const Menu = ({
 	menuExpandedIconsArray,
@@ -32,22 +34,20 @@ const Menu = ({
 	menuIcon,
 	menuIconDataValue,
 	toolTipText,
-	defaultSelectedItem,
-	menuIconStyle,
+	defaultSelectedItemIndex,
+	menuStyle,
 	menuExpandedPosition,
-	dividerIndex,
+	dividerPositions,
 	scrollLock = false,
-	menuExpandedDataValuesArray,
+	menuExpandedDataValuesArray=menuExpandedItemsArray,
 	showMenuExpandedOnClick = true,
+	children,
+	variant,
+	allCaps=false
 }: Prop) => {
 	const [showMenuExpanded, setShowMenuExpanded] = useState<null | HTMLElement>(
 		null
 	);
-
-	const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
-		setShowMenuExpanded(event.currentTarget);
-		handleMenuIconClick && handleMenuIconClick(event);
-	};
 
 	const handleCloseMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setShowMenuExpanded(null);
@@ -57,13 +57,30 @@ const Menu = ({
 	return (
 		<>
 			<Tooltip title={toolTipText ? toolTipText : ""}>
-				<IconButton
-					onClick={handleOpenMenu}
-					sx={menuIconStyle}
-					data-value={menuIconDataValue}
-				>
-					{menuIcon}
-				</IconButton>
+				{!children ? (
+					<IconButton
+						onClick={(event: React.MouseEvent<HTMLElement>) => {
+							setShowMenuExpanded(event.currentTarget);
+							handleMenuIconClick && handleMenuIconClick(event);
+						}}
+						sx={menuStyle}
+						data-value={menuIconDataValue}
+					>
+						{menuIcon}
+					</IconButton>
+				) : (
+					<Button
+						variant={variant}
+						onClick={(event: React.MouseEvent<HTMLElement>) => {
+							setShowMenuExpanded(event.currentTarget);
+							handleMenuIconClick && handleMenuIconClick(event);
+						}}
+						endIcon={menuIcon}
+						sx={{...menuStyle, textTransform: allCaps ? "uppercase" : "none"}}
+					>
+						{children}
+					</Button>
+				)}
 			</Tooltip>
 
 			{showMenuExpandedOnClick ? (
@@ -71,8 +88,8 @@ const Menu = ({
 					itemsArray={menuExpandedItemsArray}
 					iconsArray={menuExpandedIconsArray}
 					handleCloseMenu={handleCloseMenu}
-					defaultSelectedItem={defaultSelectedItem}
-					dividerIndex={dividerIndex}
+					defaultSelectedItemIndex={defaultSelectedItemIndex}
+					dividerPositions={dividerPositions}
 					scrollLock={scrollLock}
 					showMenuExpanded={showMenuExpanded}
 					menuExpandedPosition={menuExpandedPosition}

@@ -7,8 +7,8 @@ interface Prop {
 	itemsArray: string[];
 	iconsArray?: JSX.Element[];
 	handleCloseMenu: (event: React.MouseEvent<HTMLElement>) => void;
-	defaultSelectedItem?: string;
-	dividerIndex?: number; //The index of the element above the divider;
+	defaultSelectedItemIndex?: number;
+	dividerPositions?: number[]; //The index of the element above the dividers;
 	scrollLock?: boolean;
 	menuExpandedPosition?: {
 		vertical: "top" | "bottom";
@@ -21,15 +21,15 @@ const MenuExpanded = ({
 	itemsArray,
 	iconsArray,
 	handleCloseMenu,
-	defaultSelectedItem,
-	dividerIndex,
+	defaultSelectedItemIndex,
+	dividerPositions,
 	scrollLock,
 	showMenuExpanded,
 	menuExpandedPosition = {
 		vertical: "top",
 		horizontal: "left",
 	},
-	dataValuesArray=itemsArray
+	dataValuesArray = itemsArray,
 }: Prop) => {
 	const mappedArray = new Array(
 		Math.max(itemsArray.length, iconsArray ? iconsArray.length : 0)
@@ -40,19 +40,16 @@ const MenuExpanded = ({
 			(mappedArray[index] = (
 				<Box key={itemsArray[index] ? itemsArray[index] : index}>
 					<MenuItem
-						
 						onClick={handleCloseMenu}
-						selected={
-							itemsArray[index]
-								? itemsArray[index] === defaultSelectedItem
-								: false
-						}
+						selected={defaultSelectedItemIndex ? (defaultSelectedItemIndex === index) : false}
 						data-value={dataValuesArray[index]}
 					>
 						{iconsArray && iconsArray[index]}
 						{itemsArray[index]}
 					</MenuItem>
-					{dividerIndex === Number(index) ? <Divider /> : null}
+					{dividerPositions && dividerPositions.includes(Number(index)) ? (
+						<Divider />
+					) : null}
 				</Box>
 			))
 	);
@@ -76,6 +73,7 @@ const MenuExpanded = ({
 			open={showMenuExpanded !== null}
 			onClose={handleCloseMenu}
 			disableScrollLock={!scrollLock}
+			elevation={3}
 		>
 			{mappedArray}
 		</MenuBox>

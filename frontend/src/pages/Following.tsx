@@ -19,7 +19,7 @@ import {
 	StarPurple500Rounded as StarPurple500RoundedIcon,
 	LocalFireDepartmentRounded as LocalFireDepartmentRoundedIcon,
 } from "@mui/icons-material";
-import threads from "../features/Following/threads";
+import threads from "../features/Following/threadsDataSample";
 import { useNavigate } from "react-router-dom";
 
 const MenuExpanded = styled((props: MenuProps) => (
@@ -198,6 +198,7 @@ const Following = () => {
 					{threads.map((thread) => (
 						<Box key={thread.id}>
 							<ThreadCard
+								threadId={thread.id}
 								threadTitle={thread.title}
 								threadAuthor={thread.author}
 								threadDate={thread.date}
@@ -206,9 +207,9 @@ const Following = () => {
 								threadContentSummarised={thread.contentSummarised}
 								threadImageLink={thread.imageLink}
 								avatarIconLink={thread.avatarIconLink}
-								avatarClickHandlerFunction={() => {
-									navigate("../Profile");
-								}}
+								handleAvatarIconClick={() =>
+									navigate(`../Profile/${thread.authorId}`)
+								}
 							/>
 							<Divider />
 						</Box>

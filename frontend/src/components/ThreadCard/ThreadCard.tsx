@@ -1,28 +1,39 @@
-import React from "react";
-import { styled } from "@mui/material/styles";
-import Card from "@mui/material/Card";
-import CardHeader from "@mui/material/CardHeader";
-import CardMedia from "@mui/material/CardMedia";
-import CardContent from "@mui/material/CardContent";
-import CardActions from "@mui/material/CardActions";
-import Collapse from "@mui/material/Collapse";
-import Avatar from "@mui/material/Avatar";
-import IconButton, { IconButtonProps } from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import { red } from "@mui/material/colors";
-import useSound from "use-sound";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { Button } from "@mui/material";
-import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
-import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
-import ShareRoundedIcon from "@mui/icons-material/ShareRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import LikeSound from "../../assets/audio/Like Sound.mp3";
+import { useState } from "react";
+import {
+	Card,
+	useTheme,
+	CardHeader,
+	CardMedia,
+	CardContent,
+	CardActions,
+	CardActionArea,
+	Collapse,
+	Avatar,
+	Typography,
+	styled,
+	IconButton,
+	IconButtonProps,
+} from "@mui/material";
+import Button from "../Button";
+import Snackbar from "../Snackbar";
+import {
+	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
+	CommentRounded as CommentRoundedIcon,
+	ShareRounded as ShareRoundedIcon,
+	FavoriteRounded as FavoriteRoundedIcon,
+	ExpandMore as ExpandMoreIcon,
+	MoreVert as MoreVertIcon,
+	LinkRounded as LinkRoundedIcon,
+	WhatsApp as WhatsAppIcon,
+} from "@mui/icons-material";
+import likeSound from "../../assets/audio/like-sound.mp3";
 import Menu from "../Menu";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedItems from "./MenuExpandedItems";
+import SimpleDialog from "../SimpleDialog";
+import List from "../List";
 import { useNavigate } from "react-router-dom";
+import playerGenerator from "../../utilities/playerGenerator";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -53,6 +64,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 interface Prop {
+	threadId: number;
 	threadTitle: string;
 	threadAuthor: string;
 	threadDate: string;
@@ -61,10 +73,11 @@ interface Prop {
 	threadContentSummarised: string;
 	threadImageLink?: string;
 	avatarIconLink: string;
-	avatarClickHandlerFunction?: () => void;
+	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 const ThreadCard = ({
+	threadId,
 	threadTitle,
 	threadAuthor,
 	threadDate,
@@ -73,31 +86,25 @@ const ThreadCard = ({
 	threadContentSummarised,
 	threadImageLink,
 	avatarIconLink,
-	avatarClickHandlerFunction,
+	handleAvatarIconClick,
 }: Prop) => {
-	const [expanded, setExpanded] = React.useState(false);
-	const [likeClickStatus, setLikeClickStatus] = React.useState(false);
+	const [expandCardContent, setExpandCardContent] = useState(false);
+	const [likeClickStatus, setLikeClickStatus] = useState(false);
+	const [openShareDialog, setOpenShareDialog] = useState(false);
+	const [openSnackbar, setOpenSnackbar] = useState(false);
 
-	const handleExpandClick = () => {
-		setExpanded(!expanded);
-	};
-
-	const [playSound] = useSound(LikeSound, {
-		volume: 0.9,
-		sprite: {
-			default: [90, 3000],
-		},
-	});
-
-	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-	const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
-		setAnchorEl(event.currentTarget);
-	};
-	const handleMenuClose = () => {
-		setAnchorEl(null);
+	const handleExpandMoreClick = () => {
+		setExpandCardContent(!expandCardContent);
 	};
 
 	const navigate = useNavigate();
+
+	const player = playerGenerator(
+		likeSound,
+		0.9,
+		{ default: [90, 3000] },
+		"default"
+	);
 
 	return (
 		<>
@@ -105,13 +112,14 @@ const ThreadCard = ({
 				sx={{
 					my: 3,
 				}}
+				elevation={3}
 			>
 				<CardHeader
 					avatar={
 						<Menu
 							menuExpandedItemsArray={[]}
 							menuIcon={<Avatar src={avatarIconLink} />}
-							menuIconStyle={{
+							menuStyle={{
 								padding: 0,
 								"&:hover": {
 									filter: "brightness(0.9)",
@@ -122,17 +130,17 @@ const ThreadCard = ({
 								vertical: "top",
 								horizontal: "right",
 							}}
-							dividerIndex={2}
+							dividerPositions={[2]}
 							menuExpandedDataValuesArray={[]}
 							toolTipText="View Profile"
-							handleMenuIconClick={avatarClickHandlerFunction}
+							handleMenuIconClick={handleAvatarIconClick}
 							showMenuExpandedOnClick={false}
 						/>
 					}
 					action={
 						<>
 							<Menu
-								menuIcon={<MoreVertIcon />}
+								menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
 								menuExpandedIconsArray={MenuExpandedIcons}
 								menuExpandedItemsArray={MenuExpandedItems}
 								toolTipText="More"
@@ -144,22 +152,24 @@ const ThreadCard = ({
 					titleTypographyProps={{ fontWeight: 750 }}
 					subheader={threadDate}
 				/>
-				<CardContent>
-					<Typography
-						variant="h5"
-						color="text.primary"
-						fontFamily="Open Sans"
-						fontWeight={650}
-					>
-						{threadTitle}
-					</Typography>
-				</CardContent>
-				<CardMedia
-					component="img"
-					height="194"
-					image={threadImageLink}
-					sx={{ height: "auto", objectFit: "contain" }}
-				/>
+				<CardActionArea
+					sx={{ borderRadius: 0 }}
+					onClick={() => navigate(`../Thread/${threadId}`)}
+					disableRipple
+				>
+					<CardContent>
+						<Typography variant="h5" color="primary.dark" fontWeight={760}>
+							{threadTitle}
+						</Typography>
+					</CardContent>
+
+					<CardMedia
+						component="img"
+						height="194"
+						image={threadImageLink}
+						sx={{ height: "auto", objectFit: "contain", pointerEvents: "none" }}
+					/>
+				</CardActionArea>
 
 				<CardActions
 					disableSpacing
@@ -171,73 +181,105 @@ const ThreadCard = ({
 					}}
 				>
 					<Button
-						component="label"
+						component="button"
 						role={undefined}
 						variant="outlined"
-						tabIndex={-1}
-						startIcon={
+						buttonIcon={
 							likeClickStatus ? (
-								<FavoriteRoundedIcon color="warning" />
+								<FavoriteRoundedIcon sx={{ color: "red" }} />
 							) : (
 								<FavoriteBorderRoundedIcon />
 							)
 						}
-						color="primary"
-						sx={{
-							borderRadius: "10px",
-							border: 1,
+						color="primary.dark"
+						borderRadius="10px"
+						borderColor="primary.light"
+						buttonStyle={{
 							marginLeft: 1,
 							marginRight: 1,
-							borderColor: "primary.light",
 						}}
-						onClick={() => {
+						handleButtonClick={() => {
 							setLikeClickStatus(!likeClickStatus);
-							!likeClickStatus && playSound({ id: "default" });
+							!likeClickStatus && player();
 						}}
 					>
 						{threadLikeCount}
 					</Button>
 					<Button
-						component="label"
+						component="button"
 						role={undefined}
 						variant="outlined"
-						tabIndex={-1}
-						startIcon={<CommentRoundedIcon />}
-						color="primary"
-						sx={{
-							borderRadius: "10px",
-							border: 1,
+						buttonIcon={<CommentRoundedIcon />}
+						color="primary.dark"
+						borderRadius="10px"
+						borderColor="primary.light"
+						buttonStyle={{
 							marginRight: 1,
-							borderColor: "primary.light",
 						}}
+						handleButtonClick={() => navigate(`../Thread/${threadId}`, {state: {focusTextField: true}})} //Pass in state during navigation
 					>
 						{threadCommentCount}
 					</Button>
 					<Button
-						component="label"
+						component="button"
 						role={undefined}
 						variant="outlined"
-						tabIndex={-1}
-						startIcon={<ShareRoundedIcon />}
-						color="primary"
-						sx={{
-							borderRadius: "10px",
+						buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
+						color="primary.dark"
+						borderRadius="10px"
+						borderColor="primary.light"
+						buttonStyle={{
 							border: 1,
 							marginRight: 1,
-							borderColor: "primary.light",
 						}}
+						iconOnly
+						handleButtonClick={() => setOpenShareDialog(true)}
+					></Button>
+					<SimpleDialog
+						openDialog={openShareDialog}
+						setOpenDialog={setOpenShareDialog}
+						title="Share"
+						backdropBlur={5}
+						borderRadius={1.3}
 					>
-						&nbsp;
-					</Button>
+						<List
+							listItemsArray={["Copy Link", "Share to WhatsApp"]}
+							listIconsArray={[
+								<LinkRoundedIcon sx={{ marginRight: 1 }} />,
+								<WhatsAppIcon sx={{ marginRight: 1 }} />,
+							]}
+							disablePadding
+							handleListItemsClick={[
+								() => {
+									setOpenSnackbar(true);
+								},
+								() => {
+									const currentLink = window.location.href;
+									window.location.href = `whatsapp://send?text=${currentLink}/Thread/${threadId}`;
+								},
+							]}
+						/>
+						<Snackbar
+							openSnackbar={openSnackbar}
+							setOpenSnackbar={setOpenSnackbar}
+							message="Link copied to clipboard"
+							handleSnackbarClose={() => {
+								const currentLink = window.location.href;
+								navigator.clipboard.writeText(
+									`${currentLink}/Thread/${threadId}`
+								);
+							}}
+							duration={1500}
+						/>
+					</SimpleDialog>
 					<ExpandMore
-						expand={expanded}
-						onClick={handleExpandClick}
-						aria-expanded={expanded}
+						expand={expandCardContent}
+						onClick={handleExpandMoreClick}
 					>
-						<ExpandMoreIcon />
+						<ExpandMoreIcon sx={{ color: "primary.dark" }} />
 					</ExpandMore>
 				</CardActions>
-				<Collapse in={expanded} timeout="auto" unmountOnExit>
+				<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
 					<CardContent>
 						<Typography sx={{ marginBottom: 2 }}>
 							{threadContentSummarised}
