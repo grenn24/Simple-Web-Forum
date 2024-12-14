@@ -1,6 +1,13 @@
 import { Box, Typography, Divider, Container } from "@mui/material";
+import TabMenu from "../components/TabMenu/TabMenu";
+import settingsTabMenuLabels from "../features/Settings/settingsTabMenuLabels";
+import settingsTabMenuPages from "../features/Settings/settingsTabMenuPages";
+import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
+import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 
 const Settings = () => {
+	const navigate = useNavigate();
 	return (
 		<Box
 			sx={{
@@ -30,13 +37,28 @@ const Settings = () => {
 				</Typography>
 			</Box>
 			<Divider />
+			<Box marginTop={2}>
+				<Button
+					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
+					color="primary.dark"
+					buttonStyle={{ mx: 0 }}
+					handleButtonClick={() => navigate(-1)}
+					toolTipText="Back"
+				/>
+			</Box>
 			<Container
 				sx={{
 					width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
 					my: 5,
 				}}
 				disableGutters
-			></Container>
+			>
+				<TabMenu
+					tabLabelArray={settingsTabMenuLabels}
+					tabPageArray={settingsTabMenuPages}
+					variant="fullWidth"
+				/>
+			</Container>
 		</Box>
 	);
 };

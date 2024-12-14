@@ -10,9 +10,8 @@ import playerGenerator from "../../utilities/playerGenerator";
 import likeSound from "../../assets/audio/like-sound.mp3";
 
 interface Prop {
-	id: number;
+	id?: number;
 	author: string;
-	authorId: number;
 	likeCount: number;
 	content: string;
 	date: string;
@@ -20,9 +19,7 @@ interface Prop {
 	handleAvatarIconClick: () => void;
 }
 const Comment = ({
-	id,
 	author,
-	authorId,
 	likeCount,
 	content,
 	date,
@@ -42,7 +39,7 @@ const Comment = ({
 			<Menu
 				menuExpandedItemsArray={[]}
 				menuIcon={<Avatar src={avatarIconLink} />}
-				menuIconStyle={{
+				menuStyle={{
 					padding: 0,
 					"&:hover": {
 						filter: "brightness(0.9)",
@@ -77,7 +74,6 @@ const Comment = ({
 			</Typography>
 			<Box display="flex" flexDirection="column">
 				<Button
-					iconOnly
 					buttonIcon={
 						likeStatus ? <ThumbUpRoundedIcon /> : <ThumbUpOutlinedIcon />
 					}

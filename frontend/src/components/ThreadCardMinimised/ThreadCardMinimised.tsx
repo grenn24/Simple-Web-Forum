@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { styled } from "@mui/material/styles";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
 import CardContent from "@mui/material/CardContent";
 import Avatar from "@mui/material/Avatar";
-import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Menu from "../Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
@@ -12,33 +10,6 @@ import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded
 import { CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-interface ExpandMoreProps extends IconButtonProps {
-	expand: boolean;
-}
-
-const ExpandMore = styled((props: ExpandMoreProps) => {
-	const { expand, ...other } = props;
-	return <IconButton {...other} />;
-})(({ theme }) => ({
-	marginLeft: "auto",
-	transition: theme.transitions.create("transform", {
-		duration: theme.transitions.duration.shortest,
-	}),
-	variants: [
-		{
-			props: ({ expand }) => !expand,
-			style: {
-				transform: "rotate(0deg)",
-			},
-		},
-		{
-			props: ({ expand }) => !!expand,
-			style: {
-				transform: "rotate(180deg)",
-			},
-		},
-	],
-}));
 
 interface Prop {
 	threadId: number;
@@ -47,7 +18,8 @@ interface Prop {
 	threadDate: string;
 	avatarIconLink: string;
 	threadContentSummarised: string;
-	avatarClickHandlerFunction?: () => void;
+	handleAvatarIconClick?: () => void;
+	bookmarkedStatus: boolean
 }
 
 const ThreadGridCard = ({
@@ -57,66 +29,79 @@ const ThreadGridCard = ({
 	threadDate,
 	avatarIconLink,
 	threadContentSummarised,
-	avatarClickHandlerFunction,
+	handleAvatarIconClick,
+	bookmarkedStatus
 }: Prop) => {
-	const [bookMarkedClickedStatus, setBookmarkClickedStatus] = useState(false);
+	const [bookMarkedClickedStatus, setBookmarkClickedStatus] = useState(bookmarkedStatus);
 	const navigate = useNavigate();
 	return (
 		<>
 			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
-				<CardHeader
-					avatar={
-						<Menu
-							menuExpandedItemsArray={[]}
-							menuIcon={<Avatar src={avatarIconLink} />}
-							menuIconStyle={{
-								padding: 0,
-								"&:hover": {
-									filter: "brightness(0.9)",
-								},
-							}}
-							menuIconDataValue="Profile"
-							menuExpandedPosition={{
-								vertical: "top",
-								horizontal: "right",
-							}}
-							menuExpandedDataValuesArray={[]}
-							toolTipText="View Profile"
-							handleMenuIconClick={avatarClickHandlerFunction}
-							showMenuExpandedOnClick={false}
-						/>
-					}
-					action={
-						<>
-							<Menu
-								menuIcon={
-									!bookMarkedClickedStatus ? (
-										<BookmarkBorderRoundedIcon />
-									) : (
-										<BookmarkRemoveRoundedIcon />
-									)
-								}
-								menuExpandedItemsArray={[]}
-								toolTipText={
-									!bookMarkedClickedStatus ? "Add Bookmark" : "Remove Bookmark"
-								}
-								scrollLock={true}
-								showMenuExpandedOnClick={false}
-								handleMenuIconClick={() =>
-									setBookmarkClickedStatus(!bookMarkedClickedStatus)
-								}
-							/>
-						</>
-					}
-					title={threadAuthor}
-					subheader={threadDate}
-					titleTypographyProps={{ fontWeight: 750 }}
-					sx={{ paddingBottom: 0.5 }}
-				/>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
 					onClick={() => navigate(`../Thread/${threadId}`)}
+					disableRipple
 				>
+					<CardHeader
+						avatar={
+							<Menu
+								menuExpandedItemsArray={[]}
+								menuIcon={<Avatar src={avatarIconLink} />}
+								menuStyle={{
+									padding: 0,
+									"&:hover": {
+										filter: "brightness(0.9)",
+									},
+								}}
+								menuIconDataValue="Profile"
+								menuExpandedPosition={{
+									vertical: "top",
+									horizontal: "right",
+								}}
+								menuExpandedDataValuesArray={[]}
+								toolTipText="View Profile"
+								handleMenuIconClick={(event) => {
+									handleAvatarIconClick && handleAvatarIconClick();
+									event.stopPropagation();
+								}}
+								showMenuExpandedOnClick={false}
+							/>
+						}
+						action={
+							<>
+								<Menu
+									menuIcon={
+										!bookMarkedClickedStatus ? (
+											<BookmarkBorderRoundedIcon
+												sx={{ color: "primary.dark" }}
+											/>
+										) : (
+											<BookmarkRemoveRoundedIcon
+												sx={{ color: "primary.dark" }}
+											/>
+										)
+									}
+									menuExpandedItemsArray={[]}
+									toolTipText={
+										!bookMarkedClickedStatus
+											? "Add Bookmark"
+											: "Remove Bookmark"
+									}
+									scrollLock={true}
+									showMenuExpandedOnClick={false}
+									handleMenuIconClick={(event) => {
+										setBookmarkClickedStatus(!bookMarkedClickedStatus);
+										event.stopPropagation();
+									}}
+								/>
+							</>
+						}
+						title={threadAuthor}
+						subheader={threadDate}
+						titleTypographyProps={{ fontWeight: 750 }}
+						sx={{ paddingBottom: 0.5 }}
+					/>
+
 					<CardContent sx={{ py: 0, my: 0 }}>
 						<Typography
 							fontSize={20}

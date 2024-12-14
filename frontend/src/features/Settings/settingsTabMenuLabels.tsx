@@ -1,0 +1,1 @@
+export default ["General", "Account", "Privacy", "Notifications"];

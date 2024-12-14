@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
 	Card,
-	useTheme,
+	
 	CardHeader,
 	CardMedia,
 	CardContent,
@@ -74,6 +74,7 @@ interface Prop {
 	threadImageLink?: string;
 	avatarIconLink: string;
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
+	likeStatus: boolean
 }
 
 const ThreadCard = ({
@@ -87,15 +88,12 @@ const ThreadCard = ({
 	threadImageLink,
 	avatarIconLink,
 	handleAvatarIconClick,
+	likeStatus
 }: Prop) => {
 	const [expandCardContent, setExpandCardContent] = useState(false);
-	const [likeClickStatus, setLikeClickStatus] = useState(false);
+	const [likeClickStatus, setLikeClickStatus] = useState(likeStatus);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
-
-	const handleExpandMoreClick = () => {
-		setExpandCardContent(!expandCardContent);
-	};
 
 	const navigate = useNavigate();
 
@@ -114,49 +112,54 @@ const ThreadCard = ({
 				}}
 				elevation={3}
 			>
-				<CardHeader
-					avatar={
-						<Menu
-							menuExpandedItemsArray={[]}
-							menuIcon={<Avatar src={avatarIconLink} />}
-							menuStyle={{
-								padding: 0,
-								"&:hover": {
-									filter: "brightness(0.9)",
-								},
-							}}
-							menuIconDataValue="Profile"
-							menuExpandedPosition={{
-								vertical: "top",
-								horizontal: "right",
-							}}
-							dividerPositions={[2]}
-							menuExpandedDataValuesArray={[]}
-							toolTipText="View Profile"
-							handleMenuIconClick={handleAvatarIconClick}
-							showMenuExpandedOnClick={false}
-						/>
-					}
-					action={
-						<>
-							<Menu
-								menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-								menuExpandedIconsArray={MenuExpandedIcons}
-								menuExpandedItemsArray={MenuExpandedItems}
-								toolTipText="More"
-								scrollLock={true}
-							/>
-						</>
-					}
-					title={threadAuthor}
-					titleTypographyProps={{ fontWeight: 750 }}
-					subheader={threadDate}
-				/>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
 					onClick={() => navigate(`../Thread/${threadId}`)}
 					disableRipple
 				>
+					<CardHeader
+						avatar={
+							<Menu
+								menuExpandedItemsArray={[]}
+								menuIcon={<Avatar src={avatarIconLink} />}
+								menuStyle={{
+									padding: 0,
+									"&:hover": {
+										filter: "brightness(0.9)",
+									},
+								}}
+								menuIconDataValue="Profile"
+								menuExpandedPosition={{
+									vertical: "top",
+									horizontal: "right",
+								}}
+								dividerPositions={[2]}
+								menuExpandedDataValuesArray={[]}
+								toolTipText="View Profile"
+								handleMenuIconClick={(event) => {
+									handleAvatarIconClick && handleAvatarIconClick(event);
+									event.stopPropagation();
+								}}
+								showMenuExpandedOnClick={false}
+							/>
+						}
+						action={
+							<>
+								<Menu
+									menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
+									menuExpandedIconsArray={MenuExpandedIcons}
+									menuExpandedItemsArray={MenuExpandedItems}
+									toolTipText="More"
+									scrollLock={true}
+									handleMenuIconClick={(event) => event.stopPropagation()}
+								/>
+							</>
+						}
+						title={threadAuthor}
+						titleTypographyProps={{ fontWeight: 750 }}
+						subheader={threadDate}
+					/>
+
 					<CardContent>
 						<Typography variant="h5" color="primary.dark" fontWeight={760}>
 							{threadTitle}
@@ -169,123 +172,138 @@ const ThreadCard = ({
 						image={threadImageLink}
 						sx={{ height: "auto", objectFit: "contain", pointerEvents: "none" }}
 					/>
-				</CardActionArea>
 
-				<CardActions
-					disableSpacing
-					sx={{
-						display: "flex",
-						justifyContent: "space-between",
-						marginTop: 1,
-						marginBottom: 1,
-					}}
-				>
-					<Button
-						component="button"
-						role={undefined}
-						variant="outlined"
-						buttonIcon={
-							likeClickStatus ? (
-								<FavoriteRoundedIcon sx={{ color: "red" }} />
-							) : (
-								<FavoriteBorderRoundedIcon />
-							)
-						}
-						color="primary.dark"
-						borderRadius="10px"
-						borderColor="primary.light"
-						buttonStyle={{
-							marginLeft: 1,
-							marginRight: 1,
-						}}
-						handleButtonClick={() => {
-							setLikeClickStatus(!likeClickStatus);
-							!likeClickStatus && player();
+					<CardActions
+						disableSpacing
+						sx={{
+							display: "flex",
+							justifyContent: "space-between",
+							marginTop: 1,
+							marginBottom: 1,
 						}}
 					>
-						{threadLikeCount}
-					</Button>
-					<Button
-						component="button"
-						role={undefined}
-						variant="outlined"
-						buttonIcon={<CommentRoundedIcon />}
-						color="primary.dark"
-						borderRadius="10px"
-						borderColor="primary.light"
-						buttonStyle={{
-							marginRight: 1,
-						}}
-						handleButtonClick={() => navigate(`../Thread/${threadId}`, {state: {focusTextField: true}})} //Pass in state during navigation
-					>
-						{threadCommentCount}
-					</Button>
-					<Button
-						component="button"
-						role={undefined}
-						variant="outlined"
-						buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
-						color="primary.dark"
-						borderRadius="10px"
-						borderColor="primary.light"
-						buttonStyle={{
-							border: 1,
-							marginRight: 1,
-						}}
-						iconOnly
-						handleButtonClick={() => setOpenShareDialog(true)}
-					></Button>
-					<SimpleDialog
-						openDialog={openShareDialog}
-						setOpenDialog={setOpenShareDialog}
-						title="Share"
-						backdropBlur={5}
-						borderRadius={1.3}
-					>
-						<List
-							listItemsArray={["Copy Link", "Share to WhatsApp"]}
-							listIconsArray={[
-								<LinkRoundedIcon sx={{ marginRight: 1 }} />,
-								<WhatsAppIcon sx={{ marginRight: 1 }} />,
-							]}
-							disablePadding
-							handleListItemsClick={[
-								() => {
-									setOpenSnackbar(true);
-								},
-								() => {
-									const currentLink = window.location.href;
-									window.location.href = `whatsapp://send?text=${currentLink}/Thread/${threadId}`;
-								},
-							]}
-						/>
-						<Snackbar
-							openSnackbar={openSnackbar}
-							setOpenSnackbar={setOpenSnackbar}
-							message="Link copied to clipboard"
-							handleSnackbarClose={() => {
-								const currentLink = window.location.href;
-								navigator.clipboard.writeText(
-									`${currentLink}/Thread/${threadId}`
-								);
+						<Button
+							component="button"
+							role={undefined}
+							variant="outlined"
+							buttonIcon={
+								likeClickStatus ? (
+									<FavoriteRoundedIcon sx={{ color: "red" }} />
+								) : (
+									<FavoriteBorderRoundedIcon />
+								)
+							}
+							color="primary.dark"
+							borderRadius="10px"
+							borderColor="primary.light"
+							buttonStyle={{
+								marginLeft: 1,
+								marginRight: 1,
 							}}
-							duration={1500}
+							handleButtonClick={(event) => {
+								setLikeClickStatus(!likeClickStatus);
+								!likeClickStatus && player();
+								event.stopPropagation();
+							}}
+						>
+							{threadLikeCount}
+						</Button>
+						<Button
+							component="button"
+							role={undefined}
+							variant="outlined"
+							buttonIcon={<CommentRoundedIcon />}
+							color="primary.dark"
+							borderRadius="10px"
+							borderColor="primary.light"
+							buttonStyle={{
+								marginRight: 1,
+							}}
+							handleButtonClick={(event) => {
+								navigate(`../Thread/${threadId}`, {
+									state: { focusTextField: true },
+								}); //Pass in state during navigation
+								event.stopPropagation();
+							}}
+						>
+							{threadCommentCount}
+						</Button>
+						<Button
+							component="button"
+							role={undefined}
+							variant="outlined"
+							buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
+							color="primary.dark"
+							borderRadius="10px"
+							borderColor="primary.light"
+							buttonStyle={{
+								border: 1,
+								marginRight: 1,
+							}}
+							handleButtonClick={(event) => {
+								setOpenShareDialog(true);
+								event.stopPropagation();
+							}}
 						/>
-					</SimpleDialog>
-					<ExpandMore
-						expand={expandCardContent}
-						onClick={handleExpandMoreClick}
-					>
-						<ExpandMoreIcon sx={{ color: "primary.dark" }} />
-					</ExpandMore>
-				</CardActions>
-				<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
-					<CardContent>
-						<Typography sx={{ marginBottom: 2 }}>
-							{threadContentSummarised}
-						</Typography>
-					</CardContent>
-				</Collapse>
+						<SimpleDialog
+							openDialog={openShareDialog}
+							setOpenDialog={setOpenShareDialog}
+							title="Share"
+							backdropBlur={5}
+							borderRadius={1.3}
+							handleCloseDialog={(event) => event.stopPropagation()}
+						>
+							<List
+								listItemsArray={["Copy Link", "Share to WhatsApp"]}
+								listIconsArray={[
+									<LinkRoundedIcon sx={{ marginRight: 1 }} />,
+									<WhatsAppIcon sx={{ marginRight: 1 }} />,
+								]}
+								disablePadding
+								handleListItemsClick={[
+									(event) => {
+										setOpenSnackbar(true);
+										event.stopPropagation();
+									},
+									(event) => {
+										const currentLink = window.location.href;
+										window.location.href = `whatsapp://send?text=${currentLink}/Thread/${threadId}`;
+										event.stopPropagation();
+									},
+								]}
+							/>
+							<Snackbar
+								openSnackbar={openSnackbar}
+								setOpenSnackbar={setOpenSnackbar}
+								message="Link copied to clipboard"
+								handleSnackbarClose={() => {
+									const currentLink = window.location.href;
+									navigator.clipboard.writeText(
+										`${currentLink}/Thread/${threadId}`
+									);
+								}}
+								duration={1500}
+							/>
+						</SimpleDialog>
+						<ExpandMore
+							expand={expandCardContent}
+							onClick={(event) => {
+								setExpandCardContent(!expandCardContent);
+								event?.stopPropagation();
+							}}
+						>
+							<ExpandMoreIcon sx={{ color: "primary.dark" }} />
+						</ExpandMore>
+					</CardActions>
+
+					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
+						<CardContent>
+							<Typography sx={{ marginBottom: 2 }}>
+								{threadContentSummarised}
+							</Typography>
+						</CardContent>
+					</Collapse>
+				</CardActionArea>
 			</Card>
 		</>
 	);

@@ -4,19 +4,22 @@ import {
 	Typography,
 	Divider,
 	useTheme,
+	Container,
 } from "@mui/material";
 import ThreadGridCard from "../components/ThreadCardMinimised/ThreadCardMinimised";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate  } from "react-router-dom";
 import threadGroups from "../features/Topics/topicsDataSample";
 import { useWindowSize } from "@uidotdev/usehooks";
+import Button from "../components/Button";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 
 const Topics = () => {
 	const navigate = useNavigate();
 	const screenWidth = useWindowSize().width as number;
 
-	const location = useLocation();
-	const queryParamaters = new URLSearchParams(location.search);
-	const topicName = queryParamaters.get("topicName");
+	//const location = useLocation();
+	//const queryParamaters = new URLSearchParams(location.search);
+	//const topicName = queryParamaters.get("topicName");
 
 	return (
 		<>
@@ -48,20 +51,29 @@ const Topics = () => {
 					</Typography>
 				</Box>
 				<Divider />
-				{threadGroups.map((threadGroup) => (
-					<Box marginBottom={10} key={threadGroup.topic}>
+				<Box marginTop={2}>
+					<Button
+						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
+						color="primary.dark"
+						buttonStyle={{ mx: 0 }}
+						handleButtonClick={() => navigate(-1)}
+						toolTipText="Back"
+					/>
+				</Box>
+				<Container
+					sx={{
+						width: { xs: "100%", sm: "100%", md: "90%", lg: "80%", xl: "70%" },
+						marginBottom: 3,
+					}}
+					disableGutters
+				>
+					{threadGroups.map((threadGroup) => (
 						<Box
 							sx={{
-								marginX: "auto",
-								width: {
-									xs: "100%",
-									sm: "100%",
-									md: "95%",
-									lg: "85%",
-									xl: "70%",
-								},
-								marginTop: 3,
+								marginTop: 5,
 							}}
+							key={threadGroup.topic}
+							marginBottom={8}
 						>
 							<Typography
 								variant="h5"
@@ -100,7 +112,8 @@ const Topics = () => {
 												threadDate={thread.date}
 												avatarIconLink={thread.avatarIconLink}
 												threadContentSummarised={thread.contentSummarised}
-												avatarClickHandlerFunction={() => {
+												bookmarkedStatus={thread.bookmarkedStatus}
+												handleAvatarIconClick={() => {
 													navigate(`../Profile/${thread.authorId}`);
 												}}
 											/>
@@ -109,8 +122,8 @@ const Topics = () => {
 								</Grid>
 							</Box>
 						</Box>
-					</Box>
-				))}
+					))}
+				</Container>
 			</Box>
 		</>
 	);

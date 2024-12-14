@@ -1,4 +1,4 @@
-import { List as ListBase, ListItem, ListItemIcon, ListItemButton , ListItemText} from "@mui/material"
+import { List as ListBase, ListItem, ListItemButton , ListItemText, Divider} from "@mui/material"
 interface Prop {
     listItemsArray: string[] | JSX.Element[];
     listIconsArray?: JSX.Element[];
@@ -9,6 +9,8 @@ interface Prop {
 	listItemsStyles?: object;
 	disabled?: boolean;
 	disableRipple?: boolean
+	disableHoverEffect?: boolean
+	divider?: boolean
 }
 
 const List = ({
@@ -19,24 +21,40 @@ const List = ({
 	listItemsDataValues, handleListItemsClick,
 	listItemsStyles,
 	disabled,
-	disableRipple,
+	disableRipple=false,
+	disableHoverEffect=false,
+	divider=false
 }: Prop) => {
 	return (
 		<>
-			<ListBase sx={{ backgroundColor: backgroundColor }}>
+			<ListBase sx={{ backgroundColor: backgroundColor }} disablePadding={disablePadding}>
 				{listItemsArray.map((item, index) => (
-					<ListItem disablePadding={disablePadding} key={index}>
-						<ListItemButton
-							data-value={listItemsDataValues && listItemsDataValues[index]}
-							onClick={handleListItemsClick && handleListItemsClick[index]}
-							sx={{ ...listItemsStyles }}
-							disabled={disabled}
-							disableRipple={disableRipple}
-						>
-							{listIconsArray && listIconsArray[index]}
-							<ListItemText primary={item} />
-						</ListItemButton>
-					</ListItem>
+					<>
+						<ListItem disablePadding={disablePadding} key={index}>
+							{!disableHoverEffect ? (
+								<ListItemButton
+									data-value={listItemsDataValues && listItemsDataValues[index]}
+									onClick={handleListItemsClick && handleListItemsClick[index]}
+									sx={{ ...listItemsStyles }}
+									disabled={disabled}
+									disableRipple={disableRipple}
+								>
+									{listIconsArray && listIconsArray[index]}
+									<ListItemText primary={item} />
+								</ListItemButton>
+							) : (
+								<ListItemText
+									data-value={listItemsDataValues && listItemsDataValues[index]}
+									onClick={handleListItemsClick && handleListItemsClick[index]}
+									sx={{ ...listItemsStyles }}
+								>
+									{listIconsArray && listIconsArray[index]}
+									<ListItemText primary={item} />
+								</ListItemText>
+							)}
+						</ListItem>
+					    {divider ? <Divider variant="inset" component="li" /> : null}
+					</>
 				))}
 			</ListBase>
 		</>

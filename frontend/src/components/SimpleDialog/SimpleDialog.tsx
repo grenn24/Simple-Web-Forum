@@ -4,7 +4,7 @@ interface Prop {
 	children?: React.ReactNode;
 	openDialog: boolean;
 	setOpenDialog: (state: boolean) => void;
-	handleCloseDialog?: () => void;
+	handleCloseDialog?: (event: React.MouseEvent<HTMLElement>) => void;
 	title: string;
 	backdropBlur?: string | number;
 	borderRadius?: string | number;
@@ -21,8 +21,8 @@ const SimpleDialog = ({
 }: Prop) => {
 	return (
 		<Dialog
-			onClose={() => {
-				handleCloseDialog && handleCloseDialog();
+			onClose={(event: React.MouseEvent<HTMLElement>) => {
+				handleCloseDialog && handleCloseDialog(event);
 				setOpenDialog(false);
 			}}
 			open={openDialog}
@@ -31,10 +31,11 @@ const SimpleDialog = ({
 					backdropFilter: `blur(${backdropBlur}px)`, // Inline style using the `sx` prop
 				},
 			}}
-			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius }
-		}}
+			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius } }}
 		>
-			<DialogTitle sx={{paddingBottom:0, textAlign:"center"}}>{title}</DialogTitle>
+			<DialogTitle sx={{ paddingBottom: 0, textAlign: "center" }}>
+				{title}
+			</DialogTitle>
 			{children}
 		</Dialog>
 	);

@@ -22,9 +22,10 @@ interface Prop {
 	fontFamily?: string;
 	fontWeight?: string | number;
 	toolTipText?: string;
-	iconOnly?: boolean;
 	disabled?: boolean;
 	disableRipple?: boolean;
+	iconPosition?: "start" | "end"
+	type?: string;
 }
 const Button = ({
 	role = "undefined",
@@ -46,20 +47,23 @@ const Button = ({
 	fontFamily,
 	fontWeight,
 	toolTipText,
-	iconOnly = false,
 	disabled = false,
 	disableRipple = false,
+	iconPosition="start",
+	type
 }: Prop) => {
 	return (
 		<>
-			{!iconOnly ? (
+			{children ? (
 				<Tooltip title={toolTipText}>
 					<ButtonBase
+						type={type}
 						component={component as React.ElementType}
 						role={role}
 						variant={variant}
 						tabIndex={tabIndex}
-						startIcon={buttonIcon}
+						startIcon={iconPosition === "start" ? buttonIcon : undefined}
+						endIcon={iconPosition === "end" ? buttonIcon : undefined}
 						disabled={disabled}
 						size={size}
 						disableRipple={disableRipple}
@@ -67,8 +71,6 @@ const Button = ({
 							...buttonStyle,
 							borderRadius: { borderRadius },
 							border: { borderWeight },
-							marginLeft: 1,
-							marginRight: 1,
 							color: color,
 							textTransform: allUppercaseText ? "uppercase" : "none",
 							fontSize: { fontSize },
@@ -88,6 +90,7 @@ const Button = ({
 			) : (
 				<Tooltip title={toolTipText}>
 					<IconButtonBase
+						type={type}
 						component={component as React.ElementType}
 						role={role}
 						variant={variant}
@@ -98,8 +101,6 @@ const Button = ({
 							...buttonStyle,
 							borderRadius: { borderRadius },
 							border: { borderWeight },
-							marginLeft: 1,
-							marginRight: 1,
 							"& .MuiSvgIcon-root": {
 								color: color,
 								borderColor: borderColor,

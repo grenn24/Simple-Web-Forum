@@ -11,6 +11,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: false,
 			},
 			{
 				id: 1,
@@ -21,6 +22,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2015",
+				bookmarkedStatus: false,
 			},
 			{
 				id: 2,
@@ -31,6 +33,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 3,
@@ -41,6 +44,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 4,
@@ -51,6 +55,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2015",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 5,
@@ -61,6 +66,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: false,
 			},
 		],
 	},
@@ -76,6 +82,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 7,
@@ -86,6 +93,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2015",
+				bookmarkedStatus: false,
 			},
 			{
 				id: 8,
@@ -96,6 +104,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 9,
@@ -106,6 +115,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 10,
@@ -116,6 +126,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2015",
+				bookmarkedStatus: true,
 			},
 			{
 				id: 11,
@@ -126,6 +137,7 @@ export default [
 				avatarIconLink:
 					"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 				date: "12/12/2024",
+				bookmarkedStatus: false,
 			},
 		],
 	},

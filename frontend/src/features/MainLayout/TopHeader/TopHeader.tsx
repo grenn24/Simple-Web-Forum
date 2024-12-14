@@ -8,7 +8,6 @@ import {
 	useTheme,
 } from "@mui/material";
 import Menu from "../../../components/Menu";
-import { useState } from "react";
 import SearchBar from "../../../components/SearchBar/SearchBar";
 import {
 	MenuRounded as MenuRoundedIcon,
@@ -27,15 +26,6 @@ interface Prop {
 	leftNavBarStatus: boolean;
 }
 export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
-	const [showMenu, setShowMenu] = useState<null | HTMLElement>(null);
-
-	const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-		setShowMenu(event.currentTarget);
-	};
-
-	const handleCloseUserMenu = () => {
-		setShowMenu(null);
-	};
 
 	const navigate = useNavigate();
 
@@ -66,7 +56,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 						variant="h5"
 						noWrap
 						component="a"
-						href="NUS Forum"
+						href="./"
 						sx={{
 							fontFamily: "poppins",
 							fontWeight: 500,
@@ -122,9 +112,6 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							}
 							buttonStyle={{ height: "80%" }}
 							toolTipText="Create Thread"
-							iconOnly={
-								screenWidth > useTheme().breakpoints.values.md ? false : true
-							}
 							handleButtonClick={() => {
 								navigate("../Create-Thread");
 							}}
@@ -143,7 +130,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								event.currentTarget.dataset.value &&
 									navigate(`../${event.currentTarget.dataset.value}`);
 							}}
-							menuIconStyle={{
+							menuStyle={{
 								padding: 1,
 								"&:hover": {
 									filter: "brightness(0.9)",

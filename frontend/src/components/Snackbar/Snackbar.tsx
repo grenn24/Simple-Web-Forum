@@ -33,7 +33,6 @@ const Snackbar = ({
 					handleSnackbarClose && handleSnackbarClose();
 					setOpenSnackbar(false);
 				}}
-				iconOnly
 				buttonIcon={<CloseRoundedIcon fontSize="small" />}
 			/>
 		</>

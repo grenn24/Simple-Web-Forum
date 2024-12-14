@@ -64,7 +64,7 @@ const MenuExpanded = ({
 			slotProps={{
 				paper: {
 					style: {
-						width: "20ch",
+						width: "auto",
 					},
 				},
 			}}

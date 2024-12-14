@@ -1,11 +1,9 @@
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
 import LeftNavigationBar from "../features/MainLayout/LeftNavigationBar";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet} from "react-router-dom";
 import TopHeader from "../features/MainLayout/TopHeader";
 import Divider from "@mui/material/Divider";
 
-const drawerWidth = 300;
 
 interface Prop {
 	leftNavBarExpandedStatus: boolean;
@@ -21,14 +19,6 @@ export default function MainBody({
 	handleLeftBarCloseTransitionEnd,
 	openLeftNavBar,
 }: Prop) {
-	const [offsetHeight, setOffsetHeight] = useState(80);
-	useEffect(() => {
-		const x = document.getElementById("AppBar")?.offsetHeight;
-		if (x) {
-			setOffsetHeight(x);
-		}
-	}, []);
-
 
 	return (
 		<>

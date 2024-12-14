@@ -52,6 +52,7 @@ const Menu = ({
 	const handleCloseMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setShowMenuExpanded(null);
 		handleMenuExpandedItemsClick && handleMenuExpandedItemsClick(event);
+		event.stopPropagation();
 	};
 
 	return (

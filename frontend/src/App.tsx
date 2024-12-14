@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import WelcomeScreen from "./pages/WelcomeScreen";
 import Following from "./pages/Following";
@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Thread from "./pages/Thread";
 import Theme from "./styles/Theme";
 import { ThemeProvider } from "@emotion/react";
+import CreateThread from "./pages/CreateThread";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -65,6 +66,7 @@ function App() {
 							<Route path="Settings" element={<Settings />} />
 							<Route path="Profile/:authorId" element={<Profile />} />
 							<Route path="Thread/:threadId" element={<Thread />} />
+							<Route path="Create-Thread" element={<CreateThread />} />
 						</Route>
 						{/*Pages without Layout*/}
 						<Route path="Welcome" element={<WelcomeScreen />} />

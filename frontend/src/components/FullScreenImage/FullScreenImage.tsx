@@ -8,9 +8,6 @@ const FullScreenImage = ({
 	setFullScreenImage,
 	fullScreenImage,
 }: Prop) => {
-	const handleClickOpen = () => {
-		setFullScreenImage(true);
-	};
 
 	const handleClose = () => {
 		setFullScreenImage(false);

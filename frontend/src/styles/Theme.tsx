@@ -24,11 +24,16 @@ const theme = createTheme({
 			secondary: "#374151",
 			disabled: "rgba(0, 0, 0, 0.38)",
 		},
+		//Divider colour
+		divider: "rgba(0, 0, 0, 0.21)",
 	},
 	typography: {
 		fontFamily: "Nunito, Open Sans, Poppins",
 		fontSize: 16,
 		fontWeightRegular: 550,
+		fontWeightLight: 300,
+		fontWeightMedium: 500,
+		fontWeightBold: 700,
 	},
 	shape: {
 		//Button radius
