@@ -23,6 +23,7 @@ const GeneralPage = () => {
 								<KeyboardArrowRightRoundedIcon sx={{ color: "primary.dark" }} />
 							}
 							disabled
+							buttonStyle={{ py: 0 }}
 						/>
 					</Box>,
 					<Box
@@ -35,9 +36,10 @@ const GeneralPage = () => {
 						</Typography>
 						<Button
 							buttonIcon={
-								<KeyboardArrowRightRoundedIcon sx={{ color: "primary.dark" }} />
+								<KeyboardArrowRightRoundedIcon sx={{ color: "primary.secondary" }} />
 							}
 							disabled
+							buttonStyle={{ py: 0 }}
 						/>
 					</Box>,
 				]}

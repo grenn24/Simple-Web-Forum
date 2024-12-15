@@ -27,7 +27,7 @@ const Topics = () => {
 				sx={{
 					flexGrow: 1,
 					bgcolor: "background.default",
-					p: 3,
+					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
 			>
@@ -55,7 +55,7 @@ const Topics = () => {
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0 }}
+						buttonStyle={{ mx: 0, px : 0}}
 						handleButtonClick={() => navigate(-1)}
 						toolTipText="Back"
 					/>

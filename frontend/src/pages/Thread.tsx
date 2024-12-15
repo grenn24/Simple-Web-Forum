@@ -65,12 +65,12 @@ const Thread = () => {
 
 	return (
 		<>
-			<Box sx={{ p: 3, bgcolor: "background.default" }}>
+			<Box sx={{ p: { xs: 1.5, sm: 3 }, bgcolor: "background.default" }}>
 				<Box>
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0 }}
+						buttonStyle={{ mx: 0, p: 0.5 }}
 						handleButtonClick={() => navigate(-1)}
 					/>
 				</Box>
@@ -90,7 +90,7 @@ const Thread = () => {
 						marginTop: 2,
 					}}
 				>
-					<Card elevation={2} sx={{ padding: 2 }}>
+					<Card elevation={2} sx={{ padding: {xs:0.5, sm:1, md:2} }}>
 						<CardHeader
 							avatar={
 								<Menu
@@ -282,6 +282,7 @@ const Thread = () => {
 											window.location.href = `whatsapp://send?text=${currentLink}/Thread/${ThreadMetadata.id}`;
 										},
 									]}
+									listItemsStyles={{ padding: 2.5 }}
 								/>
 								<Snackbar
 									openSnackbar={openSnackbar}

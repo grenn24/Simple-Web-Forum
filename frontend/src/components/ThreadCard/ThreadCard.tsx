@@ -271,6 +271,8 @@ const ThreadCard = ({
 										event.stopPropagation();
 									},
 								]}
+
+							listItemsStyles={{padding:2.5}}
 							/>
 							<Snackbar
 								openSnackbar={openSnackbar}

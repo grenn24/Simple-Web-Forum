@@ -5,10 +5,11 @@ interface TabPageProp {
 	children?: React.ReactNode;
 	index: number;
 	currentTabIndex: number;
+	padding?: number | object
 }
 
 function TabPage(props: TabPageProp) {
-	const { children, currentTabIndex, index, ...other } = props;
+	const { children, currentTabIndex, index, padding, ...other } = props;
 
 	return (
 		<Box
@@ -17,7 +18,7 @@ function TabPage(props: TabPageProp) {
 			id={`simple-tabpanel-${index}`}
 			{...other}
 		>
-			{currentTabIndex === index && <Box sx={{ p: 3 }}>{children}</Box>}
+			{currentTabIndex === index && <Box sx={{ p: typeof padding === "number" ? padding : {...padding} }}>{children}</Box>}
 		</Box>
 	);
 }
@@ -26,9 +27,10 @@ interface TabMenuProp {
 	tabLabelArray: string[];
 	tabPageArray?: JSX.Element[];
 	variant?: "standard" | "scrollable" | "fullWidth";
+	padding?: number | object;
 }
 
-export default function TabMenu({ tabLabelArray, tabPageArray, variant }: TabMenuProp) {
+export default function TabMenu({ tabLabelArray, tabPageArray, variant, padding=0 }: TabMenuProp) {
 	const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
 	const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -47,7 +49,9 @@ export default function TabMenu({ tabLabelArray, tabPageArray, variant }: TabMen
 						"& .MuiTabs-indicator": {
 							border: 1.5,
 						},
+						marginBottom:4
 					}}
+					
 				>
 					{tabLabelArray.map((label) => (
 						<Tab label={label} key={label}/>
@@ -55,7 +59,7 @@ export default function TabMenu({ tabLabelArray, tabPageArray, variant }: TabMen
 				</Tabs>
 			</Box>
 			{tabLabelArray.map((_, index) => (
-				<TabPage key={index} currentTabIndex={currentTabIndex} index={index}>
+				<TabPage key={index} currentTabIndex={currentTabIndex} index={index} padding={padding}>
 					{tabPageArray && tabPageArray[index]}
 				</TabPage>
 			))}

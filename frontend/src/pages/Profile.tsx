@@ -15,7 +15,7 @@ const Profile = () => {
 			sx={{
 				flexGrow: 1,
 				bgcolor: "background.default",
-				p: 3,
+				p: { xs: 1.5, sm: 3 },
 				minHeight: "100%",
 			}}
 		>
@@ -43,7 +43,7 @@ const Profile = () => {
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 					color="primary.dark"
-					buttonStyle={{ mx: 0 }}
+					buttonStyle={{ mx: 0, p: 0.5 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
 				/>

@@ -1,8 +1,6 @@
-import { Box, Typography, Divider, Container} from "@mui/material";
+import { Box, Typography, Divider, Container } from "@mui/material";
 import Button from "../components/Button";
-import {
-	ArrowBackRounded as ArrowBackRoundedIcon
-} from "@mui/icons-material";
+import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import TabMenu from "../components/TabMenu";
 import TextPage from "../features/CreateThread/TextPage";
@@ -19,7 +17,7 @@ const CreateThread = () => {
 		formState: { errors, isValid },
 		reset,
 	} = useForm({
-		mode: "onChange"
+		mode: "onChange",
 	});
 
 	const submitForm = handleSubmit((data) => {
@@ -32,7 +30,7 @@ const CreateThread = () => {
 				sx={{
 					flexGrow: 1,
 					bgcolor: "background.default",
-					p: 3,
+					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
 			>
@@ -60,15 +58,15 @@ const CreateThread = () => {
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0 }}
+						buttonStyle={{ mx: 0, px: 0}}
 						handleButtonClick={() => navigate(-1)}
 					/>
 				</Box>
 				<Container
 					sx={{
-						width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
+						width: { xs: "100%", sm: 600, md: 650, lg: 650, xl: 650 },
 						my: 3,
-						px: 3,
+						px: { xs: 1, sm: 3 },
 					}}
 					disableGutters
 				>
@@ -76,20 +74,12 @@ const CreateThread = () => {
 						tabLabelArray={["Text", "Image"]}
 						tabPageArray={[
 							<TextPage
-								register={
-									register
-								}
+								register={register}
 								submitForm={submitForm}
 								errors={errors}
 								watch={watch}
 							/>,
-							<ImagePage
-								register={
-									register
-								}
-								watch={watch}
-								errors={errors}
-							/>,
+							<ImagePage register={register} watch={watch} errors={errors} />,
 						]}
 					/>
 				</Container>
