@@ -1,4 +1,4 @@
-import { Box, Container, Divider, Typography, Avatar, useTheme } from "@mui/material";
+import { Box, Container, Divider, Typography, Avatar, useTheme, useMediaQuery } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -67,7 +67,13 @@ const Profile = () => {
 						src={threadDataSample.avatarIconLink}
 						sx={{ width: 90, height: 90 }}
 					/>
-					<Box marginLeft={2} display="flex" justifyContent="space-between" sx={{flexGrow:1}}>
+					<Box
+						marginLeft={2}
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
+						sx={{ flexGrow: 1 }}
+					>
 						<Box>
 							<Typography fontSize={32} fontWeight={600}>
 								{profileDataSample.name}
@@ -76,14 +82,34 @@ const Profile = () => {
 								{`@${profileDataSample.username}`}
 							</Typography>
 						</Box>
-						<Button buttonStyle={{py:0}} borderRadius={40} fontSize={20} buttonIcon={followStatus ? <NotificationsActiveRoundedIcon />:<NotificationsNoneRoundedIcon />} handleButtonClick={() =>setFollowStatus(!followStatus)}>Follow</Button>
+						<Box>
+							<Button
+								buttonStyle={{ py: 0 }}
+								borderRadius={40}
+								fontSize={20}
+								buttonIcon={
+									followStatus ? (
+										<NotificationsActiveRoundedIcon />
+									) : (
+										<NotificationsNoneRoundedIcon />
+									)
+								}
+								handleButtonClick={() => setFollowStatus(!followStatus)}
+							>
+								Follow
+							</Button>
+						</Box>
 					</Box>
 				</Box>
 
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
-					variant={theme.breakpoints.up("sm") ? "fullWidth" : "scrollable"}
+					variant={
+						useMediaQuery(theme.breakpoints.up("sm"))
+							? "fullWidth"
+							: "scrollable"
+					}
 				/>
 			</Container>
 		</Box>

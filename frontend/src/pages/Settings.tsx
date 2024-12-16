@@ -1,4 +1,4 @@
-import { Box, Typography, Divider, Container, useTheme } from "@mui/material";
+import { Box, Typography, Divider, Container, useTheme, useMediaQuery } from "@mui/material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import settingsTabMenuLabels from "../features/Settings/settingsTabMenuLabels";
 import settingsTabMenuPages from "../features/Settings/settingsTabMenuPages";
@@ -57,7 +57,7 @@ const Settings = () => {
 				<TabMenu
 					tabLabelArray={settingsTabMenuLabels}
 					tabPageArray={settingsTabMenuPages}
-					variant={theme.breakpoints.up("sm") ? "fullWidth" : "scrollable"}
+					variant={useMediaQuery(theme.breakpoints.up("sm") )? "fullWidth" : "scrollable"}
 				/>
 			</Container>
 		</Box>

@@ -1,6 +1,6 @@
 export default [
 	{
-		topic: "Exams",
+		name: "Exams",
 		threads: [
 			{
 				id: 0,
@@ -69,9 +69,10 @@ export default [
 				bookmarkedStatus: false,
 			},
 		],
+		followStatus: false
 	},
 	{
-		topic: "CCA",
+		name: "CCA",
 		threads: [
 			{
 				id: 6,
@@ -140,5 +141,6 @@ export default [
 				bookmarkedStatus: false,
 			},
 		],
+		followStatus: true
 	},
 ];

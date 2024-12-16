@@ -99,7 +99,7 @@ const Following = () => {
 								threadContentSummarised={thread.contentSummarised}
 								threadImageLink={thread.imageLink}
 								avatarIconLink={thread.avatarIconLink}
-								likeStatus={thread.likeStatus}
+								initialLikeStatus={thread.likeStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${thread.authorId}`)
 								}

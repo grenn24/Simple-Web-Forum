@@ -14,7 +14,7 @@ import { useState } from "react";
 interface Prop {
 	title: string;
 	date: string;
-	likeStatus: boolean;
+	initialLikeStatus: boolean;
 	topicsTagged: string[];
 	likeCount: number;
 	contentSummarised: string;
@@ -22,12 +22,12 @@ interface Prop {
 const ThreadCardMini = ({
 	title,
 	date,
-	likeStatus,
+	initialLikeStatus,
 	topicsTagged,
 	likeCount,
 	contentSummarised,
 }: Prop) => {
-	const [likeClickStatus, setLikeClickStatus] = useState(likeStatus);
+	const [likeStatus, setLikeStatus] = useState(initialLikeStatus);
 	const player = playerGenerator(
 		likeSound,
 		0.9,
@@ -85,7 +85,7 @@ const ThreadCardMini = ({
 				role={undefined}
 				variant="outlined"
 				buttonIcon={
-					likeClickStatus ? (
+					likeStatus ? (
 						<FavoriteRoundedIcon sx={{ color: "red" }} />
 					) : (
 						<FavoriteBorderRoundedIcon />
@@ -99,8 +99,8 @@ const ThreadCardMini = ({
 					px: 0.6,
 				}}
 				handleButtonClick={(event) => {
-					setLikeClickStatus(!likeClickStatus);
-					!likeClickStatus && player();
+					setLikeStatus(!likeStatus);
+					!likeStatus && player();
 					event.stopPropagation();
 				}}
 				fontSize={14}
@@ -120,7 +120,7 @@ const LikesPage = () => {
 					<ThreadCardMini
 						title={post.title}
 						date={post.date}
-						likeStatus={post.likeStatus}
+						initialLikeStatus={post.likeStatus}
 						topicsTagged={post.topicsTagged}
 						likeCount={post.likeCount}
 						contentSummarised={post.contentSummarised}

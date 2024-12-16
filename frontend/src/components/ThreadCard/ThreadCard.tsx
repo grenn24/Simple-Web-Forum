@@ -73,7 +73,7 @@ interface Prop {
 	threadImageLink?: string;
 	avatarIconLink: string;
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
-	likeStatus: boolean;
+	initialLikeStatus: boolean;
 }
 
 const ThreadCard = ({
@@ -87,10 +87,10 @@ const ThreadCard = ({
 	threadImageLink,
 	avatarIconLink,
 	handleAvatarIconClick,
-	likeStatus,
+	initialLikeStatus,
 }: Prop) => {
 	const [expandCardContent, setExpandCardContent] = useState(false);
-	const [likeClickStatus, setLikeClickStatus] = useState(likeStatus);
+	const [likeStatus, setLikeStatus] = useState(initialLikeStatus);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 
@@ -186,7 +186,7 @@ const ThreadCard = ({
 							role={undefined}
 							variant="outlined"
 							buttonIcon={
-								likeClickStatus ? (
+								likeStatus ? (
 									<FavoriteRoundedIcon sx={{ color: "red" }} />
 								) : (
 									<FavoriteBorderRoundedIcon />
@@ -200,8 +200,8 @@ const ThreadCard = ({
 								marginRight: 1,
 							}}
 							handleButtonClick={(event) => {
-								setLikeClickStatus(!likeClickStatus);
-								!likeClickStatus && player();
+								setLikeStatus(!likeStatus);
+								!likeStatus && player();
 								event.stopPropagation();
 							}}
 						>
@@ -265,8 +265,14 @@ const ThreadCard = ({
 										event.stopPropagation();
 									},
 									(event) => {
-										const currentLink = window.location.href;
-										window.location.href = `whatsapp://send?text=${currentLink}/Thread/${threadId}`;
+										const currentPathObject = new URL(window.location.href);
+										const parentPathRelative =
+											currentPathObject.pathname.substring(
+												0,
+												currentPathObject.pathname.lastIndexOf("/")
+											);
+										const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
+										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${threadId}`;
 										event.stopPropagation();
 									},
 								]}

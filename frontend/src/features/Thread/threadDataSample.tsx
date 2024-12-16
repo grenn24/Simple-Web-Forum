@@ -38,4 +38,5 @@ export default {
 				"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 		},
 	],
+	likeStatus: true
 };

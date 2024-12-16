@@ -4,7 +4,7 @@ export default {
 	avatarIconLink:
 		"https://assets.vogue.in/photos/6687b953289b94502f6c9f15/3:4/w_2560%2Cc_limit/1029818226",
 	username: "grenn24",
-	emai: "www.google.com.sg",
+	email: "www.google.com.sg",
 	dateJoined: "12/12/2004",
 	posts: [
 		{
@@ -125,7 +125,7 @@ export default {
 				"Mock Exams",
 			],
 			likeCount: 78,
-			likeStatus: true,
+			likeStatus: false,
 		},
 		{
 			id: 6,

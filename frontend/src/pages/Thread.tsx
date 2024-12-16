@@ -40,7 +40,7 @@ import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize
 import Comment from "../features/Thread/Comment.tsx";
 
 const Thread = () => {
-	const [threadLikeClickStatus, setThreadLikeClickStatus] = useState(false);
+	const [likeStatus, setLikeStatus] = useState(ThreadMetadata.likeStatus);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
@@ -205,7 +205,7 @@ const Thread = () => {
 								role={undefined}
 								variant="outlined"
 								buttonIcon={
-									threadLikeClickStatus ? (
+									likeStatus ? (
 										<FavoriteRoundedIcon color="warning" />
 									) : (
 										<FavoriteBorderRoundedIcon />
@@ -219,8 +219,8 @@ const Thread = () => {
 									marginRight: 1,
 								}}
 								handleButtonClick={() => {
-									setThreadLikeClickStatus(!threadLikeClickStatus);
-									!threadLikeClickStatus && player();
+									setLikeStatus(!likeStatus);
+									!likeStatus && player();
 								}}
 							>
 								{ThreadMetadata.likeCount}

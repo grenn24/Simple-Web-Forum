@@ -6,9 +6,9 @@ import {
 	useTheme,
 	Container,
 } from "@mui/material";
-import ThreadGridCard from "../components/ThreadCardMinimised/ThreadCardMinimised";
-import { useNavigate  } from "react-router-dom";
-import threadGroups from "../features/Topics/topicsDataSample";
+import ThreadGridCard from "../components/ThreadGridCard/ThreadGridCard";
+import { useNavigate } from "react-router-dom";
+import topics from "../features/Topics/topicsDataSample";
 import { useWindowSize } from "@uidotdev/usehooks";
 import Button from "../components/Button";
 import {
@@ -20,13 +20,109 @@ import { useState } from "react";
 
 const Topics = () => {
 	const navigate = useNavigate();
-	const theme  = useTheme();
+	const theme = useTheme();
 	const screenWidth = useWindowSize().width as number;
-	const [followStatus, setFollowStatus] = useState(false);
 
 	//const location = useLocation();
 	//const queryParamaters = new URLSearchParams(location.search);
 	//const topicName = queryParamaters.get("topicName");
+	interface Thread {
+		id: number;
+		title: string;
+		author: string;
+		authorId: number;
+		date: string;
+		avatarIconLink: string;
+		bookmarkedStatus: boolean;
+		contentSummarised: string;
+		handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
+	}
+	interface TopicProp {
+		name: string;
+		initialFollowStatus: boolean;
+		threads: Thread[];
+	}
+	const Topic = ({ name, initialFollowStatus, threads }: TopicProp) => {
+		const [followStatus, setFollowStatus] = useState(initialFollowStatus);
+		return (
+			<>
+				<Box
+					sx={{
+						marginTop: 5,
+					}}
+					key={name}
+					marginBottom={8}
+				>
+					<Box
+						display="flex"
+						alignItems="center"
+						justifyContent="space-between"
+					>
+						<Typography
+							variant="h5"
+							fontFamily="Open Sans"
+							color="primary.dark"
+							fontWeight={700}
+							onClick={() => navigate(`../Topics/?topicName=${name}`)}
+							sx={{ cursor: "pointer" }}
+						>
+							{name}
+						</Typography>
+						<Button
+							buttonStyle={{ py: 0 }}
+							borderRadius={40}
+							fontSize={20}
+							buttonIcon={
+								followStatus ? (
+									<NotificationsActiveRoundedIcon />
+								) : (
+									<NotificationsNoneRoundedIcon />
+								)
+							}
+							handleButtonClick={() => setFollowStatus(!followStatus)}
+						>
+							Follow
+						</Button>
+					</Box>
+
+					<Box>
+						<Grid
+							container
+							columnSpacing={2.5}
+							rowSpacing={2}
+							sx={{ marginTop: 2 }}
+						>
+							{threads.map((thread) => (
+								<Grid
+									size={
+										screenWidth > theme.breakpoints.values.md
+											? 4
+											: screenWidth > theme.breakpoints.values.sm
+											? 6
+											: 12
+									}
+									key={thread.id}
+								>
+									<ThreadGridCard
+										threadId={thread.id}
+										threadAuthor={thread.author}
+										threadTitle={thread.title}
+										threadDate={thread.date}
+										avatarIconLink={thread.avatarIconLink}
+										threadContentSummarised={thread.contentSummarised}
+										bookmarkedStatus={thread.bookmarkedStatus}
+										handleAvatarIconClick={() => {
+											navigate(`../Profile/${thread.authorId}`);
+										}}
+									/>
+								</Grid>
+							))}
+						</Grid>
+					</Box>
+				</Box>
+			</>
+		);
+	};
 
 	return (
 		<>
@@ -74,79 +170,12 @@ const Topics = () => {
 					}}
 					disableGutters
 				>
-					{threadGroups.map((threadGroup) => (
-						<Box
-							sx={{
-								marginTop: 5,
-							}}
-							key={threadGroup.topic}
-							marginBottom={8}
-						>
-							<Box display="flex" alignContent="center" justifyContent="space-between">
-								<Typography
-									variant="h5"
-									fontFamily="Open Sans"
-									color="primary.dark"
-									fontWeight={700}
-									onClick={() =>
-										navigate(`../Topics/?topicName=${threadGroup.topic}`)
-									}
-									sx={{ cursor: "pointer" }}
-								>
-									{threadGroup.topic}
-								</Typography>
-								<Button
-									buttonStyle={{ py: 0 }}
-									borderRadius={40}
-									fontSize={20}
-									buttonIcon={
-										followStatus ? (
-											<NotificationsActiveRoundedIcon />
-										) : (
-											<NotificationsNoneRoundedIcon />
-										)
-									}
-									handleButtonClick={() => setFollowStatus(!followStatus)}
-								>
-									Follow
-								</Button>
-							</Box>
-
-							<Box>
-								<Grid
-									container
-									columnSpacing={2.5}
-									rowSpacing={2}
-									sx={{ marginTop: 2 }}
-								>
-									{threadGroup.threads.map((thread) => (
-										<Grid
-											size={
-												screenWidth > theme.breakpoints.values.md
-													? 4
-													: screenWidth > theme.breakpoints.values.sm
-													? 6
-													: 12
-											}
-											key={thread.id}
-										>
-											<ThreadGridCard
-												threadId={thread.id}
-												threadAuthor={thread.author}
-												threadTitle={thread.title}
-												threadDate={thread.date}
-												avatarIconLink={thread.avatarIconLink}
-												threadContentSummarised={thread.contentSummarised}
-												bookmarkedStatus={thread.bookmarkedStatus}
-												handleAvatarIconClick={() => {
-													navigate(`../Profile/${thread.authorId}`);
-												}}
-											/>
-										</Grid>
-									))}
-								</Grid>
-							</Box>
-						</Box>
+					{topics.map((topic) => (
+						<Topic
+							name={topic.name}
+							initialFollowStatus={topic.followStatus}
+							threads={topic.threads}
+						/>
 					))}
 				</Container>
 			</Box>
