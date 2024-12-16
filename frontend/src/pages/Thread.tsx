@@ -90,7 +90,7 @@ const Thread = () => {
 						marginTop: 2,
 					}}
 				>
-					<Card elevation={2} sx={{ padding: {xs:0.5, sm:1, md:2} }}>
+					<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 2 } }}>
 						<CardHeader
 							avatar={
 								<Menu
@@ -278,8 +278,8 @@ const Thread = () => {
 											setOpenSnackbar(true);
 										},
 										() => {
-											const currentLink = window.location.href;
-											window.location.href = `whatsapp://send?text=${currentLink}/Thread/${ThreadMetadata.id}`;
+											const currentPathAbsolute = window.location.href;
+											window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
 										},
 									]}
 									listItemsStyles={{ padding: 2.5 }}
@@ -289,8 +289,9 @@ const Thread = () => {
 									setOpenSnackbar={setOpenSnackbar}
 									message="Link copied to clipboard"
 									handleSnackbarClose={() => {
-										const currentLink = window.location.href;
-										navigator.clipboard.writeText(currentLink);
+										const currentPathAbsolute = window.location.href;
+										navigator.clipboard.writeText(currentPathAbsolute);
+										setOpenShareDialog(false);
 									}}
 									duration={1500}
 								/>

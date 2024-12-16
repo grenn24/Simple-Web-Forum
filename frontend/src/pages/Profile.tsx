@@ -76,7 +76,7 @@ const Profile = () => {
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
-					variant="fullWidth"
+					variant="scrollable"
 				/>
 			</Container>
 		</Box>

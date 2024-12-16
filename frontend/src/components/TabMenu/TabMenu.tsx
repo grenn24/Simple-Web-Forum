@@ -45,6 +45,7 @@ export default function TabMenu({ tabLabelArray, tabPageArray, variant, padding=
 					value={currentTabIndex}
 					onChange={handleTabChange}
 					variant={variant}
+					scrollButtons="auto"
 					sx={{
 						"& .MuiTabs-indicator": {
 							border: 1.5,

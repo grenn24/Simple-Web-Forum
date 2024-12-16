@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
 	Card,
-	
 	CardHeader,
 	CardMedia,
 	CardContent,
@@ -74,7 +73,7 @@ interface Prop {
 	threadImageLink?: string;
 	avatarIconLink: string;
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
-	likeStatus: boolean
+	likeStatus: boolean;
 }
 
 const ThreadCard = ({
@@ -88,7 +87,7 @@ const ThreadCard = ({
 	threadImageLink,
 	avatarIconLink,
 	handleAvatarIconClick,
-	likeStatus
+	likeStatus,
 }: Prop) => {
 	const [expandCardContent, setExpandCardContent] = useState(false);
 	const [likeClickStatus, setLikeClickStatus] = useState(likeStatus);
@@ -271,17 +270,22 @@ const ThreadCard = ({
 										event.stopPropagation();
 									},
 								]}
-
-							listItemsStyles={{padding:2.5}}
+								listItemsStyles={{ padding: 2.5 }}
 							/>
 							<Snackbar
 								openSnackbar={openSnackbar}
 								setOpenSnackbar={setOpenSnackbar}
 								message="Link copied to clipboard"
 								handleSnackbarClose={() => {
-									const currentLink = window.location.href;
+									const currentPathObject = new URL(window.location.href);
+									const parentPathRelative =
+										currentPathObject.pathname.substring(
+											0,
+											currentPathObject.pathname.lastIndexOf("/")
+										);
+									const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
 									navigator.clipboard.writeText(
-										`${currentLink}/Thread/${threadId}`
+										`${parentPathAbsolute}/Thread/${threadId}`
 									);
 								}}
 								duration={1500}

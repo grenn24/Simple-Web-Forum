@@ -56,7 +56,7 @@ const Settings = () => {
 				<TabMenu
 					tabLabelArray={settingsTabMenuLabels}
 					tabPageArray={settingsTabMenuPages}
-					variant="fullWidth"
+					variant="scrollable"
 				/>
 			</Container>
 		</Box>

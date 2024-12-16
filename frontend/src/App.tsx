@@ -16,6 +16,7 @@ import Thread from "./pages/Thread";
 import Theme from "./styles/Theme";
 import { ThemeProvider } from "@emotion/react";
 import CreateThread from "./pages/CreateThread";
+import AutoScrollToTop from "./utilities/AutoScrollToTop";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -73,6 +74,7 @@ function App() {
 						{/*Missed Routes*/}
 						<Route path="*" element={<Error />} />
 					</Routes>
+					<AutoScrollToTop />
 				</BrowserRouter>
 			</ThemeProvider>
 		</>

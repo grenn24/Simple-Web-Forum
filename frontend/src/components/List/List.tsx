@@ -38,6 +38,7 @@ const List = ({
 									sx={{ ...listItemsStyles }}
 									disabled={disabled}
 									disableRipple={disableRipple}
+									disableTouchRipple={disableRipple}
 								>
 									{listIconsArray && listIconsArray[index]}
 									<ListItemText primary={item} />
@@ -47,6 +48,7 @@ const List = ({
 									data-value={listItemsDataValues && listItemsDataValues[index]}
 									onClick={handleListItemsClick && handleListItemsClick[index]}
 									sx={{ ...listItemsStyles }}
+									
 								>
 									{listIconsArray && listIconsArray[index]}
 									<ListItemText primary={item} />
