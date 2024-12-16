@@ -1,4 +1,4 @@
-import { Box, Typography, Divider, Container } from "@mui/material";
+import { Box, Typography, Divider, Container, useTheme } from "@mui/material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import settingsTabMenuLabels from "../features/Settings/settingsTabMenuLabels";
 import settingsTabMenuPages from "../features/Settings/settingsTabMenuPages";
@@ -8,6 +8,7 @@ import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 
 const Settings = () => {
 	const navigate = useNavigate();
+	const theme = useTheme();
 	return (
 		<Box
 			sx={{
@@ -56,7 +57,7 @@ const Settings = () => {
 				<TabMenu
 					tabLabelArray={settingsTabMenuLabels}
 					tabPageArray={settingsTabMenuPages}
-					variant="scrollable"
+					variant={theme.breakpoints.up("sm") ? "fullWidth" : "scrollable"}
 				/>
 			</Container>
 		</Box>

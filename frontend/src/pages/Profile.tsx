@@ -1,15 +1,19 @@
-import { Box, Container, Divider, Typography, Avatar } from "@mui/material";
+import { Box, Container, Divider, Typography, Avatar, useTheme } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
-import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
+import { useState } from "react";
+import { ArrowBackRounded as ArrowBackRoundedIcon, NotificationsNoneRounded as NotificationsNoneRoundedIcon, NotificationsActiveRounded as NotificationsActiveRoundedIcon } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import threadDataSample from "../features/Thread/threadDataSample";
 import profileDataSample from "../features/Profile/profileDataSample";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
 
+
 const Profile = () => {
 	const navigate = useNavigate();
+	const theme = useTheme();
+	const [followStatus, setFollowStatus] = useState(false);
 	return (
 		<Box
 			sx={{
@@ -61,22 +65,25 @@ const Profile = () => {
 				<Box display="flex" width="100%" alignItems="center" marginBottom={2}>
 					<Avatar
 						src={threadDataSample.avatarIconLink}
-						sx={{ width: 100, height: 100 }}
+						sx={{ width: 90, height: 90 }}
 					/>
-					<Box marginLeft={2}>
-						<Typography fontSize={35} fontWeight={600}>
-							{profileDataSample.name}
-						</Typography>
-						<Typography fontSize={20} fontWeight={300}>
-							{`@${profileDataSample.username}`}
-						</Typography>
+					<Box marginLeft={2} display="flex" justifyContent="space-between" sx={{flexGrow:1}}>
+						<Box>
+							<Typography fontSize={32} fontWeight={600}>
+								{profileDataSample.name}
+							</Typography>
+							<Typography fontSize={18} fontWeight={300}>
+								{`@${profileDataSample.username}`}
+							</Typography>
+						</Box>
+						<Button buttonStyle={{py:0}} borderRadius={40} fontSize={20} buttonIcon={followStatus ? <NotificationsActiveRoundedIcon />:<NotificationsNoneRoundedIcon />} handleButtonClick={() =>setFollowStatus(!followStatus)}>Follow</Button>
 					</Box>
 				</Box>
 
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
-					variant="scrollable"
+					variant={theme.breakpoints.up("sm") ? "fullWidth" : "scrollable"}
 				/>
 			</Container>
 		</Box>

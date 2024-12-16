@@ -355,7 +355,7 @@ const Thread = () => {
 								</Menu>
 							</Box>
 							<List
-								disableHoverEffect
+								variant="text"
 								disablePadding
 								listItemsArray={ThreadMetadata.comments.map((comment) => {
 									return (

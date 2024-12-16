@@ -31,7 +31,7 @@ const PrivacyPage = () => {
 				disablePadding
 				disableRipple
 				divider
-				disableHoverEffect
+				variant="text"
 			/>
 		</Box>
 	);

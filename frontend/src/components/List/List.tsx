@@ -9,7 +9,7 @@ interface Prop {
 	listItemsStyles?: object;
 	disabled?: boolean;
 	disableRipple?: boolean
-	disableHoverEffect?: boolean
+	variant?: "text" | "button"
 	divider?: boolean
 }
 
@@ -22,7 +22,7 @@ const List = ({
 	listItemsStyles,
 	disabled,
 	disableRipple=false,
-	disableHoverEffect=false,
+	variant="button",
 	divider=false
 }: Prop) => {
 	return (
@@ -31,7 +31,7 @@ const List = ({
 				{listItemsArray.map((item, index) => (
 					<>
 						<ListItem disablePadding={disablePadding} key={index}>
-							{!disableHoverEffect ? (
+							{variant === "button" ? (
 								<ListItemButton
 									data-value={listItemsDataValues && listItemsDataValues[index]}
 									onClick={handleListItemsClick && handleListItemsClick[index]}

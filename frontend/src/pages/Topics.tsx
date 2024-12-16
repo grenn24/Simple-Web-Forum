@@ -11,11 +11,18 @@ import { useNavigate  } from "react-router-dom";
 import threadGroups from "../features/Topics/topicsDataSample";
 import { useWindowSize } from "@uidotdev/usehooks";
 import Button from "../components/Button";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import {
+	ArrowBackRounded as ArrowBackRoundedIcon,
+	NotificationsNoneRounded as NotificationsNoneRoundedIcon,
+	NotificationsActiveRounded as NotificationsActiveRoundedIcon,
+} from "@mui/icons-material";
+import { useState } from "react";
 
 const Topics = () => {
 	const navigate = useNavigate();
+	const theme  = useTheme();
 	const screenWidth = useWindowSize().width as number;
+	const [followStatus, setFollowStatus] = useState(false);
 
 	//const location = useLocation();
 	//const queryParamaters = new URLSearchParams(location.search);
@@ -55,7 +62,7 @@ const Topics = () => {
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0, px : 0}}
+						buttonStyle={{ mx: 0, px: 0 }}
 						handleButtonClick={() => navigate(-1)}
 						toolTipText="Back"
 					/>
@@ -75,18 +82,36 @@ const Topics = () => {
 							key={threadGroup.topic}
 							marginBottom={8}
 						>
-							<Typography
-								variant="h5"
-								fontFamily="Open Sans"
-								color="primary.dark"
-								fontWeight={700}
-								onClick={() =>
-									navigate(`../Topics/?topicName=${threadGroup.topic}`)
-								}
-								sx={{ cursor: "pointer" }}
-							>
-								{threadGroup.topic}
-							</Typography>
+							<Box display="flex" alignContent="center" justifyContent="space-between">
+								<Typography
+									variant="h5"
+									fontFamily="Open Sans"
+									color="primary.dark"
+									fontWeight={700}
+									onClick={() =>
+										navigate(`../Topics/?topicName=${threadGroup.topic}`)
+									}
+									sx={{ cursor: "pointer" }}
+								>
+									{threadGroup.topic}
+								</Typography>
+								<Button
+									buttonStyle={{ py: 0 }}
+									borderRadius={40}
+									fontSize={20}
+									buttonIcon={
+										followStatus ? (
+											<NotificationsActiveRoundedIcon />
+										) : (
+											<NotificationsNoneRoundedIcon />
+										)
+									}
+									handleButtonClick={() => setFollowStatus(!followStatus)}
+								>
+									Follow
+								</Button>
+							</Box>
+
 							<Box>
 								<Grid
 									container
@@ -97,9 +122,9 @@ const Topics = () => {
 									{threadGroup.threads.map((thread) => (
 										<Grid
 											size={
-												screenWidth > useTheme().breakpoints.values.md
+												screenWidth > theme.breakpoints.values.md
 													? 4
-													: screenWidth > useTheme().breakpoints.values.sm
+													: screenWidth > theme.breakpoints.values.sm
 													? 6
 													: 12
 											}
