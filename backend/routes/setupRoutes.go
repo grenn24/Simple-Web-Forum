@@ -38,17 +38,26 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.POST("/", func(context *gin.Context) {
 		controllers.CreateAuthor(context, db)
 	})
+	authorRouter.DELETE("/", func(context *gin.Context) {
+		controllers.DeleteAllAuthors(context, db)
+	})
 
 	//Comment Routes
 	commentRouter := router.Group("./comments")
 	commentRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllComments(context, db)
 	})
+	commentRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateComment(context, db)
+	})
 
 	//Like Routes
 	likeRouter := router.Group("./likes")
 	likeRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllLikes(context, db)
+	})
+	likeRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateLike(context, db)
 	})
 
 	//Topic Routes

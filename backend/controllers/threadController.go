@@ -20,6 +20,12 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
+	// Check for empty table
+	if !rows.Next() {
+		context.String(http.StatusNotFound, "No threads in database")
+		return
+	}
+
 	var threads []models.Thread
 
 	for rows.Next() {
@@ -92,7 +98,7 @@ func CreateThread(context *gin.Context, db *sql.DB) {
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.String(http.StatusBadRequest, err.Error())
 		return
 	}
 

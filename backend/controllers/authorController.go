@@ -19,6 +19,12 @@ func GetAllAuthors(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
+		// Check for empty table
+	if !rows.Next() {
+		context.String(http.StatusNotFound, "No authors in database")
+		return
+	}
+
 	var authors []models.Author
 
 	for rows.Next() {
@@ -85,7 +91,7 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -116,4 +122,17 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 	}
 
 	context.String(http.StatusOK, "Author added to database")
+}
+
+func DeleteAllAuthors(context *gin.Context, db *sql.DB) {
+
+	_, err := db.Exec("DELETE FROM Author")
+
+	// Check for any deletion errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.String(http.StatusOK, "Deleted all authors")
 }

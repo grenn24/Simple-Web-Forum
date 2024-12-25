@@ -46,3 +46,49 @@ func GetAllComments(context *gin.Context, db *sql.DB) {
 
 	context.JSON(http.StatusOK, comments)
 }
+
+func CreateComment(context *gin.Context, db *sql.DB) {
+	// Declare a thread struct instance
+	var comment models.Comment
+
+	err := context.ShouldBind(&comment)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO Comment (thread_id, author_id, content) VALUES ($1, $2, $3)", comment.ThreadID, comment.AuthorID, comment.Content)
+
+		// Check for sql insertion errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.String(http.StatusOK, "Comment added to database")
+}
+
+func CreateLike(context *gin.Context, db *sql.DB) {
+	// Declare a like struct instance
+	var like models.Like
+
+	err := context.ShouldBind(&like)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err = db.Exec("INSERT INTO Like (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
+
+	// Check for sql insertion errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.String(http.StatusOK, "Like added to database")
+}
