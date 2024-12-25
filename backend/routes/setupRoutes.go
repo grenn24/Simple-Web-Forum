@@ -9,27 +9,57 @@ import (
 
 func SetupRoutes(router *gin.Engine, db *sql.DB) {
 
-	router.GET("/threads", func(context *gin.Context) {
+	//Thread Routes
+	threadRouter := router.Group("/threads")
+	threadRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllThreads(context, db)
 	})
-
-	router.GET("/authors", func(context *gin.Context) {
-		controllers.GetAllAuthors(context, db)
+	threadRouter.GET("/:id", func(context *gin.Context) {
+		controllers.GetThreadByID(context, db)
+	})
+	threadRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateThread(context, db)
+	})
+	threadRouter.DELETE("/", func(context *gin.Context) {
+		controllers.DeleteAllThreads(context, db)
+	})
+	threadRouter.DELETE("/:id", func(context *gin.Context) {
+		controllers.DeleteThreadByID(context, db)
 	})
 
-	router.GET("/comments", func(context *gin.Context) {
+	//Author Routes
+	authorRouter := router.Group("/authors")
+	authorRouter.GET("/", func(context *gin.Context) {
+		controllers.GetAllAuthors(context, db)
+	})
+	authorRouter.GET("/:id", func(context *gin.Context) {
+		controllers.GetAuthorByID(context, db)
+	})
+	authorRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateAuthor(context, db)
+	})
+
+	//Comment Routes
+	commentRouter := router.Group("./comments")
+	commentRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllComments(context, db)
 	})
 
-	router.GET("/likes", func(context *gin.Context) {
+	//Like Routes
+	likeRouter := router.Group("./likes")
+	likeRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllLikes(context, db)
 	})
 
-	router.GET("/topics", func(context *gin.Context) {
+	//Topic Routes
+	topicRouter := router.Group("./topics")
+	topicRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllTopics(context, db)
 	})
 
-	router.GET("/follows", func(context *gin.Context) {
+	//Follow Routes
+	followRouter := router.Group("./follows")
+	followRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllFollows(context, db)
 	})
 }
