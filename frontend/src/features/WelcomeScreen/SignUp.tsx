@@ -34,9 +34,11 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					})}
 					error={!!errors.email}
 					helperText={
-						errors.email ? (errors.email?.type === "required"
-							? "The email field is required"
-							: "Invalid Email") : null
+						errors.email
+							? errors.email?.type === "required"
+								? "The email field is required"
+								: "Invalid Email"
+							: null
 					}
 				/>
 
@@ -54,10 +56,6 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					variant="outlined"
 					{...register("username", {
 						required: true,
-						validate: {
-							validPassword: (x) =>
-								/^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/.test(x),
-						},
 					})}
 					error={!!errors.username}
 					helperText={errors.username ? "The username field is required" : null}
@@ -68,12 +66,20 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					label="Password"
 					type="password"
 					variant="outlined"
-					{...register("password", { required: true })}
+					{...register("password", {
+						required: true,
+						validate: {
+							validPassword: (x) =>
+								/^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/.test(x),
+						},
+					})}
 					error={!!errors.password}
 					helperText={
-						errors.password ? (errors.password?.type === "required"
-							? "The password field is required"
-							: "Invalid Password") : null
+						errors.password
+							? errors.password?.type === "required"
+								? "The password field is required"
+								: "Invalid Password (8-16 characters, 1 special)"
+							: null
 					}
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>
