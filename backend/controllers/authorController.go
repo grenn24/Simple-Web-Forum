@@ -8,9 +8,9 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 )
 
-func GetAllThreads(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM Thread")
-	
+func GetAllAuthors(context *gin.Context, db *sql.DB) {
+	rows, err := db.Query("SELECT * FROM Author")
+
 	if err != nil {
 		context.String(http.StatusInternalServerError, err.Error())
 		return
@@ -19,21 +19,21 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []models.Thread
+	var authors []models.Author
 
 	for rows.Next() {
-		// Declare a thread struct instance
-		var thread models.Thread
+		// Declare a author struct instance
+		var author models.Author
 
-		// Scan the row and modify the thread instance
+		// Scan the row and modify the author instance
 		err := rows.Scan(
-			&thread.ThreadID,
-			&thread.Title,
-			&thread.CreatedAt,
-			&thread.Content,
-			&thread.AuthorID,
-			&thread.ImageTitle,
-			&thread.ImageLink,
+			&author.AuthorID,
+			&author.Name,
+			&author.Username,
+			&author.Email,
+			&author.PasswordHash,
+			&author.AvatarIconLink,
+			&author.CreatedAt,
 		)
 
 		// Check for any scanning errors
@@ -43,8 +43,8 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 		}
 
 		// Append the scanned thread to threads slice
-		threads = append(threads, thread)
+		authors = append(authors, author)
 	}
 
-	context.JSON(http.StatusOK, threads)
+	context.JSON(http.StatusOK, authors)
 }
