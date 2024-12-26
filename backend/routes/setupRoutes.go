@@ -9,13 +9,27 @@ import (
 
 func SetupRoutes(router *gin.Engine, db *sql.DB) {
 
-	//Thread Routes
+	// Thread Related Routes
 	threadRouter := router.Group("/threads")
 	threadRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllThreads(context, db)
 	})
-	threadRouter.GET("/:id", func(context *gin.Context) {
+	threadRouter.GET("/:threadID", func(context *gin.Context) {
 		controllers.GetThreadByID(context, db)
+	})
+	// Thread Specific Comments
+	threadRouter.GET("/:threadID/comments", func(context *gin.Context) {
+		controllers.GetCommentsByThreadID(context, db)
+	})
+	threadRouter.GET("/:threadID/comments/count", func(context *gin.Context) {
+		controllers.CountCommentsByThreadID(context, db)
+	})
+	// Thread Specific Likes
+	threadRouter.GET("/:threadID/likes", func(context *gin.Context) {
+		controllers.GetLikesByThreadID(context, db)
+	})
+	threadRouter.GET("/:threadID/likes/count", func(context *gin.Context) {
+		controllers.CountLikesByThreadID(context, db)
 	})
 	threadRouter.POST("/", func(context *gin.Context) {
 		controllers.CreateThread(context, db)
@@ -23,17 +37,36 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter.DELETE("/", func(context *gin.Context) {
 		controllers.DeleteAllThreads(context, db)
 	})
-	threadRouter.DELETE("/:id", func(context *gin.Context) {
+	threadRouter.DELETE("/:threadID", func(context *gin.Context) {
 		controllers.DeleteThreadByID(context, db)
 	})
+	// Thread Specific Topics
+	threadRouter.GET("/:threadID/topics", func(context *gin.Context) {
+		controllers.GetTopicsByThreadID(context, db)
+	})
 
-	//Author Routes
+	// Author Related Routes
 	authorRouter := router.Group("/authors")
 	authorRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllAuthors(context, db)
 	})
-	authorRouter.GET("/:id", func(context *gin.Context) {
+	authorRouter.GET("/:authorID", func(context *gin.Context) {
 		controllers.GetAuthorByID(context, db)
+	})
+	// Author Specific Threads
+	authorRouter.GET("/:authorID/threads", func(context *gin.Context) {
+		controllers.GetThreadsByAuthorID(context, db)
+	})
+	// Author Specific Likes
+	authorRouter.GET("/:authorID/likes", func(context *gin.Context) {
+		controllers.GetLikesByAuthorID(context, db)
+	})
+	authorRouter.GET("/:authorID/likes/count", func(context *gin.Context) {
+		controllers.CountLikesByAuthorID(context, db)
+	})
+	// Author Specific Comments
+	authorRouter.GET("/:authorID/comments", func(context *gin.Context) {
+		controllers.GetCommentsByAuthorID(context, db)
 	})
 	authorRouter.POST("/", func(context *gin.Context) {
 		controllers.CreateAuthor(context, db)
@@ -41,8 +74,12 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.DELETE("/", func(context *gin.Context) {
 		controllers.DeleteAllAuthors(context, db)
 	})
+	// Author Specific Follows
+	authorRouter.GET("/:authorID/followed/threads", func(context *gin.Context) {
+		controllers.GetFollowedThreadsByAuthorID(context, db)
+	})
 
-	//Comment Routes
+	// Comment Related Routes
 	commentRouter := router.Group("/comments")
 	commentRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllComments(context, db)
@@ -57,7 +94,7 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 		controllers.DeleteAllComments(context, db)
 	})
 
-	//Like Routes
+	// Like Related Routes
 	likeRouter := router.Group("/likes")
 	likeRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllLikes(context, db)
@@ -69,15 +106,38 @@ func SetupRoutes(router *gin.Engine, db *sql.DB) {
 		controllers.CreateLike(context, db)
 	})
 
-	//Topic Routes
+	// Topic Related Routes
 	topicRouter := router.Group("/topics")
 	topicRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllTopics(context, db)
 	})
+	topicRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateTopic(context, db)
+	})
+	topicRouter.GET("/:topicID/threads", func(context *gin.Context) {
+		controllers.GetThreadsByTopicID(context, db)
+	})
+	topicRouter.POST("/:topicID/threads/:threadID", func(context *gin.Context) {
+		controllers.AddThreadToTopic(context, db)
+	})
 
-	//Follow Routes
+	// Follow Related Routes
 	followRouter := router.Group("/follows")
 	followRouter.GET("/", func(context *gin.Context) {
 		controllers.GetAllFollows(context, db)
+	})
+	followRouter.POST("/", func(context *gin.Context) {
+		controllers.CreateFollow(context, db)
+	})
+
+	// Other Routes
+	router.GET("/thread-topic-junctions", func(context *gin.Context) {
+		controllers.GetAllThreadTopicJunctions(context, db)
+	})
+	router.DELETE("/reset-database", func(context *gin.Context) {
+		controllers.ResetDatabase(context, db)
+	})
+	router.POST("/initialise-database", func(context *gin.Context) {
+		controllers.InitialiseDatabase(context, db)
 	})
 }

@@ -52,16 +52,136 @@ func GetAllLikes(context *gin.Context, db *sql.DB) {
 	context.JSON(http.StatusOK, likes)
 }
 
-func CountAllLikes(context *gin.Context, db *sql.DB) {
-	threadID := context.Query("thread-id")
+func GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
+	authorID := context.Param("authorID")
 
-	var row *sql.Row
+	rows, err := db.Query("SELECT * FROM \"like\" WHERE author_id = " + authorID)
 
-	if (threadID == "") {
-		row = db.QueryRow("SELECT COUNT(*) FROM \"Like\"")
-	} else {
-		row = db.QueryRow("SELECT COUNT(*) FROM \"Like\" WHERE thread_id = $1", threadID)
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
 	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	var likes []*models.Like
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a like struct
+		like := new(models.Like)
+
+		// Scan the current row into the like struct
+		err := rows.Scan(
+			&like.LikeID,
+			&like.ThreadID,
+			&like.AuthorID,
+			&like.CreatedAt,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			context.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Append the scanned like to likes slice
+		likes = append(likes, like)
+	}
+
+	// Check for empty table
+	if len(likes) == 0 {
+		context.String(http.StatusNotFound, "No likes found for this author")
+		return
+	}
+
+	context.JSON(http.StatusOK, likes)
+}
+
+func GetLikesByThreadID(context *gin.Context, db *sql.DB) {
+	threadID := context.Param("threadID")
+
+	rows, err := db.Query("SELECT * FROM \"like\" WHERE thread_id = " +threadID)
+
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	var likes []*models.Like
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a like struct
+		like := new(models.Like)
+
+		// Scan the current row into the like struct
+		err := rows.Scan(
+			&like.LikeID,
+			&like.ThreadID,
+			&like.AuthorID,
+			&like.CreatedAt,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			context.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Append the scanned like to likes slice
+		likes = append(likes, like)
+	}
+
+	// Check for empty table
+	if len(likes) == 0 {
+		context.String(http.StatusNotFound, "No likes found for this thread")
+		return
+	}
+
+	context.JSON(http.StatusOK, likes)
+}
+
+func CountAllLikes(context *gin.Context, db *sql.DB) {
+	row := db.QueryRow("SELECT COUNT(*) FROM \"like\"")
+
+	var likeCount int
+
+	err := row.Scan(&likeCount)
+
+	// Check for any scanning errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"likeCount": likeCount})
+}
+
+func CountLikesByThreadID(context *gin.Context, db *sql.DB) {
+	threadID := context.Param("threadID")
+
+	row := db.QueryRow("SELECT COUNT(*) FROM \"like\" WHERE thread_id = " + threadID)
+
+	var likeCount int
+
+	err := row.Scan(&likeCount)
+
+	// Check for any scanning errors
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"likeCount": likeCount})
+}
+
+func CountLikesByAuthorID(context *gin.Context, db *sql.DB) {
+	authorID := context.Param("authorID")
+
+	row := db.QueryRow("SELECT COUNT(*) FROM \"like\" WHERE author_id = " + authorID)
 
 	var likeCount int
 
@@ -94,7 +214,7 @@ func CreateLike(context *gin.Context, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO \"Like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
+	_, err = db.Exec("INSERT INTO \"like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
 
 	// Check for sql insertion errors
 	if err != nil {

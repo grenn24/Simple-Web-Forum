@@ -10,7 +10,7 @@ import (
 
 func GetAllThreads(context *gin.Context, db *sql.DB) {
 
-	rows, err := db.Query("SELECT * FROM Thread")
+	rows, err := db.Query("SELECT * FROM thread")
 
 	if err != nil {
 		context.String(http.StatusInternalServerError, err.Error())
@@ -57,9 +57,9 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 }
 
 func GetThreadByID(context *gin.Context, db *sql.DB) {
-	id := context.Param("id")
+	threadID := context.Param("threadID")
 
-	row := db.QueryRow("SELECT * FROM Thread WHERE thread_id = $1", id)
+	row := db.QueryRow("SELECT * FROM thread WHERE thread_id = $1", threadID)
 
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
@@ -90,6 +90,117 @@ func GetThreadByID(context *gin.Context, db *sql.DB) {
 	context.JSON(http.StatusOK, thread)
 }
 
+func GetThreadsByAuthorID(context *gin.Context, db *sql.DB) {
+	authorID := context.Param("authorID")
+
+	rows, err := db.Query("SELECT * FROM thread WHERE author_id = " + authorID)
+
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	var threads []*models.Thread
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(models.Thread)
+
+		// Scan the current row into the thread struct
+		err := rows.Scan(
+			&thread.ThreadID,
+			&thread.Title,
+			&thread.CreatedAt,
+			&thread.Content,
+			&thread.AuthorID,
+			&thread.ImageTitle,
+			&thread.ImageLink,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			context.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Append the scanned thread to threads slice
+		threads = append(threads, thread)
+	}
+
+	// Check for empty table
+	if len(threads) == 0 {
+		context.String(http.StatusNotFound, "No threads found for this author")
+		return
+	}
+
+	context.JSON(http.StatusOK, threads)
+}
+
+func GetThreadsByTopicID(context *gin.Context, db *sql.DB) {
+	topicID := context.Param("topicID")
+
+	rows, err := db.Query(`
+		SELECT
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread.author_id,
+			thread.image_title,
+			thread.image_link
+		FROM threadTopicJunction
+		INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
+		WHERE threadTopicJunction.topic_id = $1
+	`, topicID)
+
+	if err != nil {
+		context.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	var threads []*models.Thread
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(models.Thread)
+
+		// Scan the current row into the thread struct
+		err := rows.Scan(
+			&thread.ThreadID,
+			&thread.Title,
+			&thread.CreatedAt,
+			&thread.Content,
+			&thread.AuthorID,
+			&thread.ImageTitle,
+			&thread.ImageLink,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			context.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Append the scanned thread to threads slice
+		threads = append(threads, thread)
+	}
+
+	// Check for empty table
+	if len(threads) == 0 {
+		context.String(http.StatusNotFound, "No threads found for this author")
+		return
+	}
+
+	context.JSON(http.StatusOK, threads)
+}
+
+
 func CreateThread(context *gin.Context, db *sql.DB) {
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
@@ -108,7 +219,7 @@ func CreateThread(context *gin.Context, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO Thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5)", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
+	_, err = db.Exec("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5)", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
 
 	// Check for sql insertion errors
 	if err != nil {
@@ -133,9 +244,9 @@ func DeleteAllThreads(context *gin.Context, db *sql.DB) {
 }
 
 func DeleteThreadByID(context *gin.Context, db *sql.DB) {
-	id := context.Param("id")
+	threadID := context.Param("threadID")
 
-	result, err := db.Exec("DELETE FROM Thread WHERE thread_id = $1", id)
+	result, err := db.Exec("DELETE FROM thread WHERE thread_id = $1", threadID)
 
 	// Check for any deletion errors
 	if err != nil {

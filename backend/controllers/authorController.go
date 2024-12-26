@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllAuthors(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM Author")
+	rows, err := db.Query("SELECT * FROM author")
 
 	if err != nil {
 		context.String(http.StatusInternalServerError, err.Error())
@@ -56,9 +56,9 @@ func GetAllAuthors(context *gin.Context, db *sql.DB) {
 }
 
 func GetAuthorByID(context *gin.Context, db *sql.DB) {
-	id := context.Param("id")
+	authorID := context.Param("authorID")
 
-	row := db.QueryRow("SELECT * FROM Author WHERE author_id = $1", id)
+	row := db.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
 
 	// Declare a pointer to a new instance of an author struct
 	author := new(models.Author)
@@ -101,22 +101,22 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO Author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5)", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
+	_, err = db.Exec("INSERT INTO author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5)", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
 
 	// Check for sql insertion errors
 	if err != nil {
 		// Check for existing name
-		if err.Error() == "pq: duplicate key value violates unique constraint \"name_lowercase\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
 			context.String(http.StatusBadRequest, "Name already exists (case insensitive)")
 			return
 		}
 		// Check for existing username
-		if err.Error() == "pq: duplicate key value violates unique constraint \"username_lowercase\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
 			context.String(http.StatusBadRequest, "Username already exists (case insensitive)")
 			return
 		}
 		// Check for existing email
-		if err.Error() == "pq: duplicate key value violates unique constraint \"email_lowercase\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
 			context.String(http.StatusBadRequest, "Email already exists (case insensitive)")
 			return
 		}
@@ -130,7 +130,7 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 
 func DeleteAllAuthors(context *gin.Context, db *sql.DB) {
 
-	_, err := db.Exec("DELETE FROM Author")
+	_, err := db.Exec("DELETE FROM author")
 
 	// Check for any deletion errors
 	if err != nil {
