@@ -20,19 +20,13 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
-	// Check for empty table
-	if !rows.Next() {
-		context.String(http.StatusNotFound, "No threads in database")
-		return
-	}
-
-	var threads []models.Thread
+	var threads []*models.Thread
 
 	for rows.Next() {
-		// Declare a thread struct instance
-		var thread models.Thread
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(models.Thread)
 
-		// Scan the row and modify the thread instance
+		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&thread.ThreadID,
 			&thread.Title,
@@ -53,6 +47,12 @@ func GetAllThreads(context *gin.Context, db *sql.DB) {
 		threads = append(threads, thread)
 	}
 
+	// Check for empty table
+	if len(threads) == 0 {
+		context.String(http.StatusNotFound, "No threads in database")
+		return
+	}
+
 	context.JSON(http.StatusOK, threads)
 }
 
@@ -61,10 +61,10 @@ func GetThreadByID(context *gin.Context, db *sql.DB) {
 
 	row := db.QueryRow("SELECT * FROM Thread WHERE thread_id = $1", id)
 
-	// Declare a thread struct instance
-	var thread models.Thread
+	// Declare a pointer to a new instance of a thread struct
+	thread := new(models.Thread)
 
-	// Scan the row and modify the thread instance
+	// Scan the current row into the thread struct
 	err := row.Scan(
 		&thread.ThreadID,
 		&thread.Title,
@@ -75,14 +75,14 @@ func GetThreadByID(context *gin.Context, db *sql.DB) {
 		&thread.ImageLink,
 	)
 
-	// Check for thread not found error
-	if err == sql.ErrNoRows {
-		context.String(http.StatusNotFound, "Thread not found")
-		return
-	}
-
-	// Check for other scanning errors
+	// Check for any scanning errors
 	if err != nil {
+		// Check for thread not found error
+		if err == sql.ErrNoRows {
+			context.String(http.StatusNotFound, "Thread not found")
+			return
+		}
+		// Other errors
 		context.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -91,14 +91,20 @@ func GetThreadByID(context *gin.Context, db *sql.DB) {
 }
 
 func CreateThread(context *gin.Context, db *sql.DB) {
-	// Declare a thread struct instance
-	var thread models.Thread
+	// Declare a pointer to a new instance of a thread struct
+	thread := new(models.Thread)
 
 	err := context.ShouldBind(&thread)
 
 	// Check for JSON binding errors
 	if err != nil {
 		context.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Check if the binded struct contains necessary fields
+	if thread.Title == "" || thread.Content == "" || thread.AuthorID == 0 {
+		context.String(http.StatusBadRequest, "Missing required fields")
 		return
 	}
 

@@ -19,13 +19,13 @@ func GetAllTopics(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var topics []models.Topic
+	var topics []*models.Topic
 
 	for rows.Next() {
-		// Declare a topic struct instance
-		var topic models.Topic
+		// Declare a pointer to a new instance of a topic struct
+		topic := new(models.Topic)
 
-		// Scan the row and modify the topic instance
+		// Scan the current row into the topic struct
 		err := rows.Scan(
 			&topic.TopicID,
 			&topic.Name,
@@ -40,6 +40,12 @@ func GetAllTopics(context *gin.Context, db *sql.DB) {
 
 		// Append the scanned topic to topics slice
 		topics = append(topics, topic)
+	}
+
+	// Check for empty table
+	if len(topics) == 0 {
+		context.String(http.StatusNotFound, "No topics in database")
+		return
 	}
 
 	context.JSON(http.StatusOK, topics)

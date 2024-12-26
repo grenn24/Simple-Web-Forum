@@ -19,19 +19,13 @@ func GetAllAuthors(context *gin.Context, db *sql.DB) {
 	//Close rows after finishing query
 	defer rows.Close()
 
-		// Check for empty table
-	if !rows.Next() {
-		context.String(http.StatusNotFound, "No authors in database")
-		return
-	}
-
-	var authors []models.Author
+	var authors []*models.Author
 
 	for rows.Next() {
-		// Declare a author struct instance
-		var author models.Author
+		// Declare a pointer to a new instance of an author struct
+		author := new(models.Author)
 
-		// Scan the row and modify the author instance
+		// Scan the current row into the author struct
 		err := rows.Scan(
 			&author.AuthorID,
 			&author.Name,
@@ -52,18 +46,24 @@ func GetAllAuthors(context *gin.Context, db *sql.DB) {
 		authors = append(authors, author)
 	}
 
+	// Check for empty table
+	if len(authors) == 0 {
+		context.String(http.StatusNotFound, "No authors in database")
+		return
+	}
+
 	context.JSON(http.StatusOK, authors)
 }
 
 func GetAuthorByID(context *gin.Context, db *sql.DB) {
 	id := context.Param("id")
 
-	row := db.QueryRow("SELECT * FROM Author WHERE Author_id = $1", id)
+	row := db.QueryRow("SELECT * FROM Author WHERE author_id = $1", id)
 
-	// Declare an author struct instance
-	var author models.Author
+	// Declare a pointer to a new instance of an author struct
+	author := new(models.Author)
 
-	// Scan the row and modify the author instance
+	// Scan the current row into the author struct
 	err := row.Scan(
 		&author.AuthorID,
 		&author.Name,
@@ -84,8 +84,8 @@ func GetAuthorByID(context *gin.Context, db *sql.DB) {
 }
 
 func CreateAuthor(context *gin.Context, db *sql.DB) {
-	// Declare an author struct instance
-	var author models.Author
+	// Declare a pointer to a new instance of an author struct
+	author := new(models.Author)
 
 	err := context.ShouldBind(&author)
 
@@ -95,28 +95,32 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO Author (name, username, email, password_hash) VALUES ($1, $2, $3, $4, $5)", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
-
-	// Check for existing name
-	if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_key\"" {
-		context.String(http.StatusBadRequest, "Name already exists")
+	// Check if the binded struct contains necessary fields
+	if author.Email == "" || author.Name == "" || author.PasswordHash == "" || author.Username == "" {
+		context.String(http.StatusBadRequest, "Missing required fields")
 		return
 	}
 
-	// Check for existing username
-	if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_key\"" {
-		context.String(http.StatusBadRequest, "Username already exists")
-		return
-	}
+	_, err = db.Exec("INSERT INTO Author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5)", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
 
-	// Check for existing email
-	if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_key\"" {
-		context.String(http.StatusBadRequest, "Email already exists")
-		return
-	}
-
-	// Check for other sql insertion errors
+	// Check for sql insertion errors
 	if err != nil {
+		// Check for existing name
+		if err.Error() == "pq: duplicate key value violates unique constraint \"name_lowercase\"" {
+			context.String(http.StatusBadRequest, "Name already exists (case insensitive)")
+			return
+		}
+		// Check for existing username
+		if err.Error() == "pq: duplicate key value violates unique constraint \"username_lowercase\"" {
+			context.String(http.StatusBadRequest, "Username already exists (case insensitive)")
+			return
+		}
+		// Check for existing email
+		if err.Error() == "pq: duplicate key value violates unique constraint \"email_lowercase\"" {
+			context.String(http.StatusBadRequest, "Email already exists (case insensitive)")
+			return
+		}
+		// Other errors
 		context.String(http.StatusInternalServerError, err.Error())
 		return
 	}
