@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllLikes(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM \"Like\"")
+	rows, err := db.Query("SELECT * FROM \"like\"")
 
 	if err != nil {
 		context.String(http.StatusInternalServerError, err.Error())

@@ -40,15 +40,15 @@ func GetAllThreadTopicJunctions(context *gin.Context, db *sql.DB) {
 
 		// Append the scanned threadTopicJunction to the threadTopicJunctions slice
 		threadTopicJunctions = append(threadTopicJunctions, threadTopicJunction)
-
-		// Check for empty table
-		if len(threadTopicJunctions) == 0 {
-			context.String(http.StatusNotFound, "No threadTopicJunctions in database")
-			return
-		}
-
-		context.JSON(http.StatusOK, threadTopicJunctions)
 	}
+
+	// Check for empty table
+	if len(threadTopicJunctions) == 0 {
+		context.String(http.StatusNotFound, "No threadTopicJunctions in database")
+		return
+	}
+
+	context.JSON(http.StatusOK, threadTopicJunctions)
 }
 
 func AddThreadToTopic(context *gin.Context, db *sql.DB) {
