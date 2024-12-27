@@ -27,12 +27,12 @@ const Comment = ({
 	handleAvatarIconClick,
 }: Prop) => {
 	const [likeStatus, setLikeStatus] = useState(false);
-    	const player = playerGenerator(
-				likeSound,
-				0.9,
-				{ default: [90, 3000] },
-				"default"
-			);
+	const player = playerGenerator(
+		likeSound,
+		0.9,
+		{ default: [90, 3000] },
+		"default"
+	);
 
 	return (
 		<Box display="flex" justifyContent="space-between" alignItems="center">
@@ -78,9 +78,10 @@ const Comment = ({
 						likeStatus ? <ThumbUpRoundedIcon /> : <ThumbUpOutlinedIcon />
 					}
 					color="primary.dark"
-					handleButtonClick={() => {setLikeStatus(!likeStatus);
-                        player();
-                    }}
+					handleButtonClick={() => {
+						setLikeStatus(!likeStatus);
+						!likeStatus && player();
+					}}
 				/>
 				<Typography color="text.dark" fontSize={14} textAlign="center">
 					{likeCount}

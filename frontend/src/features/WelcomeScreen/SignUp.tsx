@@ -1,13 +1,38 @@
 import { Box, TextField, InputAdornment } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
+//import Cookies from "js-cookie";
+import axios from "axios";
 
 interface Prop {
 	opacity: number;
 	visibility: string;
 }
 const SignUp = ({ opacity, visibility }: Prop) => {
-	const { register, handleSubmit, formState: { errors} } = useForm();
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm();
+	const handleFormSubmit = handleSubmit((data) => {
+		axios
+			.post(
+				"http://localhost:8080/authors",
+				{
+					name: data.name,
+					username: data.username,
+					email: data.email,
+					password: data.password,
+				},
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			)
+			.then((res) => console.log(res))
+			.catch((err) => console.log(err));
+	});
 	return (
 		<Box
 			position="absolute"
@@ -21,7 +46,36 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 			}}
 			{...register("email")}
 		>
-			<form onSubmit={handleSubmit((data) => console.log(data))}>
+			<form onSubmit={handleFormSubmit}>
+				<TextField
+					label="Name"
+					variant="outlined"
+					{...register("name", {
+						required: true,
+					})}
+					error={!!errors.username}
+					helperText={errors.username ? "The name field is required" : null}
+				/>
+				<br />
+				<br />
+				<TextField
+					label="Username"
+					slotProps={{
+						input: {
+							startAdornment: (
+								<InputAdornment position="start">@</InputAdornment>
+							),
+						},
+					}}
+					variant="outlined"
+					{...register("username", {
+						required: true,
+					})}
+					error={!!errors.username}
+					helperText={errors.username ? "The username field is required" : null}
+				/>
+				<br />
+				<br />
 				<TextField
 					label="Email"
 					variant="outlined"
@@ -40,25 +94,6 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 								: "Invalid Email"
 							: null
 					}
-				/>
-
-				<br />
-				<br />
-				<TextField
-					label="Username"
-					slotProps={{
-						input: {
-							startAdornment: (
-								<InputAdornment position="start">@</InputAdornment>
-							),
-						},
-					}}
-					variant="outlined"
-					{...register("username", {
-						required: true,
-					})}
-					error={!!errors.username}
-					helperText={errors.username ? "The username field is required" : null}
 				/>
 				<br />
 				<br />

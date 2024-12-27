@@ -8,7 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/routes"
-	"github.com/joho/godotenv"
+	_ "github.com/heroku/x/hmetrics/onload"
+	_ "github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -17,13 +18,17 @@ var db *sql.DB
 
 func connectToDatabase() {
 	var err error
-	//connection details
-	connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
-		os.Getenv("simplewebforum_DB_user"),
-		os.Getenv("simplewebforum_DB_password"),
-		os.Getenv("simplewebforum_DB_host"),
-		os.Getenv("simplewebforum_DB_port"),
-		os.Getenv("simplewebforum_DB_name"))
+
+	//connection details for local deployment
+	/*connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
+	os.Getenv("simplewebforum_DB_user"),
+	os.Getenv("simplewebforum_DB_password"),
+	os.Getenv("simplewebforum_DB_host"),
+	os.Getenv("simplewebforum_DB_port"),
+	os.Getenv("simplewebforum_DB_name"))*/
+
+
+	connectionString := os.Getenv("DATABASE_URL")
 
 	fmt.Println("Connection String:", connectionString)
 
@@ -113,11 +118,12 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 }
 
 func main() {
-	//Load environment variables
-	err := godotenv.Load("./environmentVariables.env") 
-	if err != nil {
-		log.Fatal("Error loading environment variable file")
-	}
+	//Load environment variables for local deployment
+	/*
+		err := godotenv.Load("./environmentVariables.env")
+		if err != nil {
+			log.Fatal("Error loading environment variable file")
+		}*/
 
 	//Create a pointer to gin.Engine instance
 	var router *gin.Engine = gin.Default()
@@ -131,6 +137,6 @@ func main() {
 	//Initialise the database schema
 	InitialiseDatabase(nil, db)
 
-	//Run the server on port 8080
-	router.Run(":8080")
+	//Run the server
+	router.Run(":" + os.Getenv("PORT"))
 }
