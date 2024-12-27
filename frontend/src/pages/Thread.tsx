@@ -345,9 +345,11 @@ const Thread = () => {
 									menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}
 									menuIcon={<SortRoundedIcon />}
 									variant="text"
-									handleMenuExpandedItemsClick={(event) =>
-										event.currentTarget.dataset.value &&
-										setCommentSortingOrder(event.currentTarget.dataset.value)
+									handleMenuExpandedItemsClick={Array(3).fill(
+																(event: React.MouseEvent<HTMLElement>) =>
+																	event.currentTarget.dataset.value &&
+																	setCommentSortingOrder(event.currentTarget.dataset.value)
+															)
 									}
 									menuStyle={{ fontFamily: "Open Sans" }}
 								>

@@ -6,101 +6,80 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllTopics(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM topic")
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var topics []*models.Topic
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a topic struct
-		topic := new(models.Topic)
-
-		// Scan the current row into the topic struct
-		err := rows.Scan(
-			&topic.TopicID,
-			&topic.Name,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned topic to topics slice
-		topics = append(topics, topic)
-	}
-
-	// Check for empty table
-	if len(topics) == 0 {
-		context.String(http.StatusNotFound, "No topics in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, topics)
+type TopicController struct {
+	TopicService *services.TopicService
 }
 
-func GetTopicsByThreadID(context *gin.Context, db *sql.DB) {
+func (topicController *TopicController) GetAllTopics(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+
+	topics, err := topicService.GetAllTopics()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for no topics found
+	if len(topics) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No topics in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   topics,
+	})
+}
+
+func (topicController *TopicController) GetTopicsByThreadID(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+
 	threadID := context.Param("threadID")
 
-	rows, err := db.Query(`
-		SELECT topic.topic_id, topic.name
-		FROM threadTopicJunction
-		INNER JOIN topic ON threadTopicJunction.topic_id = topic.topic_id
-		WHERE threadTopicJunction.thread_id = $1
-	`, threadID)
+	topics, err := topicService.GetTopicsByThreadID(threadID)
 
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var topics []*models.Topic
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a topic struct
-		topic := new(models.Topic)
-
-		// Scan the current row into the topic struct
-		err := rows.Scan(
-			&topic.TopicID,
-			&topic.Name,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned topic to topics slice
-		topics = append(topics, topic)
-	}
-
-	// Check for empty table
+	// Check for no topics found
 	if len(topics) == 0 {
-		context.String(http.StatusNotFound, "No topics found for this thread")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No topics found for thread id: " + threadID,
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, topics)
-
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   topics,
+	})
 }
 
-func CreateTopic(context *gin.Context, db *sql.DB) {
+func (topicController *TopicController) CreateTopic(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+
 	// Declare a pointer to a new instance of a topic struct
 	topic := new(models.Topic)
 
@@ -114,23 +93,38 @@ func CreateTopic(context *gin.Context, db *sql.DB) {
 
 	// Check if the binded struct contains necessary fields
 	if topic.Name == "" {
-		context.String(http.StatusBadRequest, "Missing required fields")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in topic object",
+		})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO topic (name) VALUES ($1)", topic.Name)
+	err = topicService.CreateTopic(topic)
 
 	// Check for sql insertion errors
 	if err != nil {
 		// Check for existing name
 		if err.Error() == "pq: duplicate key value violates unique constraint \"topic_name_lowercase\"" {
-			context.String(http.StatusBadRequest, "Topic name already exists (case insensitive)")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "The topic name provided has already been used. (case insensitive)",
+			})
 			return
 		}
 		// Other errors
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Topic added to database")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Topic added to database",
+	})
 }

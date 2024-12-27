@@ -71,10 +71,11 @@ const Following = () => {
 							fontFamily: "Open Sans",
 							color: "text.primary",
 						}}
-						handleMenuExpandedItemsClick={(event) =>
-							event.currentTarget.dataset.value &&
-							setSortingOrder(event.currentTarget.dataset.value)
-						}
+						handleMenuExpandedItemsClick={Array(sortingMenuItems.length).fill(
+							(event: React.MouseEvent<HTMLElement>) =>
+								event.currentTarget.dataset.value &&
+								setSortingOrder(event.currentTarget.dataset.value)
+						)}
 						toolTipText="Sort Options"
 					>
 						{sortingOrder}

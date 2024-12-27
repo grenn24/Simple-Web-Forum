@@ -8,7 +8,7 @@ interface Prop {
 	menuExpandedItemsArray: string[];
 	menuExpandedIconsArray?: JSX.Element[];
 	menuExpandedDataValuesArray?: string[];
-	handleMenuExpandedItemsClick?: (event: React.MouseEvent<HTMLElement>) => void;
+	handleMenuExpandedItemsClick?: ((event: React.MouseEvent<HTMLElement>) => void)[];
 	handleMenuIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	menuIcon: JSX.Element;
 	menuIconDataValue?: string;
@@ -51,7 +51,6 @@ const Menu = ({
 
 	const handleCloseMenu = (event: React.MouseEvent<HTMLElement>) => {
 		setShowMenuExpanded(null);
-		handleMenuExpandedItemsClick && handleMenuExpandedItemsClick(event);
 		event.stopPropagation();
 	};
 
@@ -77,7 +76,7 @@ const Menu = ({
 							handleMenuIconClick && handleMenuIconClick(event);
 						}}
 						endIcon={menuIcon}
-						sx={{...menuStyle, textTransform: allCaps ? "uppercase" : "none"}}
+						sx={{ ...menuStyle, textTransform: allCaps ? "uppercase" : "none" }}
 					>
 						{children}
 					</Button>
@@ -95,6 +94,7 @@ const Menu = ({
 					showMenuExpanded={showMenuExpanded}
 					menuExpandedPosition={menuExpandedPosition}
 					dataValuesArray={menuExpandedDataValuesArray}
+					handleMenuExpandedItemsClick={handleMenuExpandedItemsClick}
 				/>
 			) : null}
 		</>

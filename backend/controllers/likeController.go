@@ -2,231 +2,237 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllLikes(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM \"like\"")
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var likes []*models.Like
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a like struct
-		like := new(models.Like)
-
-		// Scan the current row into the like struct
-		err := rows.Scan(
-			&like.LikeID,
-			&like.ThreadID,
-			&like.AuthorID,
-			&like.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned like to likes slice
-		likes = append(likes, like)
-	}
-
-	// Check for empty table
-	if len(likes) == 0 {
-		context.String(http.StatusNotFound, "No likes in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, likes)
+type LikeController struct {
+	LikeService *services.LikeService
 }
 
-func GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.DB) {
+	likeService := likeController.LikeService
+
+	likes, err := likeService.GetAllLikes()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for no likes found
+	if len(likes) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No likes in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   likes,
+	})
+}
+
+func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
+	likeService := likeController.LikeService
+
 	authorID := context.Param("authorID")
 
-	rows, err := db.Query("SELECT * FROM \"like\" WHERE author_id = " + authorID)
+	likes, err := likeService.GetLikesByAuthorID(authorID)
 
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var likes []*models.Like
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a like struct
-		like := new(models.Like)
-
-		// Scan the current row into the like struct
-		err := rows.Scan(
-			&like.LikeID,
-			&like.ThreadID,
-			&like.AuthorID,
-			&like.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned like to likes slice
-		likes = append(likes, like)
-	}
-
-	// Check for empty table
+	// Check for no likes found
 	if len(likes) == 0 {
-		context.String(http.StatusNotFound, "No likes found for this author")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No likes in the database",
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, likes)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   likes,
+	})
 }
 
-func GetLikesByThreadID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetLikesByThreadID(context *gin.Context, db *sql.DB) {
+	likeService := likeController.LikeService
+
 	threadID := context.Param("threadID")
 
-	rows, err := db.Query("SELECT * FROM \"like\" WHERE thread_id = " +threadID)
+	likes, err := likeService.GetLikesByThreadID(threadID)
 
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var likes []*models.Like
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a like struct
-		like := new(models.Like)
-
-		// Scan the current row into the like struct
-		err := rows.Scan(
-			&like.LikeID,
-			&like.ThreadID,
-			&like.AuthorID,
-			&like.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned like to likes slice
-		likes = append(likes, like)
-	}
-
-	// Check for empty table
+	// Check for no likes found
 	if len(likes) == 0 {
-		context.String(http.StatusNotFound, "No likes found for this thread")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No likes in the database",
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, likes)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   likes,
+	})
 }
 
-func CountAllLikes(context *gin.Context, db *sql.DB) {
-	row := db.QueryRow("SELECT COUNT(*) FROM \"like\"")
+func (likeController *LikeController) CountAllLikes(context *gin.Context, db *sql.DB) {
+	likeService := likeController.LikeService
 
-	var likeCount int
+	likeCount, err := likeService.CountAllLikes()
 
-	err := row.Scan(&likeCount)
-
-	// Check for any scanning errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"likeCount": likeCount})
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"likeCount": likeCount},
+	})
 }
 
-func CountLikesByThreadID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) CountLikesByThreadID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
 
-	row := db.QueryRow("SELECT COUNT(*) FROM \"like\" WHERE thread_id = " + threadID)
+	likeService := likeController.LikeService
 
-	var likeCount int
+	likeCount, err := likeService.CountLikesByThreadID(threadID)
 
-	err := row.Scan(&likeCount)
-
-	// Check for any scanning errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"likeCount": likeCount})
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"likeCount": likeCount},
+	})
 }
 
-func CountLikesByAuthorID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context, db *sql.DB) {
 	authorID := context.Param("authorID")
 
-	row := db.QueryRow("SELECT COUNT(*) FROM \"like\" WHERE author_id = " + authorID)
+	likeService := likeController.LikeService
 
-	var likeCount int
+	likeCount, err := likeService.CountLikesByAuthorID(authorID)
 
-	err := row.Scan(&likeCount)
-
-	// Check for any scanning errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"likeCount": likeCount})
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"likeCount": likeCount},
+	})
 }
 
-func CreateLike(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.DB) {
+	threadID := context.Param("threadID")
+
+	likeService := likeController.LikeService
+
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
 	err := context.ShouldBind(&like)
+	like.ThreadID, _ = strconv.Atoi(threadID)
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusBadRequest, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
 	// Check if the binded struct contains necessary fields
 	if like.AuthorID == 0 || like.ThreadID == 0 {
-		context.String(http.StatusBadRequest, "Missing required fields")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in like object",
+		})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO \"like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
+	err = likeService.CreateLike(like)
 
-	// Check for sql insertion errors
 	if err != nil {
-		// Check for existing thread-author combination
+		// Check for existing likes errors
 		if err.Error() == "pq: duplicate key value violates unique constraint \"Like_thread_id_author_id_key\"" {
-			context.String(http.StatusBadRequest, "Thread has already been liked by author")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "LIKE_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
+			})
 			return
 		}
-		// Other Errors
-		context.String(http.StatusInternalServerError, err.Error())
+		// Other internal server errors
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Like added to database")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Like added to database",
+	})
 }

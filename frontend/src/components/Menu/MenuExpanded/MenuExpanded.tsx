@@ -16,6 +16,9 @@ interface Prop {
 	};
 	showMenuExpanded: HTMLElement | null;
 	dataValuesArray?: string[];
+	handleMenuExpandedItemsClick?: ((
+		event: React.MouseEvent<HTMLElement>
+	) => void)[];
 }
 const MenuExpanded = ({
 	itemsArray,
@@ -30,6 +33,7 @@ const MenuExpanded = ({
 		horizontal: "left",
 	},
 	dataValuesArray = itemsArray,
+	handleMenuExpandedItemsClick,
 }: Prop) => {
 	const mappedArray = new Array(
 		Math.max(itemsArray.length, iconsArray ? iconsArray.length : 0)
@@ -40,8 +44,16 @@ const MenuExpanded = ({
 			(mappedArray[index] = (
 				<Box key={itemsArray[index] ? itemsArray[index] : index}>
 					<MenuItem
-						onClick={handleCloseMenu}
-						selected={defaultSelectedItemIndex ? (defaultSelectedItemIndex === index) : false}
+						onClick={(event) => {
+							handleCloseMenu(event);
+							handleMenuExpandedItemsClick &&
+								handleMenuExpandedItemsClick[index](event);
+						}}
+						selected={
+							defaultSelectedItemIndex
+								? defaultSelectedItemIndex === index
+								: false
+						}
 						data-value={dataValuesArray[index]}
 					>
 						{iconsArray && iconsArray[index]}

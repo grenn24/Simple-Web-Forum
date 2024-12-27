@@ -17,16 +17,17 @@ import {
 import MenuExpandedItems from "./MenuExpandedItems";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedDataValues from "./MenuExpandedDataValues";
+import HandleMenuExpandedItemsClick from "./HandleMenuExpandedItemsClick";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
+import Cookies from "js-cookie";
 
 interface Prop {
 	openLeftNavBar: () => void;
 	leftNavBarStatus: boolean;
 }
 export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
-
 	const navigate = useNavigate();
 
 	const screenWidth = useWindowSize().width as number;
@@ -124,18 +125,20 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							menuIcon={
 								<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
 							}
-							handleMenuExpandedItemsClick={(
-								event: React.MouseEvent<HTMLElement>
-							) => {
-								event.currentTarget.dataset.value &&
-									navigate(`../${event.currentTarget.dataset.value}`);
-							}}
-							menuStyle={{
-								padding: 1,
-								"&:hover": {
-									filter: "brightness(0.9)",
+							handleMenuExpandedItemsClick={[
+								(event: React.MouseEvent<HTMLElement>) =>
+									event.currentTarget.dataset.value &&
+									navigate(event.currentTarget.dataset.value),
+								(event: React.MouseEvent<HTMLElement>) =>
+									event.currentTarget.dataset.value &&
+									navigate(event.currentTarget.dataset.value),
+								(event: React.MouseEvent<HTMLElement>) => {
+									console.log("hi");
+									Cookies.remove("authorID");
+									event.currentTarget.dataset.value &&
+										navigate(event.currentTarget.dataset.value);
 								},
-							}}
+							]}
 							menuExpandedPosition={{
 								vertical: "top",
 								horizontal: "right",

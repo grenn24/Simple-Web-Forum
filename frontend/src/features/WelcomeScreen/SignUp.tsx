@@ -1,8 +1,9 @@
 import { Box, TextField, InputAdornment } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
-//import Cookies from "js-cookie";
+import Cookies from "js-cookie";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface Prop {
 	opacity: number;
@@ -13,16 +14,19 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 		register,
 		handleSubmit,
 		formState: { errors },
+		reset,
+		setError,
 	} = useForm();
+	const navigate = useNavigate()
 	const handleFormSubmit = handleSubmit((data) => {
 		axios
 			.post(
-				"http://localhost:8080/authors",
+				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authors",
 				{
 					name: data.name,
 					username: data.username,
 					email: data.email,
-					password: data.password,
+					password_hash: data.password,
 				},
 				{
 					headers: {
@@ -30,8 +34,36 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					},
 				}
 			)
-			.then((res) => console.log(res))
-			.catch((err) => console.log(err));
+			.then((res) => {
+				const response = res.data;
+				Cookies.set("authorID", response.data.author_id);
+				
+
+				navigate("../Following");
+			})
+			.catch((err) => {
+				if (err.response) {
+					const response = err.response.data;
+					if (response.errorCode === "EMAIL_ALREADY_EXISTS") {
+						setError("email", {
+							type: "custom",
+							message: response.message,
+						});
+					}
+					if (response.errorCode === "NAME_ALREADY_EXISTS") {
+						setError("name", {
+							type: "custom",
+							message: response.message,
+						});
+					}
+					if (response.errorCode === "USERNAME_ALREADY_EXISTS") {
+						setError("username", {
+							type: "custom",
+							message: response.message,
+						});
+					}
+				}
+			});
 	});
 	return (
 		<Box
@@ -44,17 +76,17 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 				visibility: visibility,
 				transition: "all 1.0s ease-in-out",
 			}}
-			{...register("email")}
+			textAlign="center"
 		>
 			<form onSubmit={handleFormSubmit}>
 				<TextField
 					label="Name"
 					variant="outlined"
 					{...register("name", {
-						required: true,
+						required: "The name field is required",
 					})}
-					error={!!errors.username}
-					helperText={errors.username ? "The name field is required" : null}
+					error={!!errors.name}
+					helperText={errors.name ? (errors.name.message as String) : null}
 				/>
 				<br />
 				<br />
@@ -69,10 +101,12 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					}}
 					variant="outlined"
 					{...register("username", {
-						required: true,
+						required: "The username field is required",
 					})}
 					error={!!errors.username}
-					helperText={errors.username ? "The username field is required" : null}
+					helperText={
+						errors.username ? (errors.username.message as String) : null
+					}
 				/>
 				<br />
 				<br />
@@ -80,20 +114,15 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					label="Email"
 					variant="outlined"
 					{...register("email", {
-						required: true,
+						required: "The email field is required",
 						validate: {
 							validEmail: (x) =>
-								/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(x),
+								/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(x) ||
+								"Invalid Email",
 						},
 					})}
 					error={!!errors.email}
-					helperText={
-						errors.email
-							? errors.email?.type === "required"
-								? "The email field is required"
-								: "Invalid Email"
-							: null
-					}
+					helperText={errors.email ? (errors.email.message as String) : null}
 				/>
 				<br />
 				<br />
@@ -102,19 +131,16 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					type="password"
 					variant="outlined"
 					{...register("password", {
-						required: true,
+						required: "The password field is required",
 						validate: {
 							validPassword: (x) =>
-								/^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/.test(x),
+								/^(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/.test(x) ||
+								"Invalid Password (8-16 characters, 1 special)",
 						},
 					})}
 					error={!!errors.password}
 					helperText={
-						errors.password
-							? errors.password?.type === "required"
-								? "The password field is required"
-								: "Invalid Password (8-16 characters, 1 special)"
-							: null
+						errors.password ? (errors.password.message as String) : null
 					}
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>

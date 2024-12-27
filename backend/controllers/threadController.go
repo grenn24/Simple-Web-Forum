@@ -6,202 +6,143 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllThreads(context *gin.Context, db *sql.DB) {
-
-	rows, err := db.Query("SELECT * FROM thread")
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var threads []*models.Thread
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a thread struct
-		thread := new(models.Thread)
-
-		// Scan the current row into the thread struct
-		err := rows.Scan(
-			&thread.ThreadID,
-			&thread.Title,
-			&thread.CreatedAt,
-			&thread.Content,
-			&thread.AuthorID,
-			&thread.ImageTitle,
-			&thread.ImageLink,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned thread to threads slice
-		threads = append(threads, thread)
-	}
-
-	// Check for empty table
-	if len(threads) == 0 {
-		context.String(http.StatusNotFound, "No threads in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, threads)
+type ThreadController struct {
+	ThreadService *services.ThreadService
 }
 
-func GetThreadByID(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) GetAllThreads(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
+
+	threads, err := threadService.GetAllThreads()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for no threads found
+	if len(threads) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No threads in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   threads,
+	})
+}
+
+func (threadController *ThreadController) GetThreadByID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
 
-	row := db.QueryRow("SELECT * FROM thread WHERE thread_id = $1", threadID)
+	threadService := threadController.ThreadService
 
-	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)
+	thread, err := threadService.GetThreadByID(threadID)
 
-	// Scan the current row into the thread struct
-	err := row.Scan(
-		&thread.ThreadID,
-		&thread.Title,
-		&thread.CreatedAt,
-		&thread.Content,
-		&thread.AuthorID,
-		&thread.ImageTitle,
-		&thread.ImageLink,
-	)
-
-	// Check for any scanning errors
 	if err != nil {
 		// Check for thread not found error
 		if err == sql.ErrNoRows {
-			context.String(http.StatusNotFound, "Thread not found")
-			return
+			context.JSON(http.StatusNotFound, models.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   "No thread found for thread id: " + threadID,
+			})
 		}
-		// Other errors
-		context.String(http.StatusInternalServerError, err.Error())
-		return
+		// Check for internal server errors
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 	}
 
-	context.JSON(http.StatusOK, thread)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   thread,
+	})
 }
 
-func GetThreadsByAuthorID(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Context, db *sql.DB) {
 	authorID := context.Param("authorID")
 
-	rows, err := db.Query("SELECT * FROM thread WHERE author_id = " + authorID)
+	threadService := threadController.ThreadService
 
+	threads, err := threadService.GetThreadsByAuthorID(authorID)
+
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var threads []*models.Thread
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a thread struct
-		thread := new(models.Thread)
-
-		// Scan the current row into the thread struct
-		err := rows.Scan(
-			&thread.ThreadID,
-			&thread.Title,
-			&thread.CreatedAt,
-			&thread.Content,
-			&thread.AuthorID,
-			&thread.ImageTitle,
-			&thread.ImageLink,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned thread to threads slice
-		threads = append(threads, thread)
-	}
-
-	// Check for empty table
+	// Check for no threads found
 	if len(threads) == 0 {
-		context.String(http.StatusNotFound, "No threads found for this author")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No thread found for author id: " + authorID,
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, threads)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   threads,
+	})
 }
 
-func GetThreadsByTopicID(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Context, db *sql.DB) {
 	topicID := context.Param("topicID")
 
-	rows, err := db.Query(`
-		SELECT
-			thread.thread_id,
-			thread.title,
-			thread.created_at,
-			thread.content,
-			thread.author_id,
-			thread.image_title,
-			thread.image_link
-		FROM threadTopicJunction
-		INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
-		WHERE threadTopicJunction.topic_id = $1
-	`, topicID)
+	threadService := threadController.ThreadService
 
+	threads, err := threadService.GetThreadsByTopicID(topicID)
+
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var threads []*models.Thread
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a thread struct
-		thread := new(models.Thread)
-
-		// Scan the current row into the thread struct
-		err := rows.Scan(
-			&thread.ThreadID,
-			&thread.Title,
-			&thread.CreatedAt,
-			&thread.Content,
-			&thread.AuthorID,
-			&thread.ImageTitle,
-			&thread.ImageLink,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned thread to threads slice
-		threads = append(threads, thread)
-	}
-
-	// Check for empty table
+	// Check for no threads found
 	if len(threads) == 0 {
-		context.String(http.StatusNotFound, "No threads found for this author")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No thread found for topic id: " + topicID,
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, threads)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   threads,
+	})
 }
 
+func (threadController *ThreadController) CreateThread(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
 
-func CreateThread(context *gin.Context, db *sql.DB) {
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
 
@@ -215,52 +156,70 @@ func CreateThread(context *gin.Context, db *sql.DB) {
 
 	// Check if the binded struct contains necessary fields
 	if thread.Title == "" || thread.Content == "" || thread.AuthorID == 0 {
-		context.String(http.StatusBadRequest, "Missing required fields")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in thread object",
+		})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5)", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
+	err = threadService.CreateThread(thread)
 
-	// Check for sql insertion errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
-
-	context.String(http.StatusOK, "Thread added to database")
 }
 
-func DeleteAllThreads(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) DeleteAllThreads(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
 
-	_, err := db.Exec("DELETE FROM Thread")
+	err := threadService.DeleteAllThreads()
 
-	// Check for any deletion errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
-
-	context.String(http.StatusOK, "Deleted all threads")
 }
 
-func DeleteThreadByID(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) DeleteThreadByID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
 
-	result, err := db.Exec("DELETE FROM thread WHERE thread_id = $1", threadID)
+	threadService := threadController.ThreadService
 
-	// Check for any deletion errors
+	rowsDeleted, err := threadService.DeleteThreadByID(threadID)
+
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
-
-	rowsDeleted, _ := result.RowsAffected()
 
 	// Check for thread not found error
 	if rowsDeleted == 0 {
-		context.String(http.StatusNotFound, "Thread not found")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No threads found for thread id: " + threadID,
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Thread deleted successfully")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Thread deleted successfully",
+	})
 }

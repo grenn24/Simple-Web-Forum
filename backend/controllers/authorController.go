@@ -6,84 +6,79 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllAuthors(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM author")
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var authors []*models.Author
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of an author struct
-		author := new(models.Author)
-
-		// Scan the current row into the author struct
-		err := rows.Scan(
-			&author.AuthorID,
-			&author.Name,
-			&author.Username,
-			&author.Email,
-			&author.PasswordHash,
-			&author.AvatarIconLink,
-			&author.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned thread to threads slice
-		authors = append(authors, author)
-	}
-
-	// Check for empty table
-	if len(authors) == 0 {
-		context.String(http.StatusNotFound, "No authors in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, authors)
+type AuthorController struct {
+	AuthorService *services.AuthorService
 }
 
-func GetAuthorByID(context *gin.Context, db *sql.DB) {
+func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
+	authors, err := authorService.GetAllAuthors()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for empty author table
+	if len(authors) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No authors in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   authors,
+	})
+}
+
+func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
 	authorID := context.Param("authorID")
 
-	row := db.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
+	author, err := authorService.GetAuthorByID(authorID)
 
-	// Declare a pointer to a new instance of an author struct
-	author := new(models.Author)
-
-	// Scan the current row into the author struct
-	err := row.Scan(
-		&author.AuthorID,
-		&author.Name,
-		&author.Username,
-		&author.Email,
-		&author.PasswordHash,
-		&author.AvatarIconLink,
-		&author.CreatedAt,
-	)
-
-	// Check for any scanning errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		// Check for author not found error
+		if err == sql.ErrNoRows {
+			context.JSON(http.StatusNotFound, models.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   "No author found for author id: " + authorID,
+			})
+			return
+		}
+		// Check for internal server errors
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, author)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   author,
+	})
 }
 
-func CreateAuthor(context *gin.Context, db *sql.DB) {
+func (authorController *AuthorController) CreateAuthor(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
 	// Declare a pointer to a new instance of an author struct
 	author := new(models.Author)
 
@@ -91,52 +86,86 @@ func CreateAuthor(context *gin.Context, db *sql.DB) {
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusBadRequest, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
 	// Check if the binded struct contains necessary fields
 	if author.Email == "" || author.Name == "" || author.PasswordHash == "" || author.Username == "" {
-		context.String(http.StatusBadRequest, "Missing required fields")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in author object",
+		})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5)", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
+	new_author_id, err := authorService.CreateAuthor(author)
 
-	// Check for sql insertion errors
 	if err != nil {
 		// Check for existing name
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
-			context.String(http.StatusBadRequest, "Name already exists (case insensitive)")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "The name provided has already been used. (case insensitive)",
+			})
 			return
 		}
 		// Check for existing username
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
-			context.String(http.StatusBadRequest, "Username already exists (case insensitive)")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "USERNAME_ALREADY_EXISTS",
+				Message:   "The username provided has already been used. (case insensitive)",
+			})
 			return
 		}
 		// Check for existing email
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
-			context.String(http.StatusBadRequest, "Email already exists (case insensitive)")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "EMAIL_ALREADY_EXISTS",
+				Message:   "The email provided has already been used. (case insensitive)",
+			})
 			return
 		}
-		// Other errors
-		context.String(http.StatusInternalServerError, err.Error())
+		// Check for internal server errors
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Author added to database")
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"author_id": new_author_id},
+	})
 }
 
-func DeleteAllAuthors(context *gin.Context, db *sql.DB) {
+func (authorController *AuthorController) DeleteAllAuthors(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
 
-	_, err := db.Exec("DELETE FROM author")
+	err := authorService.DeleteAllAuthors()
 
-	// Check for any deletion errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Deleted all authors")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Deleted all authors",
+	})
 }

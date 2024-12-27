@@ -6,230 +6,157 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllComments(context *gin.Context, db *sql.DB) {
-	var sort string
-	if context.Query("sort") == "newest" {
-		sort = "DESC"
-	} else if context.Query("sort") == "oldest" {
-		sort = "ASC"
-	} else {
-		sort = ""
-	}
-
-	var rows *sql.Rows
-	var err error
-
-	if sort == "" {
-		rows, err = db.Query("SELECT * FROM comment")
-	} else {
-		rows, err = db.Query("SELECT * FROM comment ORDER BY created_at " + sort)
-	}
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var comments []*models.Comment
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a comment struct
-		comment := new(models.Comment)
-
-		// Scan the current row into the comment struct
-		err := rows.Scan(
-			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.AuthorID,
-			&comment.CreatedAt,
-			&comment.Content,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned comment to comments slice
-		comments = append(comments, comment)
-	}
-
-	// Check for empty table
-	if len(comments) == 0 {
-		context.String(http.StatusNotFound, "No comments in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, comments)
+type CommentController struct {
+	CommentService *services.CommentService
 }
 
-func GetCommentsByThreadID(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) GetAllComments(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+
+	comments, err := commentService.GetAllComments(context.Query("sort"))
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for empty comment table
+	if len(comments) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No comments in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   comments,
+	})
+}
+
+func (commentController *CommentController) GetCommentsByThreadID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
 
-	var sort string
-	if context.Query("sort") == "newest" {
-		sort = "DESC"
-	} else if context.Query("sort") == "oldest" {
-		sort = "ASC"
-	} else {
-		sort = ""
-	}
+	commentService := commentController.CommentService
 
-	var rows *sql.Rows
-	var err error
+	comments, err := commentService.GetCommentsByThreadID(threadID, context.Query("sort"))
 
-	if sort == "" {
-		rows, err = db.Query("SELECT * FROM comment WHERE thread_id = $1", threadID)
-	} else {
-		rows, err = db.Query("SELECT * FROM comment WHERE thread_id = $1 ORDER BY created_at "+sort, threadID)
-	}
-
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var comments []*models.Comment
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a comment struct
-		comment := new(models.Comment)
-
-		// Scan the current row into the comment struct
-		err := rows.Scan(
-			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.AuthorID,
-			&comment.CreatedAt,
-			&comment.Content,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned comment to comments slice
-		comments = append(comments, comment)
-	}
-
-	// Check for empty table
+	// Check for empty comment table
 	if len(comments) == 0 {
-		context.String(http.StatusNotFound, "No comments found for this thread")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No comments found for thread id: " + threadID,
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, comments)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   comments,
+	})
 }
 
-func GetCommentsByAuthorID(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) GetCommentsByAuthorID(context *gin.Context, db *sql.DB) {
 	authorID := context.Param("authorID")
 
-	var sort string
-	if context.Query("sort") == "newest" {
-		sort = "DESC"
-	} else if context.Query("sort") == "oldest" {
-		sort = "ASC"
-	} else {
-		sort = ""
-	}
+	commentService := commentController.CommentService
 
-	var rows *sql.Rows
-	var err error
+	comments, err := commentService.GetCommentsByAuthorID(authorID, context.Query("sort"))
 
-	if sort == "" {
-		rows, err = db.Query("SELECT * FROM comment WHERE author_id = $1", authorID)
-	} else {
-		rows, err = db.Query("SELECT * FROM comment WHERE author_id = $1 ORDER BY created_at "+sort, authorID)
-	}
-
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var comments []*models.Comment
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a comment struct
-		comment := new(models.Comment)
-
-		// Scan the current row into the comment struct
-		err := rows.Scan(
-			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.AuthorID,
-			&comment.CreatedAt,
-			&comment.Content,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned comment to comments slice
-		comments = append(comments, comment)
-	}
-
-	// Check for empty table
+	// Check for empty comment table
 	if len(comments) == 0 {
-		context.String(http.StatusNotFound, "No comments found for this author")
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No comments found for author id: " + authorID,
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, comments)
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   comments,
+	})
 }
 
-func CountAllComments(context *gin.Context, db *sql.DB) {
-	row := db.QueryRow("SELECT COUNT(*) FROM comment")
+func (commentController *CommentController) CountAllComments(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
 
-	var commentCount int
+	commentCount, err := commentService.CountAllComments()
 
-	err := row.Scan(&commentCount)
-
-	// Check for any scanning errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"commentCount": commentCount})
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"commentCount": commentCount},
+	})
 }
 
-func CountCommentsByThreadID(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) CountCommentsByThreadID(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+
 	threadID := context.Param("threadID")
 
-	row := db.QueryRow("SELECT COUNT(*) FROM comment WHERE thread_id = $1", threadID)
+	commentCount, err := commentService.CountCommentsByThreadID(threadID)
 
-	var commentCount int
-
-	err := row.Scan(&commentCount)
-
-	// Check for any scanning errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"commentCount": commentCount})
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   gin.H{"commentCount": commentCount},
+	})
 }
 
-func CreateComment(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) CreateComment(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+
 	// Declare a pointer to a new instance of a comment struct
 	comment := new(models.Comment)
 
@@ -237,36 +164,59 @@ func CreateComment(context *gin.Context, db *sql.DB) {
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
 	// Check if the binded struct contains necessary fields
 	if comment.ThreadID == 0 || comment.AuthorID == 0 || comment.Content == "" {
-		context.String(http.StatusBadRequest, "Missing required fields")
+		context.JSON(http.StatusBadRequest, models.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in comment object",
+		})
 		return
 	}
 
-	_, err = db.Exec("INSERT INTO comment (thread_id, author_id, content) VALUES ($1, $2, $3)", comment.ThreadID, comment.AuthorID, comment.Content)
+	err = commentService.CreateComment(comment)
 
-	// Check for sql insertion errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Comment added to database")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Comment added to database",
+	})
 }
 
-func DeleteAllComments(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) DeleteAllComments(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
 
-	_, err := db.Exec("DELETE FROM comment")
+	err := commentService.DeleteAllComments()
 
-	// Check for any deletion errors
+	// Check for internal server errors
 	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Deleted all comments")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Deleted all comments",
+	})
 }

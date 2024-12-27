@@ -6,78 +6,91 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
-func GetAllThreadTopicJunctions(context *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM threadTopicJunction")
-
-	if err != nil {
-		context.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var threadTopicJunctions []*models.ThreadTopicJunction
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a threadTopicJunction struct
-		threadTopicJunction := new(models.ThreadTopicJunction)
-
-		// Scan the current row into the thread struct
-		err := rows.Scan(
-			&threadTopicJunction.ThreadTopicJunctionID,
-			&threadTopicJunction.ThreadID,
-			&threadTopicJunction.TopicID,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			context.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		// Append the scanned threadTopicJunction to the threadTopicJunctions slice
-		threadTopicJunctions = append(threadTopicJunctions, threadTopicJunction)
-	}
-
-	// Check for empty table
-	if len(threadTopicJunctions) == 0 {
-		context.String(http.StatusNotFound, "No threadTopicJunctions in database")
-		return
-	}
-
-	context.JSON(http.StatusOK, threadTopicJunctions)
+type ThreadTopicJunctionController struct {
+	ThreadTopicJunctionService *services.ThreadTopicJunctionService
 }
 
-func AddThreadToTopic(context *gin.Context, db *sql.DB) {
+func (threadTopicJunctionController *ThreadTopicJunctionController) GetAllThreadTopicJunctions(context *gin.Context, db *sql.DB) {
+	threadTopicJunctionService := threadTopicJunctionController.ThreadTopicJunctionService
+
+	threadTopicJunctions, err := threadTopicJunctionService.GetAllThreadTopicJunctions()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for no threadTopicJunctions found
+	if len(threadTopicJunctions) == 0 {
+		context.JSON(http.StatusNotFound, models.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No threadTopicJunctions in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, models.Success{
+		Status: "success",
+		Data:   threadTopicJunctions,
+	})
+}
+
+func (threadTopicJunctionController *ThreadTopicJunctionController) AddThreadToTopic(context *gin.Context, db *sql.DB) {
+	threadTopicJunctionService := threadTopicJunctionController.ThreadTopicJunctionService
+
 	topicID := context.Param("topicID")
 	threadID := context.Param("threadID")
 
-	_, err := db.Exec("INSERT INTO threadTopicJunction (thread_id, topic_id) VALUES ($1, $2)", threadID, topicID)
+	err := threadTopicJunctionService.AddThreadToTopic(threadID, topicID)
 
-	// Check for any insertion errors
 	if err != nil {
 		// Thread-Topic Combination already exists
 		if err.Error() == "pq: duplicate key value violates unique constraint \"threadtopicjunction_thread_id_topic_id_key\"" {
-			context.String(http.StatusBadRequest, "Thread already added to topic")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "THREADTOPICJUNCTION_ALREADY_EXISTS",
+				Message:   "Thread is already added to topic id " + topicID,
+			})
 			return
 		}
 		// Thread does not exist
 		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_thread_id_fkey\"" {
-			context.String(http.StatusBadRequest, "Referenced thread (threadID: "+threadID+") does not exist, therefore it cannot be added to topic")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "THREAD_DOES_NOT_EXIST",
+				Message:   "Thread of thread id: " + threadID + ") does not exist",
+			})
 			return
 		}
 		// Topic does not exist
 		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_topic_id_fkey\"" {
-			context.String(http.StatusBadRequest, "Topic (topicID: "+topicID+") does not exist")
+			context.JSON(http.StatusBadRequest, models.Error{
+				Status:    "error",
+				ErrorCode: "TOPIC_DOES_NOT_EXIST",
+				Message:   "Topic of topic id: " + topicID + ") does not exist",
+			})
 			return
 		}
-		// Other errors
-		context.String(http.StatusInternalServerError, err.Error())
+		// Internal server errors
+		context.JSON(http.StatusInternalServerError, models.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
-	context.String(http.StatusOK, "Added thread to topic")
+	context.JSON(http.StatusOK, models.Success{
+		Status:  "success",
+		Message: "Added thread to topic",
+	})
 }

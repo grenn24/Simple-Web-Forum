@@ -1,50 +1,38 @@
-package main
+package services
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
-	"os"
-
-	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/routes"
-	_ "github.com/heroku/x/hmetrics/onload"
-	_ "github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
-// Pointer to database struct
-var db *sql.DB
-
-func connectToDatabase() {
-	var err error
-
-	//connection details for local deployment
-	/*connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
-	os.Getenv("simplewebforum_DB_user"),
-	os.Getenv("simplewebforum_DB_password"),
-	os.Getenv("simplewebforum_DB_host"),
-	os.Getenv("simplewebforum_DB_port"),
-	os.Getenv("simplewebforum_DB_name"))*/
-
-
-	connectionString := os.Getenv("DATABASE_URL")
-
-	fmt.Println("Connection String:", connectionString)
-
-	//Reference the db pointer to sql.DB instance
-	db, err = sql.Open("postgres", connectionString)
-
-	//check for connection string verification error
-	if err != nil {
-		log.Fatal("Error connecting to the database: ", err.Error())
-	}
-
-	fmt.Println("Database connection successful!")
+type AdminService struct {
+	DB *sql.DB
 }
 
-func InitialiseDatabase(context *gin.Context, db *sql.DB) {
-	_, err := db.Exec(`
+func (adminService *AdminService) ResetDatabase() error {
+	// Delete all tables in the database
+	_, err := adminService.DB.Exec(`
+		DO $$ 
+	DECLARE 
+		r RECORD;
+	BEGIN 
+		FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+			EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+		END LOOP; 
+	END $$;
+	`)
+
+	// Check for any sql query errors
+	if err != nil {
+		return err
+	}
+
+	adminService.InitialiseDatabase()
+
+	return err
+}
+
+func (adminService *AdminService) InitialiseDatabase() error {
+	_, err := adminService.DB.Exec(`
 		CREATE TABLE IF NOT EXISTS author (
 			author_id SERIAL PRIMARY KEY,
 			name TEXT NOT NULL,
@@ -108,35 +96,5 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 		);
 	`)
 
-	// Check for any sql query errors
-	if err != nil {
-		log.Fatal("Error initialising database: ", err.Error())
-		return
-	}
-
-	fmt.Println("Database initialised successfully!")
-}
-
-func main() {
-	//Load environment variables for local deployment
-	/*
-		err := godotenv.Load("./environmentVariables.env")
-		if err != nil {
-			log.Fatal("Error loading environment variable file")
-		}*/
-
-	//Create a pointer to gin.Engine instance
-	var router *gin.Engine = gin.Default()
-
-	//Connect to postgres database
-	connectToDatabase()
-
-	//Set up routes to handle http requests
-	routes.SetupRouter(router, db)
-
-	//Initialise the database schema
-	InitialiseDatabase(nil, db)
-
-	//Run the server
-	router.Run(":" + os.Getenv("PORT"))
+	return err
 }
