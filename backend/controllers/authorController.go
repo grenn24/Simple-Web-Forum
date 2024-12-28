@@ -2,11 +2,15 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
+	"github.com/grenn24/simple-web-forum/models"
 )
 
 type AuthorController struct {
@@ -20,7 +24,7 @@ func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -30,7 +34,7 @@ func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db
 
 	// Check for empty author table
 	if len(authors) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No authors in the database",
@@ -38,7 +42,7 @@ func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   authors,
 	})
@@ -47,22 +51,22 @@ func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db
 func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 
-	authorID := context.Param("authorID")
+	authorID, _ := strconv.Atoi(context.Param("authorID"))
 
 	author, err := authorService.GetAuthorByID(authorID)
 
 	if err != nil {
 		// Check for author not found error
 		if err == sql.ErrNoRows {
-			context.JSON(http.StatusNotFound, models.Error{
+			context.JSON(http.StatusNotFound, dtos.Error{
 				Status:    "error",
 				ErrorCode: "NOT_FOUND",
-				Message:   "No author found for author id: " + authorID,
+				Message:   fmt.Sprintf("No author found for author id: %v", authorID),
 			})
 			return
 		}
 		// Check for internal server errors
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -70,7 +74,27 @@ func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   author,
+	})
+}
+
+func (authorController *AuthorController) GetUser(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
+	author, err := authorService.GetAuthorByID(utils.GetUserAuthorID(context))
+
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   author,
 	})
@@ -86,7 +110,7 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -96,7 +120,7 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 
 	// Check if the binded struct contains necessary fields
 	if author.Email == "" || author.Name == "" || author.PasswordHash == "" || author.Username == "" {
-		context.JSON(http.StatusBadRequest, models.Error{
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
 			Message:   "Missing required fields in author object",
@@ -104,48 +128,21 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 		return
 	}
 
-	new_author_id, err := authorService.CreateAuthor(author)
+	responseErr := authorService.CreateAuthor(author)
 
-	if err != nil {
-		// Check for existing name
-		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
-				Status:    "error",
-				ErrorCode: "NAME_ALREADY_EXISTS",
-				Message:   "The name provided has already been used. (case insensitive)",
-			})
-			return
+	// Check for existing authors with same credentials
+	if responseErr != nil {
+		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusBadRequest, responseErr)
+		} else {
+			context.JSON(http.StatusInternalServerError, responseErr)
 		}
-		// Check for existing username
-		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
-				Status:    "error",
-				ErrorCode: "USERNAME_ALREADY_EXISTS",
-				Message:   "The username provided has already been used. (case insensitive)",
-			})
-			return
-		}
-		// Check for existing email
-		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
-				Status:    "error",
-				ErrorCode: "EMAIL_ALREADY_EXISTS",
-				Message:   "The email provided has already been used. (case insensitive)",
-			})
-			return
-		}
-		// Check for internal server errors
-		context.JSON(http.StatusInternalServerError, models.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
-		Status: "success",
-		Data:   gin.H{"author_id": new_author_id},
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Author created successfully!",
 	})
 }
 
@@ -156,7 +153,7 @@ func (authorController *AuthorController) DeleteAllAuthors(context *gin.Context,
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -164,7 +161,7 @@ func (authorController *AuthorController) DeleteAllAuthors(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Deleted all authors",
 	})

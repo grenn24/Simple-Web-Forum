@@ -38,8 +38,8 @@ const TextPage = ({ register , submitForm, errors, watch}: Prop) => {
 				variant="outlined"
 				minRows={4}
 				fullWidth
-				{...register("body")}
-				value={watch("body")}
+				{...register("content")}
+				value={watch("content")}
 			/>
 			<br />
 			<br />

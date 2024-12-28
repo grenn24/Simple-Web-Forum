@@ -2,7 +2,10 @@ package services
 
 import (
 	"database/sql"
+
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/repositories"
 )
 
 type TopicService struct {
@@ -10,82 +13,56 @@ type TopicService struct {
 }
 
 func (topicService *TopicService) GetAllTopics() ([]*models.Topic, error) {
-	rows, err := topicService.DB.Query("SELECT * FROM topic")
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 
-	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var topics []*models.Topic
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a topic struct
-		topic := new(models.Topic)
-
-		// Scan the current row into the topic struct
-		err := rows.Scan(
-			&topic.TopicID,
-			&topic.Name,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
-		}
-
-		// Append the scanned topic to topics slice
-		topics = append(topics, topic)
-	}
-
-	return topics, err
+	return topicRepository.GetAllTopics()
 }
 
 func (topicService *TopicService) GetTopicsByThreadID(threadID string) ([]*models.Topic, error) {
-
-	rows, err := topicService.DB.Query(`
-		SELECT topic.topic_id, topic.name
-		FROM threadTopicJunction
-		INNER JOIN topic ON threadTopicJunction.topic_id = topic.topic_id
-		WHERE threadTopicJunction.thread_id = $1
-	`, threadID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var topics []*models.Topic
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a topic struct
-		topic := new(models.Topic)
-
-		// Scan the current row into the topic struct
-		err := rows.Scan(
-			&topic.TopicID,
-			&topic.Name,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
-		}
-
-		// Append the scanned topic to topics slice
-		topics = append(topics, topic)
-	}
-
-	return topics, err
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	return topicRepository.GetTopicsByThreadID(threadID)
 }
 
-func (topicService *TopicService) CreateTopic(topic *models.Topic) (error)  {
+func (topicService *TopicService) GetAllTopicsWithThreads() ([]*dtos.TopicsWithThreads, *dtos.Error) {
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
 
-	_, err := topicService.DB.Exec("INSERT INTO topic (name) VALUES ($1)", topic.Name)
+	var topicsWithThreads dtos.TopicsWithThreads
 
-	return err
+	topics, err := topicRepository.GetAllTopics()
+
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// Retrieve all topics from database
+	for index := range topics {
+		// Retrieve threads with that topic
+		threads, err := threadRepository.GetThreadsByTopicID(topics[index].TopicID)
+		
+		topicWithThreads := &dtos.TopicWithThreads{
+			TopicID: topics[index].TopicID,
+			Name:    topics[index].Name,
+		}
+		topicsWithThreads = append(topicsWithThreads, topicWithThreads)
+	}
+}
+
+func (topicService *TopicService) CreateTopic(topic *models.Topic) error {
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	return topicRepository.CreateTopic(topic)
+}
+
+func (topicService *TopicService) GetAllThreadTopicJunctions() ([]*models.ThreadTopicJunction, error) {
+	threadTopicJunctionRepository := &repositories.ThreadTopicJunctionRepository{DB: topicService.DB}
+	return threadTopicJunctionRepository.GetAllThreadTopicJunctions()
+}
+
+func (topicService *TopicService) AddThreadToTopic(threadID string, topicID string) error {
+	threadTopicJunctionRepository := &repositories.ThreadTopicJunctionRepository{DB: topicService.DB}
+	return threadTopicJunctionRepository.AddThreadToTopic(threadID, topicID)
 }

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/repositories"
 )
 
 type AuthorService struct {
@@ -49,7 +51,7 @@ func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, error) {
 	return authors, err
 }
 
-func (authorService *AuthorService) GetAuthorByID(authorID string) (*models.Author, error) {
+func (authorService *AuthorService) GetAuthorByID(authorID int) (*models.Author, error) {
 
 	row := authorService.DB.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
 
@@ -75,15 +77,44 @@ func (authorService *AuthorService) GetAuthorByID(authorID string) (*models.Auth
 	return author, err
 }
 
-func (authorService *AuthorService) CreateAuthor(author *models.Author) (int64, error) {
-	var authorID int64
+func (authorService *AuthorService) CreateAuthor(author *models.Author) (*dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	row := authorService.DB.QueryRow("INSERT INTO author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5) RETURNING author_id", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
+	_, err := authorRepository.CreateAuthor(author)
 
-	// Check for constraint errors while returning author id
-	err := row.Scan(&authorID)
-
-	return authorID, err
+	if err != nil {
+		// Check for existing name
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "The name provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for existing username
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "USERNAME_ALREADY_EXISTS",
+				Message:   "The username provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for existing email
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "EMAIL_ALREADY_EXISTS",
+				Message:   "The email provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
 }
 
 func (authorService *AuthorService) DeleteAllAuthors() (error) {

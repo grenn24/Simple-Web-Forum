@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter := router.Group("/threads")
+	threadRouter.Use(middlewares.ValidateJwtToken)
 
 	// Initialise controller handlers
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{

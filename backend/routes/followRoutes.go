@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func FollowRoutes(router *gin.Engine, db *sql.DB) {
 	followRouter := router.Group("/follows")
+	followRouter.Use(middlewares.ValidateJwtToken)
 
 	// Initialise controller handlers
 	followController := &controllers.FollowController{FollowService: &services.FollowService{

@@ -5,8 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type ThreadController struct {
@@ -20,7 +22,7 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -30,7 +32,7 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 
 	// Check for no threads found
 	if len(threads) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No threads in the database",
@@ -38,7 +40,7 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   threads,
 	})
@@ -49,26 +51,26 @@ func (threadController *ThreadController) GetThreadByID(context *gin.Context, db
 
 	threadService := threadController.ThreadService
 
-	thread, err := threadService.GetThreadByID(threadID)
+	thread, err := threadService.GetThreadByID(utils.ConvertStringToInt(threadID, context))
 
 	if err != nil {
 		// Check for thread not found error
 		if err == sql.ErrNoRows {
-			context.JSON(http.StatusNotFound, models.Error{
+			context.JSON(http.StatusNotFound, dtos.Error{
 				Status:    "error",
 				ErrorCode: "NOT_FOUND",
 				Message:   "No thread found for thread id: " + threadID,
 			})
 		}
 		// Check for internal server errors
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		})
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   thread,
 	})
@@ -79,11 +81,11 @@ func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Cont
 
 	threadService := threadController.ThreadService
 
-	threads, err := threadService.GetThreadsByAuthorID(authorID)
+	threads, err := threadService.GetThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -93,7 +95,7 @@ func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Cont
 
 	// Check for no threads found
 	if len(threads) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No thread found for author id: " + authorID,
@@ -101,7 +103,7 @@ func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Cont
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   threads,
 	})
@@ -112,11 +114,11 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 
 	threadService := threadController.ThreadService
 
-	threads, err := threadService.GetThreadsByTopicID(topicID)
+	threads, err := threadService.GetThreadsByTopicID(utils.ConvertStringToInt(topicID, context))
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -126,7 +128,7 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 
 	// Check for no threads found
 	if len(threads) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No thread found for topic id: " + topicID,
@@ -134,7 +136,7 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   threads,
 	})
@@ -148,15 +150,22 @@ func (threadController *ThreadController) CreateThread(context *gin.Context, db 
 
 	err := context.ShouldBind(thread)
 
-	// Check for JSON binding errors
 	if err != nil {
-		context.String(http.StatusBadRequest, err.Error())
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
 		return
 	}
 
+	// Retrieve current user author id and bind it to thread struct
+	authorID := utils.GetUserAuthorID(context)
+	thread.AuthorID = authorID
+
 	// Check if the binded struct contains necessary fields
-	if thread.Title == "" || thread.Content == "" || thread.AuthorID == 0 {
-		context.JSON(http.StatusBadRequest, models.Error{
+	if thread.Title == "" || thread.AuthorID == 0 {
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
 			Message:   "Missing required fields in thread object",
@@ -168,7 +177,7 @@ func (threadController *ThreadController) CreateThread(context *gin.Context, db 
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -183,13 +192,18 @@ func (threadController *ThreadController) DeleteAllThreads(context *gin.Context,
 	err := threadService.DeleteAllThreads()
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		})
 		return
 	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "All threads deleted",
+	})
 }
 
 func (threadController *ThreadController) DeleteThreadByID(context *gin.Context, db *sql.DB) {
@@ -197,10 +211,10 @@ func (threadController *ThreadController) DeleteThreadByID(context *gin.Context,
 
 	threadService := threadController.ThreadService
 
-	rowsDeleted, err := threadService.DeleteThreadByID(threadID)
+	rowsDeleted, err := threadService.DeleteThreadByID(utils.ConvertStringToInt(threadID, context))
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -210,7 +224,7 @@ func (threadController *ThreadController) DeleteThreadByID(context *gin.Context,
 
 	// Check for thread not found error
 	if rowsDeleted == 0 {
-		context.JSON(http.StatusBadRequest, models.Error{
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No threads found for thread id: " + threadID,
@@ -218,8 +232,90 @@ func (threadController *ThreadController) DeleteThreadByID(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Thread deleted successfully",
+	})
+}
+
+func (threadController *ThreadController) GetAllThreadTopicJunctions(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
+
+	threadTopicJunctions, err := threadService.GetAllThreadTopicJunctions()
+
+	// Check for internal server errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check for no threadTopicJunctions found
+	if len(threadTopicJunctions) == 0 {
+		context.JSON(http.StatusNotFound, dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No threadTopicJunctions in the database",
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   threadTopicJunctions,
+	})
+}
+
+func (threadController *ThreadController) AddThreadToTopic(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
+
+	topicID := context.Param("topicID")
+	threadID := context.Param("threadID")
+
+	err := threadService.AddThreadToTopic(threadID, topicID)
+
+	if err != nil {
+		// Thread-Topic Combination already exists
+		if err.Error() == "pq: duplicate key value violates unique constraint \"threadtopicjunction_thread_id_topic_id_key\"" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "THREADTOPICJUNCTION_ALREADY_EXISTS",
+				Message:   "Thread of thread id: " + threadID + " is already added to topic id " + topicID,
+			})
+			return
+		}
+		// Thread does not exist
+		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_thread_id_fkey\"" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "THREAD_DOES_NOT_EXIST",
+				Message:   "Thread of thread id: " + threadID + " does not exist",
+			})
+			return
+		}
+		// Topic does not exist
+		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_topic_id_fkey\"" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "TOPIC_DOES_NOT_EXIST",
+				Message:   "Topic of topic id: " + topicID + " does not exist",
+			})
+			return
+		}
+		// Internal server errors
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Added thread to topic",
 	})
 }

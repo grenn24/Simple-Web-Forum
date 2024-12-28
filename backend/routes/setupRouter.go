@@ -4,12 +4,12 @@ import (
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/middleware"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func SetupRouter(router *gin.Engine, db *sql.DB) {
-	// Enable CORS
-	router.Use(middleware.CORS)
+	// Middlewares
+	router.Use(middlewares.CORS)
 
 	// Thread Related Routes
 	ThreadRoutes(router, db)

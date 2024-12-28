@@ -1,4 +1,4 @@
-package services
+package repositories
 
 import (
 	"database/sql"
@@ -6,12 +6,12 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 )
 
-type ThreadTopicJunctionService struct {
+type ThreadTopicJunctionRepository struct {
 	DB *sql.DB
 }
 
-func (threadTopicJunctionService *ThreadTopicJunctionService) GetAllThreadTopicJunctions() ([]*models.ThreadTopicJunction, error) {
-	rows, err := threadTopicJunctionService.DB.Query("SELECT * FROM threadTopicJunction")
+func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) GetAllThreadTopicJunctions() ([]*models.ThreadTopicJunction, error) {
+rows, err := ThreadTopicJunctionRepository.DB.Query("SELECT * FROM threadTopicJunction")
 
 	if err != nil {
 		return nil, err
@@ -45,9 +45,9 @@ func (threadTopicJunctionService *ThreadTopicJunctionService) GetAllThreadTopicJ
 	return threadTopicJunctions, err
 }
 
-func (threadTopicJunctionService *ThreadTopicJunctionService) AddThreadToTopic(threadID string, topicID string) (error) {
+func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) AddThreadToTopic(threadID string, topicID string) (error) {
 
-	_, err := threadTopicJunctionService.DB.Exec("INSERT INTO threadTopicJunction (thread_id, topic_id) VALUES ($1, $2)", threadID, topicID)
+	_, err := ThreadTopicJunctionRepository.DB.Exec("INSERT INTO threadTopicJunction (thread_id, topic_id) VALUES ($1, $2)", threadID, topicID)
 
 	return err
 }

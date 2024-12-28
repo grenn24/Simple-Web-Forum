@@ -6,8 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/models"
 )
 
 type FollowController struct {
@@ -21,7 +22,7 @@ func (followController *FollowController) GetAllFollows(context *gin.Context, db
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -30,14 +31,14 @@ func (followController *FollowController) GetAllFollows(context *gin.Context, db
 
 	// Check for no follows found
 	if len(follows) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No follows in the database",
 		})
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   follows,
 	})
@@ -52,7 +53,7 @@ func (followController *FollowController) GetFollowedThreadsByAuthorID(context *
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -61,14 +62,14 @@ func (followController *FollowController) GetFollowedThreadsByAuthorID(context *
 
 	// Check for no followed threads found
 	if len(follows) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No threads being followed by author id: " + authorID,
 		})
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   follows,
 	})
@@ -84,7 +85,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -94,7 +95,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 
 	// Check if the binded struct contains necessary fields
 	if follow.FollowerAuthorID == 0 || (follow.FolloweeAuthorID == nil && follow.FolloweeTopicID == nil) {
-		context.JSON(http.StatusBadRequest, models.Error{
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
 			Message:   "Missing required fields in follow object",
@@ -107,7 +108,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 	if err != nil {
 		// Check for existing follower_author-followee_author combination
 		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_author_id_key\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
+			context.JSON(http.StatusBadRequest, dtos.Error{
 				Status:    "error",
 				ErrorCode: "FOLLOW_ALREADY_EXISTS",
 				Message:   fmt.Sprintf("Author of author id %v is already following author of author id %v", follow.FollowerAuthorID, follow.FolloweeAuthorID),
@@ -116,7 +117,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 		}
 		// Check for existing follower_author-followee_topic combination
 		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_topic_id_key\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
+			context.JSON(http.StatusBadRequest, dtos.Error{
 				Status:    "error",
 				ErrorCode: "FOLLOW_ALREADY_EXISTS",
 				Message:   fmt.Sprintf("Author of author id %v is already following topic of topic id %v", follow.FollowerAuthorID, follow.FolloweeTopicID),
@@ -124,7 +125,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 			return
 		}
 		// Internal server errors
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -132,7 +133,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Follow added to database",
 	})

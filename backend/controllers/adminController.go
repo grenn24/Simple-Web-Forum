@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
 )
 
@@ -19,7 +19,7 @@ func (adminController *AdminController) ResetDatabase(context *gin.Context, db *
 	err := adminService.ResetDatabase()
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -27,7 +27,7 @@ func (adminController *AdminController) ResetDatabase(context *gin.Context, db *
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Database cleared successfully!",
 	})
@@ -39,7 +39,7 @@ func (adminController *AdminController) InitialiseDatabase(context *gin.Context,
 	err := adminService.InitialiseDatabase()
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -47,7 +47,7 @@ func (adminController *AdminController) InitialiseDatabase(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Database initialised!",
 	})

@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/models"
 )
 
 type CommentController struct {
@@ -20,7 +21,7 @@ func (commentController *CommentController) GetAllComments(context *gin.Context,
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -30,7 +31,7 @@ func (commentController *CommentController) GetAllComments(context *gin.Context,
 
 	// Check for empty comment table
 	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No comments in the database",
@@ -38,7 +39,7 @@ func (commentController *CommentController) GetAllComments(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   comments,
 	})
@@ -53,7 +54,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -63,7 +64,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 
 	// Check for empty comment table
 	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No comments found for thread id: " + threadID,
@@ -71,7 +72,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   comments,
 	})
@@ -86,7 +87,7 @@ func (commentController *CommentController) GetCommentsByAuthorID(context *gin.C
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -96,7 +97,7 @@ func (commentController *CommentController) GetCommentsByAuthorID(context *gin.C
 
 	// Check for empty comment table
 	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No comments found for author id: " + authorID,
@@ -104,7 +105,7 @@ func (commentController *CommentController) GetCommentsByAuthorID(context *gin.C
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   comments,
 	})
@@ -117,7 +118,7 @@ func (commentController *CommentController) CountAllComments(context *gin.Contex
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -125,7 +126,7 @@ func (commentController *CommentController) CountAllComments(context *gin.Contex
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   gin.H{"commentCount": commentCount},
 	})
@@ -140,7 +141,7 @@ func (commentController *CommentController) CountCommentsByThreadID(context *gin
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -148,7 +149,7 @@ func (commentController *CommentController) CountCommentsByThreadID(context *gin
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   gin.H{"commentCount": commentCount},
 	})
@@ -164,7 +165,7 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -174,7 +175,7 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 
 	// Check if the binded struct contains necessary fields
 	if comment.ThreadID == 0 || comment.AuthorID == 0 || comment.Content == "" {
-		context.JSON(http.StatusBadRequest, models.Error{
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
 			Message:   "Missing required fields in comment object",
@@ -186,7 +187,7 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -194,7 +195,7 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Comment added to database",
 	})
@@ -207,7 +208,7 @@ func (commentController *CommentController) DeleteAllComments(context *gin.Conte
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -215,7 +216,7 @@ func (commentController *CommentController) DeleteAllComments(context *gin.Conte
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Deleted all comments",
 	})

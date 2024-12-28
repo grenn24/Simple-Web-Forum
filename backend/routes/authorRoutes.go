@@ -5,11 +5,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
+	"github.com/grenn24/simple-web-forum/middlewares"
 	"github.com/grenn24/simple-web-forum/services"
 )
 
 func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter := router.Group("/authors")
+	authorRouter.Use(middlewares.ValidateJwtToken)
 
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
@@ -57,5 +59,10 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	// Author Specific Follows
 	authorRouter.GET("/:authorID/followed/threads", func(context *gin.Context) {
 		followController.GetFollowedThreadsByAuthorID(context, db)
+	})
+
+	// User
+	authorRouter.GET("/user", func(context *gin.Context) {
+		authorController.GetUser(context, db)
 	})
 }

@@ -2,8 +2,8 @@ import { Box, TextField, InputAdornment } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import Cookies from "js-cookie";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { postJSON } from "../../utilities/apiClient";
 
 interface Prop {
 	opacity: number;
@@ -14,53 +14,46 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 		register,
 		handleSubmit,
 		formState: { errors },
-		reset,
 		setError,
 	} = useForm();
 	const navigate = useNavigate();
 	const handleFormSubmit = handleSubmit((data) => {
-		axios
-			.post(
-				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authors",
-				{
-					name: data.name,
-					username: data.username,
-					email: data.email,
-					password_hash: data.password,
-				},
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-				}
-			)
-			.then((res) => {
-				const response = res.data;
-				Cookies.set("authorID", response.data.author_id);
-
+		postJSON(
+			"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authentication/sign-up",
+			{
+				name: data.name,
+				username: data.username,
+				email: data.email,
+				password: data.password,
+			},
+			(res) => {
+				const responseHeaders = res.headers;
+				const jwtToken = responseHeaders["authorization"].split(" ")[1];
+				Cookies.set("jwtToken", jwtToken);
 				navigate("../Following");
-			})
-			.catch((err) => {
-				const response = err.response.data;
-				if (response.errorCode === "EMAIL_ALREADY_EXISTS") {
+			},
+			(err) => {
+				const responseBody = err.data;
+				if (responseBody.errorCode === "EMAIL_ALREADY_EXISTS") {
 					setError("email", {
 						type: "custom",
-						message: response.message,
+						message: responseBody.message,
 					});
 				}
-				if (response.errorCode === "NAME_ALREADY_EXISTS") {
+				if (responseBody.errorCode === "NAME_ALREADY_EXISTS") {
 					setError("name", {
 						type: "custom",
-						message: response.message,
+						message: responseBody.message,
 					});
 				}
-				if (response.errorCode === "USERNAME_ALREADY_EXISTS") {
+				if (responseBody.errorCode === "USERNAME_ALREADY_EXISTS") {
 					setError("username", {
 						type: "custom",
-						message: response.message,
+						message: responseBody.message,
 					});
 				}
-			});
+			}
+		);
 	});
 	return (
 		<Box

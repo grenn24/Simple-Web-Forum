@@ -10,7 +10,7 @@ import (
 
 func AdminRoutes(router *gin.Engine, db *sql.DB) {
 	// Initialise controller handlers
-	threadTopicJunctionController := &controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
+	topicController := &controllers.TopicController{TopicService: &services.TopicService{
 		DB: db,
 	}}
 	adminController := &controllers.AdminController{AdminService: &services.AdminService{
@@ -18,7 +18,7 @@ func AdminRoutes(router *gin.Engine, db *sql.DB) {
 	}}
 
 	router.GET("/thread-topic-junctions", func(context *gin.Context) {
-		threadTopicJunctionController.GetAllThreadTopicJunctions(context, db)
+		topicController.GetAllThreadTopicJunctions(context, db)
 	})
 	router.DELETE("/reset-database", func(context *gin.Context) {
 		adminController.ResetDatabase(context, db)

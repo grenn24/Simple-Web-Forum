@@ -6,19 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func TopicRoutes(router *gin.Engine, db *sql.DB) {
 	topicRouter := router.Group("/topics")
+	topicRouter.Use(middlewares.ValidateJwtToken)
 
 	// Initialise controller handlers
 	topicController := &controllers.TopicController{TopicService: &services.TopicService{
 		DB: db,
 	}}
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
-		DB: db,
-	}}
-	threadTopicJunctionController := &controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
 		DB: db,
 	}}
 
@@ -35,6 +34,6 @@ func TopicRoutes(router *gin.Engine, db *sql.DB) {
 		threadController.GetThreadsByTopicID(context, db)
 	})
 	topicRouter.POST("/:topicID/threads/:threadID", func(context *gin.Context) {
-		threadTopicJunctionController.AddThreadToTopic(context, db)
+		threadController.AddThreadToTopic(context, db)
 	})
 }

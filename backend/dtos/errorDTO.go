@@ -1,4 +1,4 @@
-package models
+package dtos
 
 type Error struct {
 	Status       string `json:"status"`

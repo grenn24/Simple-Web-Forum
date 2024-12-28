@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func CommentRoutes(router *gin.Engine, db *sql.DB) {
 	commentRouter := router.Group("/comments")
+	commentRouter.Use(middlewares.ValidateJwtToken)
 
 	// Initialise controller handlers
 	commentController := &controllers.CommentController{CommentService: &services.CommentService{

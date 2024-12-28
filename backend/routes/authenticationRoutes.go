@@ -19,4 +19,8 @@ func AuthenticationRoutes(router *gin.Engine, db *sql.DB) {
 	authenticationRouter.POST("/log-in", func(context *gin.Context) {
 		authenticationController.LogIn(context, db)
 	})
+
+	authenticationRouter.POST("/sign-up", func(context *gin.Context) {
+		authenticationController.SignUp(context, db)
+	})
 }

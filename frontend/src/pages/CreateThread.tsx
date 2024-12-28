@@ -6,6 +6,7 @@ import TabMenu from "../components/TabMenu";
 import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
+import { postJSON } from "../utilities/apiClient";
 
 const CreateThread = () => {
 	const navigate = useNavigate();
@@ -14,15 +15,26 @@ const CreateThread = () => {
 		register,
 		watch,
 		handleSubmit,
-		formState: { errors, isValid },
+		formState: { errors },
 		reset,
+		
 	} = useForm({
-		mode: "onChange",
+		mode: "onSubmit",
 	});
 
 	const submitForm = handleSubmit((data) => {
-		console.log(data);
-		isValid && reset();
+		postJSON(
+			"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads",
+			{
+				title: data.title,
+				content: data.content,
+				image_title: data.imageTitle,
+				image_link: data.imageLink,
+			},
+			(res) => console.log(res),
+			(err) => console.log(err)
+		);
+		reset();
 	});
 	return (
 		<>
@@ -58,7 +70,7 @@ const CreateThread = () => {
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0, px: 0}}
+						buttonStyle={{ mx: 0, px: 0 }}
 						handleButtonClick={() => navigate(-1)}
 					/>
 				</Box>

@@ -7,8 +7,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/models"
 )
 
 type LikeController struct {
@@ -22,7 +23,7 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -32,7 +33,7 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 
 	// Check for no likes found
 	if len(likes) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No likes in the database",
@@ -40,7 +41,7 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   likes,
 	})
@@ -55,7 +56,7 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -65,7 +66,7 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 
 	// Check for no likes found
 	if len(likes) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No likes in the database",
@@ -73,7 +74,7 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   likes,
 	})
@@ -88,7 +89,7 @@ func (likeController *LikeController) GetLikesByThreadID(context *gin.Context, d
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -98,7 +99,7 @@ func (likeController *LikeController) GetLikesByThreadID(context *gin.Context, d
 
 	// Check for no likes found
 	if len(likes) == 0 {
-		context.JSON(http.StatusNotFound, models.Error{
+		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No likes in the database",
@@ -106,7 +107,7 @@ func (likeController *LikeController) GetLikesByThreadID(context *gin.Context, d
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   likes,
 	})
@@ -119,7 +120,7 @@ func (likeController *LikeController) CountAllLikes(context *gin.Context, db *sq
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -127,7 +128,7 @@ func (likeController *LikeController) CountAllLikes(context *gin.Context, db *sq
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   gin.H{"likeCount": likeCount},
 	})
@@ -142,7 +143,7 @@ func (likeController *LikeController) CountLikesByThreadID(context *gin.Context,
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -150,7 +151,7 @@ func (likeController *LikeController) CountLikesByThreadID(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   gin.H{"likeCount": likeCount},
 	})
@@ -165,7 +166,7 @@ func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context,
 
 	// Check for internal server errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -173,7 +174,7 @@ func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context,
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   gin.H{"likeCount": likeCount},
 	})
@@ -192,7 +193,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 
 	// Check for JSON binding errors
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -202,7 +203,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 
 	// Check if the binded struct contains necessary fields
 	if like.AuthorID == 0 || like.ThreadID == 0 {
-		context.JSON(http.StatusBadRequest, models.Error{
+		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
 			Message:   "Missing required fields in like object",
@@ -215,7 +216,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 	if err != nil {
 		// Check for existing likes errors
 		if err.Error() == "pq: duplicate key value violates unique constraint \"Like_thread_id_author_id_key\"" {
-			context.JSON(http.StatusBadRequest, models.Error{
+			context.JSON(http.StatusBadRequest, dtos.Error{
 				Status:    "error",
 				ErrorCode: "LIKE_ALREADY_EXISTS",
 				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
@@ -223,7 +224,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 			return
 		}
 		// Other internal server errors
-		context.JSON(http.StatusInternalServerError, models.Error{
+		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
@@ -231,7 +232,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 		return
 	}
 
-	context.JSON(http.StatusOK, models.Success{
+	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Like added to database",
 	})

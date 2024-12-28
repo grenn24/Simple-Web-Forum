@@ -3,7 +3,10 @@ package services
 import (
 	"database/sql"
 
+	"github.com/gin-gonic/gin"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/repositories"
+	"github.com/grenn24/simple-web-forum/utils"
 	"github.com/grenn24/simple-web-forum/models"
 )
 
@@ -11,30 +14,97 @@ type AuthenticationService struct {
 	DB *sql.DB
 }
 
-func (authenticationService *AuthenticationService) LogIn(email string, password string) (bool, int, *models.Error) {
+func (authenticationService *AuthenticationService) LogIn(email string, password string) (string, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authenticationService.DB}
+
+	passwordHash := utils.HashPassword(password)
 
 	// Check if author with that email exists
 	author := authorRepository.GetAuthorByEmail(email)
 	if author == nil {
-		return false, 0, &models.Error{
+		return "", &dtos.Error{
 			Status:    "error",
 			ErrorCode: "UNAUTHORISED",
 			Message:   "Invalid email or password",
 		}
 	}
-	
+
 	authorID := author.AuthorID
 
 	// Check if password is correct
-	if password == authorRepository.GetPasswordByAuthorID(authorID) {
-		return true, author.AuthorID, nil
-	} else {
-		return false, 0, &models.Error{
+	if passwordHash != authorRepository.GetPasswordHashByAuthorID(authorID) {
+		return "", &dtos.Error{
 			Status:    "error",
 			ErrorCode: "UNAUTHORISED",
 			Message:   "Invalid email or password",
 		}
 	}
 
+	jwtToken, err := utils.GenerateJwtToken(gin.H{"alg": "HS256"}, gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": authorID, "role": "user"})
+
+	if err != nil {
+		return "", &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   "Error generating jwt token",
+		}
+	}
+
+	return jwtToken, nil
+}
+
+func (authenticationService *AuthenticationService) SignUp(name string, username string, email string, password string) (string, *dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authenticationService.DB}
+
+	passwordHash := utils.HashPassword(password)
+
+	// Declare a pointer to a new instance of an author struct
+	author := &models.Author{Name: name, Username: username, Email: email, PasswordHash: passwordHash}
+
+	authorID, err := authorRepository.CreateAuthor(author)
+
+	if err != nil {
+		// Check for existing name
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
+			return "", &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "The name provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for existing username
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
+			return "", &dtos.Error{
+				Status:    "error",
+				ErrorCode: "USERNAME_ALREADY_EXISTS",
+				Message:   "The username provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for existing email
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
+			return "", &dtos.Error{
+				Status:    "error",
+				ErrorCode: "EMAIL_ALREADY_EXISTS",
+				Message:   "The email provided has already been used. (case insensitive)",
+			}
+		}
+		// Check for internal server errors
+		return "", &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	jwtToken, err := utils.GenerateJwtToken(gin.H{"alg": "HS256"}, gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": authorID, "role": "user"})
+
+	if err != nil {
+		return "", &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   "Error generating jwt token",
+		}
+	}
+
+	return jwtToken, nil
 }

@@ -17,7 +17,6 @@ import {
 import MenuExpandedItems from "./MenuExpandedItems";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedDataValues from "./MenuExpandedDataValues";
-import HandleMenuExpandedItemsClick from "./HandleMenuExpandedItemsClick";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
@@ -73,7 +72,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							},
 						}}
 					>
-						NUS Forum
+						NUS Gossips
 					</Typography>
 					<IconButton
 						color="secondary"
@@ -133,8 +132,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 									event.currentTarget.dataset.value &&
 									navigate(event.currentTarget.dataset.value),
 								(event: React.MouseEvent<HTMLElement>) => {
-									console.log("hi");
-									Cookies.remove("authorID");
+									Cookies.remove("jwtToken");
 									event.currentTarget.dataset.value &&
 										navigate(event.currentTarget.dataset.value);
 								},

@@ -49,7 +49,7 @@ func (authorRepository *AuthorRepository) GetAuthorByPassword(password string) (
 	return author
 }
 
-func (authorRepository *AuthorRepository) GetPasswordByAuthorID(authorID int) (string) {
+func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int) (string) {
 	var password string
 	row := authorRepository.DB.QueryRow("SELECT password_hash FROM author WHERE author_id = $1", authorID)
 	err := row.Scan(&password)
@@ -61,4 +61,16 @@ func (authorRepository *AuthorRepository) GetPasswordByAuthorID(authorID int) (s
 	}
 	return password
 }
+
+func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (int, error) {
+	var authorID int64
+
+	row := authorRepository.DB.QueryRow("INSERT INTO author (name, username, email, password_hash, avator_icon_link) VALUES ($1, $2, $3, $4, $5) RETURNING author_id", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
+	
+	// Check for insertion errors while returning author id
+	err := row.Scan(&authorID)
+
+	return int(authorID), err
+}
+
 

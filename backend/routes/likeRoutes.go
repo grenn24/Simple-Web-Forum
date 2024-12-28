@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/middlewares"
 )
 
 func LikeRoutes(router *gin.Engine, db *sql.DB) {
 	likeRouter := router.Group("/likes")
+	likeRouter.Use(middlewares.ValidateJwtToken)
 
 	// Initialise controller handlers
 	likeController := &controllers.LikeController{LikeService: &services.LikeService{

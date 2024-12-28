@@ -45,7 +45,7 @@ function App() {
 					<Routes>
 						{/*Pages using Main Layout*/}
 						<Route
-							path="/"
+							path=""
 							element={
 								<MainLayout
 									setLeftNavBarExpandedStatus={setleftNavBarExpandedStatus}
@@ -59,15 +59,16 @@ function App() {
 							}
 						>
 							<Route index element={<Home />} />
-							<Route path="Following" element={<Following />} />
-							<Route path="Recommended" element={<Recommended />} />
-							<Route path="Topics" element={<Topics />} />
-							<Route path="Bookmarked" element={<Bookmarked />} />
-							<Route path="Liked" element={<Liked />} />
-							<Route path="Settings" element={<Settings />} />
-							<Route path="Profile/:authorId" element={<Profile />} />
-							<Route path="Thread/:threadId" element={<Thread />} />
-							<Route path="Create-Thread" element={<CreateThread />} />
+							<Route path="/Following" element={<Following />} />
+							<Route path="/Recommended" element={<Recommended />} />
+							<Route path="/Topics" element={<Topics />} />
+							<Route path="/Bookmarked" element={<Bookmarked />} />
+							<Route path="/Liked" element={<Liked />} />
+							<Route path="/Settings" element={<Settings />} />
+							<Route path="/Profile" element={<Profile />} />
+							<Route path="/Profile/:authorId" element={<Profile />} />
+							<Route path="/Thread/:threadId" element={<Thread />} />
+							<Route path="/Create-Thread" element={<CreateThread />} />
 						</Route>
 						{/*Pages without Layout*/}
 						<Route path="Welcome" element={<WelcomeScreen />} />

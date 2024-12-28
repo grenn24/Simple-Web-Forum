@@ -1,19 +1,51 @@
 import { Box, Container, Divider, Typography, Avatar, useTheme, useMediaQuery } from "@mui/material";
 import Button from "../components/Button";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { ArrowBackRounded as ArrowBackRoundedIcon, NotificationsNoneRounded as NotificationsNoneRoundedIcon, NotificationsActiveRounded as NotificationsActiveRoundedIcon } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import threadDataSample from "../features/Thread/threadDataSample";
 import profileDataSample from "../features/Profile/profileDataSample";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
+import { get } from "../utilities/apiClient";
+
 
 
 const Profile = () => {
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const [followStatus, setFollowStatus] = useState(false);
+	const {authorID} = useParams()
+	const [author, setAuthor] = useState({
+		authorID: 0,
+		name: "",
+		email: "",
+		username: "",
+		avatarIconLink: "",
+		createdAt: ""
+	});
+	useEffect(
+		() =>
+			get(
+				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authors" + (authorID ? "/" + authorID : "/user"),
+				(res) => {
+					const authorResponse = res.data.data
+					const author = {
+						authorID: authorResponse.authorID,
+						name: authorResponse.name,
+						email: authorResponse.email,
+						username: authorResponse.username,
+						avatarIconLink: authorResponse.avatarIconLink,
+						createdAt: authorResponse.createdAt,
+					};
+					setAuthor(author);
+					console.log(res)
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
 	return (
 		<Box
 			sx={{
@@ -64,7 +96,7 @@ const Profile = () => {
 			>
 				<Box display="flex" width="100%" alignItems="center" marginBottom={2}>
 					<Avatar
-						src={threadDataSample.avatarIconLink}
+						src={author.avatarIconLink}
 						sx={{ width: 90, height: 90 }}
 					/>
 					<Box
@@ -76,14 +108,14 @@ const Profile = () => {
 					>
 						<Box>
 							<Typography fontSize={32} fontWeight={600}>
-								{profileDataSample.name}
+								{author.name}
 							</Typography>
 							<Typography fontSize={18} fontWeight={300}>
-								{`@${profileDataSample.username}`}
+								{`@${author.username}`}
 							</Typography>
 						</Box>
 						<Box>
-							<Button
+							{authorID ?<Button
 								buttonStyle={{ py: 0 }}
 								borderRadius={40}
 								fontSize={20}
@@ -97,7 +129,8 @@ const Profile = () => {
 								handleButtonClick={() => setFollowStatus(!followStatus)}
 							>
 								Follow
-							</Button>
+							</Button>: null }
+							
 						</Box>
 					</Box>
 				</Box>
