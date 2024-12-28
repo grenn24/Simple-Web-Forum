@@ -160,7 +160,7 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 	// Declare a pointer to a new instance of a comment struct
 	comment := new(models.Comment)
 
-	err := context.ShouldBind(&comment)
+	err := context.ShouldBind(comment)
 
 	// Check for JSON binding errors
 	if err != nil {

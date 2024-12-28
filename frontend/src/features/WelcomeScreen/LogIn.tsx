@@ -1,14 +1,58 @@
-import { Box ,  TextField } from "@mui/material"
+import { Box, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 interface Prop {
 	opacity: number;
-	visibility: string
+	visibility: string;
 }
-const LogIn = ({opacity, visibility}: Prop) => {
-	const { register, handleSubmit , formState: { errors}} = useForm();
-  return (
+const LogIn = ({ opacity, visibility }: Prop) => {
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+		setError,
+	} = useForm();
+	const navigate = useNavigate();
+	const handleFormSubmit = handleSubmit((data) => {
+		axios
+			.post(
+				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authentication/log-in",
+				{
+					email: data.email,
+					password: data.password,
+				},
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
+				}
+			)
+			.then((res) => {
+				const response = res.data;
+				Cookies.set("authorID", response.data.author_id);
+
+				navigate("../Following");
+			})
+			.catch((err) => {
+				const response = err.response.data;
+				if (response.errorCode === "UNAUTHORISED") {
+					setError("email", {
+						type: "custom",
+						message: response.message,
+					});
+					setError("password", {
+						type: "custom",
+						message: response.message,
+					});
+				}
+			});
+	});
+
+	return (
 		<Box
 			position="absolute"
 			top="50%"
@@ -21,17 +65,14 @@ const LogIn = ({opacity, visibility}: Prop) => {
 			{...register("email", { required: true })}
 		>
 			<form
-				onSubmit={handleSubmit((data) => console.log(data))}
-				onKeyDown={(event) =>
-					event.key === "Enter" && handleSubmit((data) => console.log(data))
-				}
+				onSubmit={handleFormSubmit}
 			>
 				<TextField
 					label="Email"
 					variant="outlined"
-					{...register("email", { required: true })}
+					{...register("email", { required: "The email field is required" })}
 					error={!!errors.email}
-					helperText={errors.email ? "The email field is required" : null}
+					helperText={errors.email ? (errors.email.message as String) : null}
 				/>
 				<br />
 				<br />
@@ -39,9 +80,11 @@ const LogIn = ({opacity, visibility}: Prop) => {
 					label="Password"
 					type="password"
 					variant="outlined"
-					{...register("password", { required: true })}
+					{...register("password", {
+						required: "The password field is required",
+					})}
 					error={!!errors.password}
-					helperText={errors.password ? "The password field is required" : null}
+					helperText={errors.password ? (errors.password.message as String) : null}
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>
 					Submit
@@ -49,6 +92,6 @@ const LogIn = ({opacity, visibility}: Prop) => {
 			</form>
 		</Box>
 	);
-}
+};
 
-export default LogIn
+export default LogIn;

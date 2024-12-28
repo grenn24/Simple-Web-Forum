@@ -12,7 +12,7 @@ func LikeRoutes(router *gin.Engine, db *sql.DB) {
 	likeRouter := router.Group("/likes")
 
 	// Initialise controller handlers
-	likeController := controllers.LikeController{LikeService: &services.LikeService{
+	likeController := &controllers.LikeController{LikeService: &services.LikeService{
 		DB: db,
 	}}
 

@@ -80,7 +80,7 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 	// Declare a pointer to a new instance of a follow struct
 	follow := new(models.Follow)
 
-	err := context.ShouldBind(&follow)
+	err := context.ShouldBind(follow)
 
 	// Check for JSON binding errors
 	if err != nil {

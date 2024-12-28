@@ -83,7 +83,7 @@ func (topicController *TopicController) CreateTopic(context *gin.Context, db *sq
 	// Declare a pointer to a new instance of a topic struct
 	topic := new(models.Topic)
 
-	err := context.ShouldBind(&topic)
+	err := context.ShouldBind(topic)
 
 	// Check for JSON binding errors
 	if err != nil {

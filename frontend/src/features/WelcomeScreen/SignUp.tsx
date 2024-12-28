@@ -17,7 +17,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 		reset,
 		setError,
 	} = useForm();
-	const navigate = useNavigate()
+	const navigate = useNavigate();
 	const handleFormSubmit = handleSubmit((data) => {
 		axios
 			.post(
@@ -37,31 +37,28 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 			.then((res) => {
 				const response = res.data;
 				Cookies.set("authorID", response.data.author_id);
-				
 
 				navigate("../Following");
 			})
 			.catch((err) => {
-				if (err.response) {
-					const response = err.response.data;
-					if (response.errorCode === "EMAIL_ALREADY_EXISTS") {
-						setError("email", {
-							type: "custom",
-							message: response.message,
-						});
-					}
-					if (response.errorCode === "NAME_ALREADY_EXISTS") {
-						setError("name", {
-							type: "custom",
-							message: response.message,
-						});
-					}
-					if (response.errorCode === "USERNAME_ALREADY_EXISTS") {
-						setError("username", {
-							type: "custom",
-							message: response.message,
-						});
-					}
+				const response = err.response.data;
+				if (response.errorCode === "EMAIL_ALREADY_EXISTS") {
+					setError("email", {
+						type: "custom",
+						message: response.message,
+					});
+				}
+				if (response.errorCode === "NAME_ALREADY_EXISTS") {
+					setError("name", {
+						type: "custom",
+						message: response.message,
+					});
+				}
+				if (response.errorCode === "USERNAME_ALREADY_EXISTS") {
+					setError("username", {
+						type: "custom",
+						message: response.message,
+					});
 				}
 			});
 	});

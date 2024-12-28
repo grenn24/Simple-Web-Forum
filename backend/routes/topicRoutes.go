@@ -12,13 +12,13 @@ func TopicRoutes(router *gin.Engine, db *sql.DB) {
 	topicRouter := router.Group("/topics")
 
 	// Initialise controller handlers
-	topicController := controllers.TopicController{TopicService: &services.TopicService{
+	topicController := &controllers.TopicController{TopicService: &services.TopicService{
 		DB: db,
 	}}
-	threadController := controllers.ThreadController{ThreadService: &services.ThreadService{
+	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
 	}}
-	threadTopicJunctionController := controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
+	threadTopicJunctionController := &controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
 		DB: db,
 	}}
 

@@ -12,13 +12,13 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter := router.Group("/threads")
 
 	// Initialise controller handlers
-	threadController := controllers.ThreadController{ThreadService: &services.ThreadService{
+	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
 	}}
-	commentController := controllers.CommentController{CommentService: &services.CommentService{
+	commentController := &controllers.CommentController{CommentService: &services.CommentService{
 		DB: db,
 	}}
-	likeController := controllers.LikeController{LikeService: &services.LikeService{
+	likeController := &controllers.LikeController{LikeService: &services.LikeService{
 		DB: db,
 	}}
 

@@ -187,7 +187,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
-	err := context.ShouldBind(&like)
+	err := context.ShouldBind(like)
 	like.ThreadID, _ = strconv.Atoi(threadID)
 
 	// Check for JSON binding errors

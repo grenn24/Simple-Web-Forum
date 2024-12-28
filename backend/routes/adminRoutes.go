@@ -10,10 +10,10 @@ import (
 
 func AdminRoutes(router *gin.Engine, db *sql.DB) {
 	// Initialise controller handlers
-	threadTopicJunctionController := controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
+	threadTopicJunctionController := &controllers.ThreadTopicJunctionController{ThreadTopicJunctionService: &services.ThreadTopicJunctionService{
 		DB: db,
 	}}
-	adminController := controllers.AdminController{AdminService: &services.AdminService{
+	adminController := &controllers.AdminController{AdminService: &services.AdminService{
 		DB: db,
 	}}
 

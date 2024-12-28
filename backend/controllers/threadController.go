@@ -146,7 +146,7 @@ func (threadController *ThreadController) CreateThread(context *gin.Context, db 
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
 
-	err := context.ShouldBind(&thread)
+	err := context.ShouldBind(thread)
 
 	// Check for JSON binding errors
 	if err != nil {

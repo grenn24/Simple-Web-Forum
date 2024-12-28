@@ -12,7 +12,7 @@ func FollowRoutes(router *gin.Engine, db *sql.DB) {
 	followRouter := router.Group("/follows")
 
 	// Initialise controller handlers
-	followController := controllers.FollowController{FollowService: &services.FollowService{
+	followController := &controllers.FollowController{FollowService: &services.FollowService{
 		DB: db,
 	}}
 

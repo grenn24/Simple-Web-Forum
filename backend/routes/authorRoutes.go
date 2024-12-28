@@ -11,19 +11,19 @@ import (
 func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter := router.Group("/authors")
 
-	threadController := controllers.ThreadController{ThreadService: &services.ThreadService{
+	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
 	}}
-	commentController := controllers.CommentController{CommentService: &services.CommentService{
+	commentController := &controllers.CommentController{CommentService: &services.CommentService{
 		DB: db,
 	}}
-	likeController := controllers.LikeController{LikeService: &services.LikeService{
+	likeController := &controllers.LikeController{LikeService: &services.LikeService{
 		DB: db,
 	}}
-	authorController := controllers.AuthorController{AuthorService: &services.AuthorService{
+	authorController := &controllers.AuthorController{AuthorService: &services.AuthorService{
 		DB: db,
 	}}
-	followController := controllers.FollowController{FollowService: &services.FollowService{
+	followController := &controllers.FollowController{FollowService: &services.FollowService{
 		DB: db,
 	}}
 

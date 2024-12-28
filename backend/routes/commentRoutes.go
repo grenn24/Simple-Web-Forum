@@ -12,7 +12,7 @@ func CommentRoutes(router *gin.Engine, db *sql.DB) {
 	commentRouter := router.Group("/comments")
 
 	// Initialise controller handlers
-	commentController := controllers.CommentController{CommentService: &services.CommentService{
+	commentController := &controllers.CommentController{CommentService: &services.CommentService{
 		DB: db,
 	}}
 

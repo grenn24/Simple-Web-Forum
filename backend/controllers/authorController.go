@@ -82,7 +82,7 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 	// Declare a pointer to a new instance of an author struct
 	author := new(models.Author)
 
-	err := context.ShouldBind(&author)
+	err := context.ShouldBind(author)
 
 	// Check for JSON binding errors
 	if err != nil {

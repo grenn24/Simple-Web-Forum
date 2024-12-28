@@ -29,6 +29,9 @@ func SetupRouter(router *gin.Engine, db *sql.DB) {
 	// Follow Related Routes
 	FollowRoutes(router, db)
 
-	// Admin / Debugging Routes
+	// Admin / Debugging Related Routes
 	AdminRoutes(router, db)
+
+	// User Authentication Related Routes
+	AuthenticationRoutes(router, db)
 }
