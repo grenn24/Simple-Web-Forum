@@ -66,8 +66,8 @@ function App() {
 							<Route path="/Liked" element={<Liked />} />
 							<Route path="/Settings" element={<Settings />} />
 							<Route path="/Profile" element={<Profile />} />
-							<Route path="/Profile/:authorId" element={<Profile />} />
-							<Route path="/Thread/:threadId" element={<Thread />} />
+							<Route path="/Profile/:authorID" element={<Profile />} />
+							<Route path="/Thread/:threadID" element={<Thread />} />
 							<Route path="/Create-Thread" element={<CreateThread />} />
 						</Route>
 						{/*Pages without Layout*/}

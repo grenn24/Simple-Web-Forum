@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/middlewares"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
 func ThreadRoutes(router *gin.Engine, db *sql.DB) {
@@ -30,6 +30,9 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter.GET("/:threadID", func(context *gin.Context) {
 		threadController.GetThreadByID(context, db)
 	})
+	threadRouter.GET("/expanded/:threadID", func(context *gin.Context) {
+		threadController.GetThreadExpandedByID(context, db)
+	})
 	threadRouter.POST("", func(context *gin.Context) {
 		threadController.CreateThread(context, db)
 	})
@@ -43,6 +46,9 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	// Thread Specific Comments
 	threadRouter.GET("/:threadID/comments", func(context *gin.Context) {
 		commentController.GetCommentsByThreadID(context, db)
+	})
+	threadRouter.POST("/:threadID/comments/user", func(context *gin.Context) {
+		commentController.CreateCommentByUser(context, db)
 	})
 	threadRouter.GET("/:threadID/comments/count", func(context *gin.Context) {
 		commentController.CountCommentsByThreadID(context, db)
@@ -59,6 +65,4 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 		likeController.CountLikesByThreadID(context, db)
 	})
 
-	// Thread Specific Topics
-	
 }

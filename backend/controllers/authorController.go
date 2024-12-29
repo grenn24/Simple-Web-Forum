@@ -140,7 +140,7 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Author created successfully!",
 	})

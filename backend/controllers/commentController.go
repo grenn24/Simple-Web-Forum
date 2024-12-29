@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type CommentController struct {
@@ -50,7 +51,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 
 	commentService := commentController.CommentService
 
-	comments, err := commentService.GetCommentsByThreadID(threadID, context.Query("sort"))
+	comments, err := commentService.GetCommentsByThreadID(utils.ConvertStringToInt(threadID, context), context.Query("sort"))
 
 	// Check for internal server errors
 	if err != nil {
@@ -183,9 +184,31 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 		return
 	}
 
-	err = commentService.CreateComment(comment)
+	responseErr := commentService.CreateComment(comment)
 
-	// Check for internal server errors
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
+		Status:  "success",
+		Message: "Comment added to database",
+	})
+}
+
+func (commentController *CommentController) CreateCommentByUser(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+	threadID := context.Param("threadID")
+
+	// Declare a pointer to a new instance of a comment struct
+	comment := new(models.Comment)
+	comment.AuthorID = utils.GetUserAuthorID(context)
+	comment.ThreadID = utils.ConvertStringToInt(threadID, context)
+
+	err := context.ShouldBind(comment)
+
+	// Check for JSON binding errors
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
@@ -195,7 +218,24 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	// Check if the binded struct contains necessary fields
+	if comment.ThreadID == 0 || comment.AuthorID == 0 || comment.Content == "" {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in comment object",
+		})
+		return
+	}
+
+	responseErr := commentService.CreateComment(comment)
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Comment added to database",
 	})

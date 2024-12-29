@@ -14,19 +14,20 @@ import { useNavigate } from "react-router-dom";
 interface Prop {
 	threadId: number;
 	threadTitle: string;
-	threadAuthor: string;
-	threadDate: string;
+	threadAuthorName: string;
+	threadAuthorID?: string;
+	threadCreatedAt: Date;
 	avatarIconLink: string;
 	threadContentSummarised: string;
 	handleAvatarIconClick?: () => void;
-	bookmarkedStatus: boolean
+	bookmarkedStatus: boolean;
 }
 
 const ThreadGridCard = ({
 	threadId,
 	threadTitle,
-	threadAuthor,
-	threadDate,
+	threadAuthorName,
+	threadCreatedAt,
 	avatarIconLink,
 	threadContentSummarised,
 	handleAvatarIconClick,
@@ -65,6 +66,7 @@ const ThreadGridCard = ({
 									event.stopPropagation();
 								}}
 								showMenuExpandedOnClick={false}
+								
 							/>
 						}
 						action={
@@ -96,8 +98,8 @@ const ThreadGridCard = ({
 								/>
 							</>
 						}
-						title={threadAuthor}
-						subheader={threadDate}
+						title={threadAuthorName}
+						subheader={threadCreatedAt.getDate() + "/" + (threadCreatedAt.getMonth() + 1) + "/" + threadCreatedAt.getFullYear()}
 						titleTypographyProps={{ fontWeight: 750 }}
 						sx={{ paddingBottom: 0.5 }}
 					/>

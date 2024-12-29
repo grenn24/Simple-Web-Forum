@@ -39,7 +39,7 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			username TEXT NOT NULL,
 			email TEXT NOT NULL,
 			password_hash TEXT NOT NULL,
-			avator_icon_link TEXT,
+			avatar_icon_link TEXT,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW()
 		);
 		CREATE UNIQUE INDEX IF NOT EXISTS author_name_lowercase ON author(LOWER(name));

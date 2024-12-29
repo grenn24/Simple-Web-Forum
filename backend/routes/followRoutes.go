@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/middlewares"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
 func FollowRoutes(router *gin.Engine, db *sql.DB) {
@@ -23,5 +23,14 @@ func FollowRoutes(router *gin.Engine, db *sql.DB) {
 	})
 	followRouter.POST("", func(context *gin.Context) {
 		followController.CreateFollow(context, db)
+	})
+	followRouter.POST("/user", func(context *gin.Context) {
+		followController.CreateUserFollow(context, db)
+	})
+	followRouter.DELETE("", func(context *gin.Context) {
+		followController.DeleteFollow(context, db)
+	})
+	followRouter.DELETE("/user", func(context *gin.Context) {
+		followController.DeleteUserFollow(context, db)
 	})
 }

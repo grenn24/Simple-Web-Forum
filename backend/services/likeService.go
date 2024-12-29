@@ -4,6 +4,8 @@ import (
 	"database/sql"
 
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/repositories"
+	"github.com/grenn24/simple-web-forum/dtos"
 )
 
 type LikeService struct {
@@ -121,34 +123,13 @@ func (likeService *LikeService) GetLikesByThreadID(threadID string) ([]*models.L
 }
 
 func (likeService *LikeService) CountAllLikes() (int, error) {
-	row := likeService.DB.QueryRow("SELECT COUNT(*) FROM \"like\"")
-
-	var likeCount int
-
-	err := row.Scan(&likeCount)
-
-	// Check for any scanning errors
-	if err != nil {
-		return 0, err
-	}
-
-	return likeCount, err
+	likeRepository :=  &repositories.LikeRepository{DB: likeService.DB}
+	return likeRepository.CountAllLikes()
 }
 
-func (likeService *LikeService) CountLikesByThreadID(threadID string) (int, error) {
-
-	row := likeService.DB.QueryRow("SELECT COUNT(*) FROM \"like\" WHERE thread_id = " + threadID)
-
-	var likeCount int
-
-	err := row.Scan(&likeCount)
-
-	// Check for any scanning errors
-	if err != nil {
-		return 0, err
-	}
-
-	return likeCount, err
+func (likeService *LikeService) CountLikesByThreadID(threadID int) (int, error) {
+	likeRepository :=  &repositories.LikeRepository{DB: likeService.DB}
+	return likeRepository.CountLikesByThreadID(threadID)
 }
 
 func (likeService *LikeService) CountLikesByAuthorID(authorID string) (int, error) {
@@ -176,4 +157,30 @@ func (likeService *LikeService) CreateLike(like *models.Like) (error) {
 	
 
 	return err
+}
+
+func (likeService *LikeService) DeleteLikeByThreadAuthorID(threadID int, authorID int) (*dtos.Error) {
+		likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	rowsDeleted, err := likeRepository.DeleteLikeByThreadAuthorID(threadID, authorID)
+
+		// Check for internal server errors
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+
+	}
+
+	// Check for follow not found error
+	if rowsDeleted == 0 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No likes found for the thread and author ids provided ",
+		}
+	}
+
+	return nil
 }

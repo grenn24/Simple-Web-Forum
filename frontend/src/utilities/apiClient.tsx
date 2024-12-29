@@ -93,11 +93,13 @@ export function putJSON(
 
 export function Delete(
 	url: string,
-	handleSuccessResponse: (res: AxiosResponse<any, any>) => void,
+	requestBody?: object,
+	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
 	axios
-		.get(url, {
+		.delete(url, {
+			data: requestBody,
 			headers: {
 				Authorization:
 					"Bearer " + (Cookies.get("jwtToken") ? Cookies.get("jwtToken") : ""),

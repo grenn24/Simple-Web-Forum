@@ -28,19 +28,52 @@ import Button from "../components/Button";
 import SimpleDialog from "../components/SimpleDialog";
 import Snackbar from "../components/Snackbar";
 import List from "../components/List";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import MenuExpandedIcons from "../features/Thread/MenuExpandedIcons";
 import MenuExpandedItems from "../features/Thread/MenuExpandedItems";
 import playerGenerator from "../utilities/playerGenerator";
 import likeSound from "../assets/audio/like-sound.mp3";
-import ThreadMetadata from "../features/Thread/threadDataSample.tsx";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import FullScreenImage from "../components/FullScreenImage";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
+import { get } from "../utilities/apiClient.tsx";
+
+interface Comment {
+	commentID: number;
+	threadID: number;
+	authorID: number;
+	content: string;
+	createdAt: Date;
+	authorName: string;
+	avatarIconLink: string;
+}
+
+interface Topic {
+	topicID: number;
+	topicName: string;
+}
+
+interface ThreadExpanded {
+	threadID: number;
+	title: string;
+	content: string;
+	commentCount: number;
+	author: {
+		authorName: string;
+		authorID: number;
+		avatarIconLink: string;
+	};
+	createdAt: Date;
+	likeCount: number;
+	likeStatus: boolean;
+	comments: Comment[];
+	imageTitle: string;
+	imageLink: string;
+	topicsTagged: Topic[];
+}
 
 const Thread = () => {
-	const [likeStatus, setLikeStatus] = useState(ThreadMetadata.likeStatus);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
@@ -62,6 +95,76 @@ const Thread = () => {
 	const location = useLocation();
 	const focusTextField = location.state;
 	focusTextField && textField.current && textField.current.focus();
+
+	const [threadExpanded, setThreadExpanded] = useState<ThreadExpanded>({
+		threadID: 0,
+		comments: [],
+		title: "",
+		content: "",
+		author: {
+			authorName: "",
+			authorID: 0,
+			avatarIconLink: "",
+		},
+		likeCount: 0,
+		likeStatus: false,
+		commentCount: 0,
+		imageTitle: "",
+		imageLink: "",
+		createdAt: new Date(),
+		topicsTagged: [],
+	});
+	const { threadID } = useParams();
+	useEffect(
+		() =>
+			get(
+				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads/expanded/" +
+					threadID,
+				(res) => {
+					const responseBody = res.data.data;
+					const threadExpanded = {
+						threadID: responseBody.thread_id,
+						title: responseBody.title,
+						content: responseBody.content,
+						author: {
+							authorName: responseBody.author.author_name,
+							authorID: responseBody.author.author_id,
+							avatarIconLink: responseBody.author.avatar_icon_link,
+						},
+						comments: responseBody.comments
+							? responseBody.comments.map((comment: any) => ({
+									commentID: comment.comment_id,
+									threadID: comment.thread_id,
+									authorID: comment.author_id,
+									authorName: comment.author_name,
+									content: comment.content,
+									createdAt: new Date(comment.created_at),
+							  }))
+							: [],
+						likeCount: responseBody.like_count,
+						likeStatus: responseBody.like_status,
+						commentCount: responseBody.comment_count,
+						imageTitle: responseBody.image_title,
+						imageLink: responseBody.image_link,
+						createdAt: new Date(responseBody.created_at),
+						topicsTagged: responseBody.topics_tagged
+							? responseBody.topics_tagged.map((topic: any) => ({
+									topicID: topic.topic_id,
+									topicName: topic.topic_name,
+							  }))
+							: [],
+					};
+
+					setThreadExpanded(threadExpanded);
+					console.log(responseBody);
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
+
+	const [likeStatus, setLikeStatus] = useState(threadExpanded.likeStatus);
+	const [commentCount, setCommentCount] = useState(threadExpanded.commentCount);
 
 	return (
 		<>
@@ -95,7 +198,9 @@ const Thread = () => {
 							avatar={
 								<Menu
 									menuExpandedItemsArray={[]}
-									menuIcon={<Avatar src={ThreadMetadata.avatarIconLink} />}
+									menuIcon={
+										<Avatar src={threadExpanded.author.avatarIconLink} />
+									}
 									menuStyle={{
 										padding: 0,
 										"&:hover": {
@@ -112,7 +217,7 @@ const Thread = () => {
 									toolTipText="View Profile"
 									showMenuExpandedOnClick={false}
 									handleMenuIconClick={() =>
-										navigate(`../Profile/${ThreadMetadata.authorId}`)
+										navigate(`../Profile/${threadExpanded.author.authorID}`)
 									}
 								/>
 							}
@@ -127,9 +232,15 @@ const Thread = () => {
 									/>
 								</>
 							}
-							title={ThreadMetadata.author}
+							title={threadExpanded.author.authorName}
 							titleTypographyProps={{ fontWeight: 750 }}
-							subheader={ThreadMetadata.date}
+							subheader={
+								threadExpanded.createdAt.getDate() +
+								"/" +
+								(threadExpanded.createdAt.getMonth() + 1) +
+								"/" +
+								threadExpanded.createdAt.getFullYear()
+							}
 						/>
 						<Divider />
 
@@ -140,7 +251,7 @@ const Thread = () => {
 								fontWeight={760}
 								marginBottom={2}
 							>
-								{ThreadMetadata.title}
+								{threadExpanded.title}
 							</Typography>
 							<Typography
 								variant="h6"
@@ -149,7 +260,7 @@ const Thread = () => {
 								fontSize={17}
 							>
 								Topics Tagged:{" "}
-								{ThreadMetadata.topicsTagged.map((topic) => {
+								{threadExpanded.topicsTagged.map((topic) => {
 									return (
 										<>
 											<Button
@@ -163,32 +274,36 @@ const Thread = () => {
 												variant="outlined"
 												backgroundColor="primary.light"
 											>
-												{topic}
+												{topic.topicName}
 											</Button>
 										</>
 									);
 								})}
 							</Typography>
 
-							<CardMedia
-								component="img"
-								image={ThreadMetadata.imageLink}
-								sx={{
-									width: "100%",
-									height: "auto",
-									objectFit: "contain",
-									borderRadius: 1.3,
-									my: 3,
-									"&:hover": {
-										cursor: "pointer",
-									},
-								}}
-								onClick={() => setFullScreenImage(true)}
-							/>
+							{threadExpanded.imageLink ? (
+								<CardMedia
+									component="img"
+									image={threadExpanded.imageLink}
+									sx={{
+										width: "100%",
+										height: "auto",
+										objectFit: "contain",
+										borderRadius: 1.3,
+										my: 3,
+										"&:hover": {
+											cursor: "pointer",
+										},
+									}}
+									onClick={() => setFullScreenImage(true)}
+								/>
+							) : (
+								<br />
+							)}
 						</CardContent>
 						<CardContent sx={{ py: 0 }}>
 							<Typography sx={{ marginBottom: 2 }} textAlign="left">
-								{ThreadMetadata.content}
+								{threadExpanded.content}
 							</Typography>
 						</CardContent>
 
@@ -223,7 +338,7 @@ const Thread = () => {
 									!likeStatus && player();
 								}}
 							>
-								{ThreadMetadata.likeCount}
+								{String(threadExpanded.likeCount)}
 							</Button>
 							<Button
 								component="button"
@@ -242,7 +357,7 @@ const Thread = () => {
 										textFieldExpanded.current.focus();
 								}}
 							>
-								{ThreadMetadata.commentCount}
+								{String(threadExpanded.commentCount)}
 							</Button>
 							<Button
 								component="button"
@@ -331,7 +446,7 @@ const Thread = () => {
 							)}
 						</CardContent>
 						<Divider />
-						<CardContent sx={{ px: 0 }}>
+						<CardContent>
 							<Box
 								sx={{ px: 1, py: 0 }}
 								display="flex"
@@ -339,18 +454,17 @@ const Thread = () => {
 								alignItems="center"
 							>
 								<Typography fontFamily="Open Sans" fontSize={18}>
-									51 Comments
+									{threadExpanded.commentCount} Comments
 								</Typography>
 								<Menu
 									menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}
 									menuIcon={<SortRoundedIcon />}
 									variant="text"
 									handleMenuExpandedItemsClick={Array(3).fill(
-																(event: React.MouseEvent<HTMLElement>) =>
-																	event.currentTarget.dataset.value &&
-																	setCommentSortingOrder(event.currentTarget.dataset.value)
-															)
-									}
+										(event: React.MouseEvent<HTMLElement>) =>
+											event.currentTarget.dataset.value &&
+											setCommentSortingOrder(event.currentTarget.dataset.value)
+									)}
 									menuStyle={{ fontFamily: "Open Sans" }}
 								>
 									{commentSortingOrder}
@@ -359,17 +473,23 @@ const Thread = () => {
 							<List
 								variant="text"
 								disablePadding
-								listItemsArray={ThreadMetadata.comments.map((comment) => {
+								listItemsArray={threadExpanded.comments.map((comment) => {
 									return (
 										<Comment
-											id={comment.id}
-											author={comment.author}
-											likeCount={comment.likeCount}
+											id={comment.commentID}
+											author={comment.authorName}
+											likeCount={0}
 											content={comment.content}
-											date={comment.date}
+											date={
+												comment.createdAt.getDate() +
+												"/" +
+												(comment.createdAt.getMonth() + 1) +
+												"/" +
+												comment.createdAt.getFullYear()
+											}
 											avatarIconLink={comment.avatarIconLink}
 											handleAvatarIconClick={() =>
-												navigate(`../Profile/${comment.authorId}`)
+												navigate(`../Profile/${comment.authorID}`)
 											}
 										/>
 									);
@@ -380,7 +500,7 @@ const Thread = () => {
 				</Container>
 			</Box>
 			<FullScreenImage
-				path={ThreadMetadata.imageLink}
+				path={threadExpanded.imageLink}
 				setFullScreenImage={setFullScreenImage}
 				fullScreenImage={fullScreenImage}
 			/>

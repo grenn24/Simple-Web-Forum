@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type LikeController struct {
@@ -139,7 +139,7 @@ func (likeController *LikeController) CountLikesByThreadID(context *gin.Context,
 
 	likeService := likeController.LikeService
 
-	likeCount, err := likeService.CountLikesByThreadID(threadID)
+	likeCount, err := likeService.CountLikesByThreadID(utils.ConvertStringToInt(threadID, context))
 
 	// Check for internal server errors
 	if err != nil {
@@ -181,7 +181,7 @@ func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context,
 }
 
 func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.DB) {
-	threadID := context.Param("threadID")
+	
 
 	likeService := likeController.LikeService
 
@@ -189,7 +189,6 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 	like := new(models.Like)
 
 	err := context.ShouldBind(like)
-	like.ThreadID, _ = strconv.Atoi(threadID)
 
 	// Check for JSON binding errors
 	if err != nil {
@@ -232,8 +231,117 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Like added to database",
 	})
+}
+
+func (likeController *LikeController) CreateUserLike(context *gin.Context, db *sql.DB) {
+	authorID := utils.GetUserAuthorID(context)
+
+	likeService := likeController.LikeService
+
+	// Declare a pointer to a new instance of a like struct
+	like := new(models.Like)
+
+	err := context.ShouldBind(like)
+	like.AuthorID = authorID
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check if the binded struct contains necessary fields
+	if like.AuthorID == 0 || like.ThreadID == 0 {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in like object",
+		})
+		return
+	}
+
+	err = likeService.CreateLike(like)
+
+	if err != nil {
+		// Check for existing likes errors
+		if err.Error() == "pq: duplicate key value violates unique constraint \"Like_thread_id_author_id_key\"" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "LIKE_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
+			})
+			return
+		}
+		// Other internal server errors
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
+		Status:  "success",
+		Message: "Like added to database",
+	})
+}
+
+
+func (likeController *LikeController)  DeleteUserLike(context *gin.Context, db *sql.DB) {
+
+	likeService := likeController.LikeService
+
+	// Declare a pointer to a new instance of a like struct
+	like := new(models.Like)
+
+	err := context.ShouldBind(like)
+	like.AuthorID = utils.GetUserAuthorID(context)
+
+		// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check if the binded struct contains necessary fields
+	if like.AuthorID == 0 || like.ThreadID == 0 {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in follow for deletion",
+		})
+		return
+	}
+
+	responseErr := likeService.DeleteLikeByThreadAuthorID(like.ThreadID, like.AuthorID) 
+	if responseErr != nil && responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	
+	if responseErr != nil && responseErr.ErrorCode == "NOT_FOUND" {
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Like deleted successfully",
+	})
+
+
 }

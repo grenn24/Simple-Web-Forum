@@ -6,8 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type TopicController struct {
@@ -124,7 +125,7 @@ func (topicController *TopicController) CreateTopic(context *gin.Context, db *sq
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Topic added to database",
 	})
@@ -206,8 +207,43 @@ func (topicController *TopicController) AddThreadToTopic(context *gin.Context, d
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Added thread to topic",
 	})
 }
+
+func (topicController *TopicController) GetAllTopicsWithThreads(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+
+	topicsWithThreads, responseErr := topicService.GetAllTopicsWithThreads(utils.GetUserAuthorID(context))
+
+	if responseErr != nil {
+		// Internal server errors
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   topicsWithThreads,
+	})
+}
+
+func (topicController *TopicController) GetAllTopicsWithFollowStatus(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+
+	topicsWithFollowStatus, responseErr := topicService.GetAllTopicsWithFollowStatus(utils.GetUserAuthorID(context))
+
+	if responseErr != nil {
+		// Internal server errors
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   topicsWithFollowStatus,
+	})
+}
+

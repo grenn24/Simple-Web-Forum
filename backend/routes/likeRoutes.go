@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/middlewares"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
 func LikeRoutes(router *gin.Engine, db *sql.DB) {
@@ -26,5 +26,11 @@ func LikeRoutes(router *gin.Engine, db *sql.DB) {
 	})
 	likeRouter.POST("", func(context *gin.Context) {
 		likeController.CreateLike(context, db)
+	})
+	likeRouter.POST("/user", func(context *gin.Context) {
+		likeController.CreateUserLike(context, db)
+	})
+	likeRouter.DELETE("/user", func(context *gin.Context) {
+		likeController.DeleteUserLike(context, db)
 	})
 }

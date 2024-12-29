@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"strings"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -33,7 +34,7 @@ func ValidateJwtToken(context *gin.Context) {
 	signatureOriginalEncoded := jwtTokenSlice[2]
 
 	// Recreate signature using HMAC SHA-256 and encode it using base64
-	secretKey := []byte("my secret key")
+	secretKey := []byte(os.Getenv("SECRET_KEY"))
 	hmac := hmac.New(sha256.New, secretKey)
 	hmac.Write([]byte(headerEncoded + "." + payloadEncoded))
 	signatureRecreated := hmac.Sum(nil)

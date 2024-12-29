@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 )
 
@@ -70,8 +71,9 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 	return thread, err
 }
 
+
 func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*models.Thread, error) {
-		rows, err := threadRepository.DB.Query(fmt.Sprintf("SELECT * FROM thread WHERE author_id = %v", authorID))
+	rows, err := threadRepository.DB.Query(fmt.Sprintf("SELECT * FROM thread WHERE author_id = %v", authorID))
 
 	if err != nil {
 		return nil, err
@@ -109,18 +111,21 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*models.Thread, error) {
-		rows, err := threadRepository.DB.Query(`
+func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadWithAuthorName, error) {
+	rows, err := threadRepository.DB.Query(`
 		SELECT
 			thread.thread_id,
 			thread.title,
 			thread.created_at,
 			thread.content,
 			thread.author_id,
+			author.name,
+			author.avatar_icon_link,
 			thread.image_title,
 			thread.image_link
 		FROM threadTopicJunction
 		INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
+		INNER JOIN author ON thread.author_id = author.author_id
 		WHERE threadTopicJunction.topic_id = $1
 	`, topicID)
 
@@ -131,11 +136,11 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*m
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []*models.Thread
+	var threads []*dtos.ThreadWithAuthorName
 
 	for rows.Next() {
-		// Declare a pointer to a new instance of a thread struct
-		thread := new(models.Thread)
+		// Declare a pointer to a new instance of a thread with author name struct
+		thread := new(dtos.ThreadWithAuthorName)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
@@ -144,6 +149,8 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*m
 			&thread.CreatedAt,
 			&thread.Content,
 			&thread.AuthorID,
+			&thread.AuthorName,
+			&thread.AvatarIconLink,
 			&thread.ImageTitle,
 			&thread.ImageLink,
 		)
@@ -160,13 +167,13 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*m
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (error) {
+func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) error {
 	_, err := threadRepository.DB.Exec("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5)", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
 
 	return err
 }
 
-func (threadRepository *ThreadRepository) DeleteAllThreads() (error) {
+func (threadRepository *ThreadRepository) DeleteAllThreads() error {
 	_, err := threadRepository.DB.Exec("DELETE FROM Thread")
 
 	return err

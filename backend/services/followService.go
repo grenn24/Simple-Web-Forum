@@ -2,8 +2,11 @@ package services
 
 import (
 	"database/sql"
-	
+	"fmt"
+
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/repositories"
 )
 
 type FollowService struct {
@@ -101,12 +104,60 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID string
 	return threads, err
 }
 
-func (followService *FollowService) CreateFollow(follow *models.Follow) (error) {
-
+func (followService *FollowService) CreateFollow(follow *models.Follow) *dtos.Error {
 
 	_, err := followService.DB.Exec("INSERT INTO follow (follower_author_id, followee_author_id, followee_topic_id) VALUES ($1, $2, $3)", follow.FollowerAuthorID, follow.FolloweeAuthorID, follow.FolloweeTopicID)
 
-	return err
+	if err != nil {
+		// Check for existing follower_author-followee_author combination
+		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_author_id_key\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "FOLLOW_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Author of author id %v is already following author of author id %v", follow.FollowerAuthorID, *follow.FolloweeAuthorID),
+			}
+		}
+		// Check for existing follower_author-followee_topic combination
+		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_topic_id_key\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "FOLLOW_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Author of author id %v is already following topic of topic id %v", follow.FollowerAuthorID, *follow.FolloweeTopicID),
+			}
+		}
+		// Internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
 
-	
+}
+
+func (followService *FollowService) DeleteFollowByFollowerFolloweeID(follower_author_id int, followee_topic_id *int, followee_author_id *int) *dtos.Error {
+	followRepository := &repositories.FollowRepository{DB: followService.DB}
+	rowsDeleted, err := followRepository.DeleteFollowByFollowerFolloweeID(follower_author_id, followee_topic_id, followee_author_id)
+
+	// Check for internal server errors
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+
+	}
+
+	// Check for follow not found error
+	if rowsDeleted == 0 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No follows found for the follower and followee ids provided ",
+		}
+	}
+
+	return nil
 }

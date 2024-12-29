@@ -8,7 +8,6 @@ import {
 } from "@mui/material";
 import ThreadGridCard from "../components/ThreadGridCard/ThreadGridCard";
 import { useNavigate } from "react-router-dom";
-import topics from "../features/Topics/topicsDataSample";
 import { useWindowSize } from "@uidotdev/usehooks";
 import Button from "../components/Button";
 import {
@@ -16,7 +15,32 @@ import {
 	NotificationsNoneRounded as NotificationsNoneRoundedIcon,
 	NotificationsActiveRounded as NotificationsActiveRoundedIcon,
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { get, postJSON, Delete } from "../utilities/apiClient";
+
+interface TopicsWithThreads {
+	topicID: number;
+	name: string;
+	followStatus: boolean;
+	threads: Thread[];
+}
+
+interface Thread {
+	threadID: number;
+	title: string;
+	authorName: string;
+	authorID: number;
+	createdAt: Date;
+	avatarIconLink: string;
+	bookmarkedStatus: boolean;
+	contentSummarised: string;
+}
+interface TopicProp {
+	name: string;
+	initialFollowStatus: boolean;
+	threads: Thread[];
+	topicID: number;
+}
 
 const Topics = () => {
 	const navigate = useNavigate();
@@ -26,24 +50,15 @@ const Topics = () => {
 	//const location = useLocation();
 	//const queryParamaters = new URLSearchParams(location.search);
 	//const topicName = queryParamaters.get("topicName");
-	interface Thread {
-		id: number;
-		title: string;
-		author: string;
-		authorId: number;
-		date: string;
-		avatarIconLink: string;
-		bookmarkedStatus: boolean;
-		contentSummarised: string;
-		handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
-	}
-	interface TopicProp {
-		name: string;
-		initialFollowStatus: boolean;
-		threads: Thread[];
-	}
-	const Topic = ({ name, initialFollowStatus, threads }: TopicProp) => {
+
+	const Topic = ({
+		topicID,
+		name,
+		initialFollowStatus,
+		threads,
+	}: TopicProp) => {
 		const [followStatus, setFollowStatus] = useState(initialFollowStatus);
+
 		return (
 			<>
 				<Box
@@ -63,7 +78,7 @@ const Topics = () => {
 							fontFamily="Open Sans"
 							color="primary.dark"
 							fontWeight={700}
-							onClick={() => navigate(`../Topics/?topicName=${name}`)}
+							onClick={() => navigate(`../Topics/${topicID}`)}
 							sx={{ cursor: "pointer" }}
 						>
 							{name}
@@ -79,7 +94,20 @@ const Topics = () => {
 									<NotificationsNoneRoundedIcon />
 								)
 							}
-							handleButtonClick={() => setFollowStatus(!followStatus)}
+							handleButtonClick={() => {
+								if (followStatus) {
+									Delete(
+										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
+										{ followee_topic_id: topicID }
+									);
+								} else {
+									postJSON(
+										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
+										{ followee_topic_id: topicID }
+									);
+								}
+								setFollowStatus(!followStatus);
+							}}
 						>
 							Follow
 						</Button>
@@ -101,18 +129,18 @@ const Topics = () => {
 											? 6
 											: 12
 									}
-									key={thread.id}
+									key={thread.threadID}
 								>
 									<ThreadGridCard
-										threadId={thread.id}
-										threadAuthor={thread.author}
+										threadId={thread.threadID}
+										threadAuthorName={thread.authorName}
 										threadTitle={thread.title}
-										threadDate={thread.date}
+										threadCreatedAt={thread.createdAt}
 										avatarIconLink={thread.avatarIconLink}
 										threadContentSummarised={thread.contentSummarised}
 										bookmarkedStatus={thread.bookmarkedStatus}
 										handleAvatarIconClick={() => {
-											navigate(`../Profile/${thread.authorId}`);
+											navigate(`../Profile/${thread.authorID}`);
 										}}
 									/>
 								</Grid>
@@ -123,6 +151,50 @@ const Topics = () => {
 			</>
 		);
 	};
+
+	const [topicsWithThreads, setTopicsWithThreads] = useState<
+		TopicsWithThreads[]
+	>([]);
+
+	useEffect(
+		() =>
+			get(
+				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/topics/threads",
+				(res) => {
+					const responseBody = res.data.data;
+					let topicsWithThreads: TopicsWithThreads[] = [];
+
+					for (let i = 0; i < responseBody.length; i++) {
+						const threads: Thread[] = [];
+						for (let j = 0; j < responseBody[i].threads.length; j++) {
+							threads.push({
+								threadID: responseBody[i].threads[j].thread_id,
+								title: responseBody[i].threads[j].title,
+								authorName: responseBody[i].threads[j].author_name,
+								authorID: responseBody[i].threads[j].author_id,
+								createdAt: new Date(responseBody[i].threads[j].created_at),
+								avatarIconLink: responseBody[i].threads[j].avatar_icon_link,
+								bookmarkedStatus: responseBody[i].threads[j].bookmarked_status,
+								contentSummarised:
+									responseBody[i].threads[j].content_summarised,
+							});
+						}
+						topicsWithThreads.push({
+							topicID: responseBody[i].topic_id,
+							name: responseBody[i].name,
+							followStatus: responseBody[i].follow_status,
+							threads: threads,
+						});
+					}
+
+					console.log(topicsWithThreads);
+
+					setTopicsWithThreads(topicsWithThreads);
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
 
 	return (
 		<>
@@ -170,11 +242,12 @@ const Topics = () => {
 					}}
 					disableGutters
 				>
-					{topics.map((topic) => (
+					{topicsWithThreads.map((topic) => (
 						<Topic
 							name={topic.name}
 							initialFollowStatus={topic.followStatus}
 							threads={topic.threads}
+							topicID={topic.topicID}
 						/>
 					))}
 				</Container>

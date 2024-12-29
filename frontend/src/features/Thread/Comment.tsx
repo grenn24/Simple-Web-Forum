@@ -36,33 +36,35 @@ const Comment = ({
 
 	return (
 		<Box display="flex" justifyContent="space-between" alignItems="center">
-			<Menu
-				menuExpandedItemsArray={[]}
-				menuIcon={<Avatar src={avatarIconLink} />}
-				menuStyle={{
-					padding: 0,
-					"&:hover": {
-						filter: "brightness(0.9)",
-					},
-					marginRight: 1.5,
-				}}
-				menuIconDataValue="Profile"
-				menuExpandedPosition={{
-					vertical: "top",
-					horizontal: "right",
-				}}
-				menuExpandedDataValuesArray={[]}
-				toolTipText="View Profile"
-				showMenuExpandedOnClick={false}
-				handleMenuIconClick={handleAvatarIconClick}
-			/>
-			<Box>
-				<Typography fontSize={14} fontWeight={700}>
-					{author}
-				</Typography>
-				<Typography color="primary.dark" fontSize={14}>
-					{date}
-				</Typography>
+			<Box display="flex">
+				<Menu
+					menuExpandedItemsArray={[]}
+					menuIcon={<Avatar src={avatarIconLink} />}
+					menuStyle={{
+						padding: 0,
+						"&:hover": {
+							filter: "brightness(0.9)",
+						},
+						marginRight: 1.5,
+					}}
+					menuIconDataValue="Profile"
+					menuExpandedPosition={{
+						vertical: "top",
+						horizontal: "right",
+					}}
+					menuExpandedDataValuesArray={[]}
+					toolTipText="View Profile"
+					showMenuExpandedOnClick={false}
+					handleMenuIconClick={handleAvatarIconClick}
+				/>
+				<Box>
+					<Typography fontSize={14} fontWeight={700}>
+						{author}
+					</Typography>
+					<Typography color="primary.dark" fontSize={14}>
+						{date}
+					</Typography>
+				</Box>
 			</Box>
 			<Typography
 				color="text.primary"

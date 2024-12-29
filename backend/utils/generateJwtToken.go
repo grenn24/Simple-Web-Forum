@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"os"
 )
 
 func GenerateJwtToken(header map[string]any, payload map[string]any) (string, error) {
@@ -23,7 +24,7 @@ func GenerateJwtToken(header map[string]any, payload map[string]any) (string, er
 	payloadEncoded := base64.URLEncoding.EncodeToString(payloadJSON)
 
 	// Create Signature using HMAC SHA-256 and encode it using base64
-	secretKey := []byte("my secret key")
+	secretKey := []byte(os.Getenv("SECRET_KEY"))
 	hmac := hmac.New(sha256.New, secretKey)
 	hmac.Write([]byte(headerEncoded + "." + payloadEncoded))
 	signature := hmac.Sum(nil)

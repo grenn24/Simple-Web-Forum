@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type FollowController struct {
@@ -103,28 +103,37 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 		return
 	}
 
-	err = followService.CreateFollow(follow)
+	responseErr := followService.CreateFollow(follow)
 
+	
+	if responseErr != nil {
+		// Check for internal server errors
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
+		Status:  "success",
+		Message: "Follow added to database",
+	})
+}
+
+func (followController *FollowController) CreateUserFollow(context *gin.Context, db *sql.DB) {
+	followService := followController.FollowService
+
+	// Declare a pointer to a new instance of a follow struct
+	follow := new(models.Follow)
+
+	follow.FollowerAuthorID = utils.GetUserAuthorID(context)
+
+	err := context.ShouldBind(follow)
+
+	// Check for JSON binding errors
 	if err != nil {
-		// Check for existing follower_author-followee_author combination
-		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_author_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "FOLLOW_ALREADY_EXISTS",
-				Message:   fmt.Sprintf("Author of author id %v is already following author of author id %v", follow.FollowerAuthorID, follow.FolloweeAuthorID),
-			})
-			return
-		}
-		// Check for existing follower_author-followee_topic combination
-		if err.Error() == "pq: duplicate key value violates unique constraint \"follow_follower_author_id_followee_topic_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "FOLLOW_ALREADY_EXISTS",
-				Message:   fmt.Sprintf("Author of author id %v is already following topic of topic id %v", follow.FollowerAuthorID, follow.FolloweeTopicID),
-			})
-			return
-		}
-		// Internal server errors
 		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -133,8 +142,130 @@ func (followController *FollowController) CreateFollow(context *gin.Context, db 
 		return
 	}
 
-	context.JSON(http.StatusOK, dtos.Success{
+	// Check if the binded struct contains necessary fields
+	if follow.FollowerAuthorID == 0 || (follow.FolloweeAuthorID == nil && follow.FolloweeTopicID == nil) {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in follow object",
+		})
+		return
+	}
+
+	responseErr := followService.CreateFollow(follow)
+
+	
+	if responseErr != nil {
+		// Check for internal server errors
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Follow added to database",
+	})
+}
+
+
+func (followController *FollowController) DeleteFollow(context *gin.Context, db *sql.DB) {
+	followService := followController.FollowService
+
+	// Declare a pointer to a new instance of a followstruct
+	follow := new(models.Follow)
+
+	err := context.ShouldBind(follow)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check if the binded struct contains necessary fields
+	if follow.FollowerAuthorID == 0 || (follow.FolloweeAuthorID == nil && follow.FolloweeTopicID == nil) {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in follow for deletion",
+		})
+		return
+	}
+
+	responseErr := followService.DeleteFollowByFollowerFolloweeID(follow.FollowerAuthorID, follow.FolloweeTopicID, follow.FolloweeAuthorID)
+
+	if responseErr != nil && responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	
+	if responseErr != nil && responseErr.ErrorCode == "NOT_FOUND" {
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Follow deleted successfully",
+	})
+}
+
+func (followController *FollowController) DeleteUserFollow(context *gin.Context, db *sql.DB) {
+	followService := followController.FollowService
+
+	// Declare a pointer to a new instance of a follow struct
+	follow := new(models.Follow)
+
+	follow.FollowerAuthorID = utils.GetUserAuthorID(context)
+
+	err := context.ShouldBind(follow)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	// Check if the binded struct contains necessary fields
+	if  (follow.FolloweeAuthorID == nil && follow.FolloweeTopicID == nil) {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required fields in follow for deletion",
+		})
+		return
+	}
+
+	
+
+	responseErr := followService.DeleteFollowByFollowerFolloweeID(follow.FollowerAuthorID, follow.FolloweeTopicID, follow.FolloweeAuthorID)
+
+	if responseErr != nil && responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	
+	if responseErr != nil && responseErr.ErrorCode == "NOT_FOUND" {
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Follow deleted successfully",
 	})
 }

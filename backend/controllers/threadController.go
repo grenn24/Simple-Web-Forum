@@ -51,23 +51,37 @@ func (threadController *ThreadController) GetThreadByID(context *gin.Context, db
 
 	threadService := threadController.ThreadService
 
-	thread, err := threadService.GetThreadByID(utils.ConvertStringToInt(threadID, context))
+	thread, responseErr := threadService.GetThreadByID(utils.ConvertStringToInt(threadID, context))
 
-	if err != nil {
-		// Check for thread not found error
-		if err == sql.ErrNoRows {
-			context.JSON(http.StatusNotFound, dtos.Error{
-				Status:    "error",
-				ErrorCode: "NOT_FOUND",
-				Message:   "No thread found for thread id: " + threadID,
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
 		}
-		// Check for internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+		context.JSON(http.StatusNotFound, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   thread,
+	})
+}
+
+func (threadController *ThreadController) GetThreadExpandedByID(context *gin.Context, db *sql.DB) {
+	threadID := context.Param("threadID")
+
+	threadService := threadController.ThreadService
+
+	thread, responseErr := threadService.GetThreadExpandedByID(utils.ConvertStringToInt(threadID, context))
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusNotFound, responseErr)
+		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
@@ -184,6 +198,11 @@ func (threadController *ThreadController) CreateThread(context *gin.Context, db 
 		})
 		return
 	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
+		Status:  "success",
+		Message: "Thread created successfully",
+	})
 }
 
 func (threadController *ThreadController) DeleteAllThreads(context *gin.Context, db *sql.DB) {

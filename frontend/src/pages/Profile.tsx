@@ -4,13 +4,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ArrowBackRounded as ArrowBackRoundedIcon, NotificationsNoneRounded as NotificationsNoneRoundedIcon, NotificationsActiveRounded as NotificationsActiveRoundedIcon } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu/TabMenu";
-import threadDataSample from "../features/Thread/threadDataSample";
-import profileDataSample from "../features/Profile/profileDataSample";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
 import { get } from "../utilities/apiClient";
-
-
 
 const Profile = () => {
 	const navigate = useNavigate();
@@ -20,27 +16,29 @@ const Profile = () => {
 	const [author, setAuthor] = useState({
 		authorID: 0,
 		name: "",
-		email: "",
 		username: "",
+		email: "",
+		passwordHash: "",
 		avatarIconLink: "",
-		createdAt: ""
+		createdAt: new Date,
 	});
 	useEffect(
 		() =>
 			get(
 				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authors" + (authorID ? "/" + authorID : "/user"),
 				(res) => {
-					const authorResponse = res.data.data
+					const responseBody = res.data.data
 					const author = {
-						authorID: authorResponse.authorID,
-						name: authorResponse.name,
-						email: authorResponse.email,
-						username: authorResponse.username,
-						avatarIconLink: authorResponse.avatarIconLink,
-						createdAt: authorResponse.createdAt,
-					};
-					setAuthor(author);
-					console.log(res)
+						authorID: responseBody.author_id,
+						name: responseBody.name,
+						username: responseBody.username,
+						email: responseBody.email,
+						passwordHash: responseBody.password_hash,
+						avatarIconLink: responseBody.avatar_icon_link,
+						createdAt: new Date(responseBody.created_at),
+					}
+					setAuthor(author)
+					console.log(author)
 				},
 				(err) => console.log(err)
 			),
