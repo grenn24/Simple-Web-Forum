@@ -30,16 +30,6 @@ func (topicController *TopicController) GetAllTopics(context *gin.Context, db *s
 		return
 	}
 
-	// Check for no topics found
-	if len(topics) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No topics in the database",
-		})
-		return
-	}
-
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   topics,

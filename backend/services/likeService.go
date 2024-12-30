@@ -12,77 +12,66 @@ type LikeService struct {
 	DB *sql.DB
 }
 
-func (likeService *LikeService) GetAllLikes() ([]*models.Like, error) {
-	rows, err := likeService.DB.Query("SELECT * FROM \"like\"")
-
+func (likeService *LikeService) GetAllLikes() ([]*models.Like, *dtos.Error) {
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	likes, err := likeRepository.GetAllLikes()
 	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var likes []*models.Like
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a like struct
-		like := new(models.Like)
-
-		// Scan the current row into the like struct
-		err := rows.Scan(
-			&like.LikeID,
-			&like.ThreadID,
-			&like.AuthorID,
-			&like.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
-
-		// Append the scanned like to likes slice
-		likes = append(likes, like)
 	}
-
-	return likes, err
+	return likes, nil
 }
 
-func (likeService *LikeService) GetLikesByAuthorID(authorID string) ([]*models.Like, error) {
+func (likeService *LikeService) GetLikesByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	commentRepository := &repositories.CommentRepository{DB: likeService.DB}
 
-	rows, err := likeService.DB.Query("SELECT * FROM \"like\" WHERE author_id = " + authorID)
+	likedThreads, err := likeRepository.GetLikesByAuthorID(authorID)
 
+	// Check for internal server errors
 	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var likes []*models.Like
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a like struct
-		like := new(models.Like)
-
-		// Scan the current row into the like struct
-		err := rows.Scan(
-			&like.LikeID,
-			&like.ThreadID,
-			&like.AuthorID,
-			&like.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
-
-		// Append the scanned like to likes slice
-		likes = append(likes, like)
 	}
 
-	return likes, err
+	// Assign like count
+	for _, likedThread := range likedThreads {
+		likeCount, err := likeRepository.CountLikesByThreadID(likedThread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		likedThread.LikeCount = likeCount
+	}
+
+	// Assign comment count
+	for _, likedThread := range likedThreads {
+		commentCount, err := commentRepository.CountCommentsByThreadID(likedThread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		likedThread.CommentCount = commentCount
+	}
+
+	// Assign like status
+	for _, likedThread := range likedThreads {
+		likedThread.LikeStatus = true
+	}
+
+	return likedThreads, nil
 }
 
 func (likeService *LikeService) GetLikesByThreadID(threadID string) ([]*models.Like, error) {

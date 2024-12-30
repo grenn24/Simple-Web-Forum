@@ -25,7 +25,7 @@ const CreateThread = () => {
 
 	const submitForm = handleSubmit((data) => {
 		postJSON(
-			"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads",
+			"/threads",
 			{
 				title: data.title,
 				content: data.content,

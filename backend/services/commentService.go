@@ -12,7 +12,8 @@ type CommentService struct {
 	DB *sql.DB
 }
 
-func (commentService *CommentService) GetAllComments(sort string) ([]*models.Comment, error) {
+func (commentService *CommentService) GetAllComments(sort string) ([]*models.Comment, *dtos.Error) {
+	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
 	if sort == "newest" {
 		sort = "DESC"
 	} else if sort == "oldest" {
@@ -21,47 +22,17 @@ func (commentService *CommentService) GetAllComments(sort string) ([]*models.Com
 		sort = ""
 	}
 
-	var rows *sql.Rows
-	var err error
-
-	if sort == "" {
-		rows, err = commentService.DB.Query("SELECT * FROM comment")
-	} else {
-		rows, err = commentService.DB.Query("SELECT * FROM comment ORDER BY created_at " + sort)
-	}
+	comments, err := commentRepository.GetAllComments(sort)
 
 	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var comments []*models.Comment
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a comment struct
-		comment := new(models.Comment)
-
-		// Scan the current row into the comment struct
-		err := rows.Scan(
-			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.AuthorID,
-			&comment.CreatedAt,
-			&comment.Content,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
-
-		// Append the scanned comment to comments slice
-		comments = append(comments, comment)
 	}
 
-	return comments, err
+	return comments, nil
 }
 
 func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentWithAuthorName, error) {

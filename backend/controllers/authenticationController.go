@@ -3,12 +3,13 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/services"
+	"github.com/grenn24/simple-web-forum/utils"
 )
-
 
 type AuthenticationController struct {
 	AuthenticationService *services.AuthenticationService
@@ -66,8 +67,8 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 		return
 	}
 
-	// Return the newly created jwt token in http response header
-	context.Header("Authorization", "Bearer "+jwtToken)
+	// Return the newly created jwt token in a cookie
+	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -116,12 +117,66 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 	}
 
 	// Return the newly created jwt token and refresh token in http response header as cookies
-	context.Writer.Header().Add("Set-Cookie", "jwtToken=" + jwtToken + "; Expires=900; Path=/; HttpOnly; Secure; SameSite=None");
-	context.Writer.Header().Add("Set-Cookie", "refreshToken=" + refreshToken + "; Expires=7884000; Path=/; HttpOnly; Secure; SameSite=None");
-
+	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
+	context.Writer.Header().Add("Set-Cookie", "refreshToken="+refreshToken+"; Max-Age="+os.Getenv("REFRESH_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Author created successfully!",
 	})
+}
+
+func (authenticationController *AuthenticationController) RefreshJwtToken(context *gin.Context, db *sql.DB) {
+	authenticationService := authenticationController.AuthenticationService
+	refreshToken, err := context.Cookie("refreshToken")
+
+	// Missing refresh token in cookie headers
+	if err == http.ErrNoCookie || refreshToken == "" {
+		context.JSON(http.StatusUnauthorized, dtos.Error{
+			Status:    "error",
+			ErrorCode: "UNAUTHORIZED",
+			Message:   "Missing refresh token",
+		})
+		return
+	}
+
+	// Validate refresh token
+	responseErr := utils.ValidateRefreshToken(refreshToken)
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		} else {
+			context.JSON(http.StatusUnauthorized, responseErr)
+			return
+		}
+	}
+
+	// Get user author id from refresh token
+	payload, responseErr := utils.ParseRefreshTokenPayload(refreshToken)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+	userAuthorID := payload["sub"]
+	var userAuthorIDInt int
+	// Convert author id from float64 to int
+	if val, ok := userAuthorID.(float64); ok {
+		userAuthorIDInt = int(val)
+	}
+
+	// Generate a new jwt token
+	jwtToken, responseErr := authenticationService.GenerateJwtToken(userAuthorIDInt)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Jwt Token refreshed successfully!",
+	})
+
 }

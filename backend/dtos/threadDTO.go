@@ -3,35 +3,53 @@ package dtos
 import (
 	_ "database/sql"
 	"time"
-	"github.com/grenn24/simple-web-forum/models"
 
-	
+	"github.com/grenn24/simple-web-forum/models"
 )
 
-type ThreadWithAuthorName struct {
-	ThreadID   int       `json:"thread_id" db:"thread_id"`
-	Title      string    `json:"title" db:"title"`
-	CreatedAt  time.Time `json:"created_at" db:"created_at"`
-	Content    string    `json:"content" db:"content"`
-	AuthorID   int       `json:"author_id" db:"author_id"`
-	AuthorName string    `json:"author_name" db:"name"`
+type ThreadGridCard struct {
+	ThreadID          int       `json:"thread_id" `
+	Title             string    `json:"title"`
+	CreatedAt         time.Time `json:"created_at" `
+	ContentSummarised string    `json:"content_summarised" `
+	AuthorID          int       `json:"author_id" `
+	AuthorName        string    `json:"author_name"`
 	//Optional JSON Fields
-	AvatarIconLink *string `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
-	ImageTitle     *string `json:"image_title,omitempty" db:"image_title"`
-	ImageLink      *string `json:"image_link,omitempty" db:"image_link"`
+	AvatarIconLink *string `json:"avatar_icon_link,omitempty"`
+	ImageTitle     *string `json:"image_title,omitempty" `
+	ImageLink      *string `json:"image_link,omitempty" `
+}
+
+// Thread Grid Card with Like Status, Like Count, Comment Count
+type ThreadCard struct {
+	ThreadID          int       `json:"thread_id" `
+	Title             string    `json:"title"`
+	CreatedAt         time.Time `json:"created_at"`
+	ContentSummarised string    `json:"content_summarised" `
+	AuthorID          int       `json:"author_id" `
+	AuthorName        string    `json:"author_name" `
+	LikeStatus        bool      `json:"like_status"`
+	LikeCount         int       `json:"like_count"`
+	CommentCount      int       `json:"comment_count"`
+	//Optional JSON Fields
+	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
+	ImageTitle     *string `json:"image_title,omitempty" `
+	ImageLink      *string `json:"image_link,omitempty" `
 }
 
 type ThreadExpanded struct {
-	ThreadID     int                           `json:"thread_id"`
-	Title        string                        `json:"title"`
-	Content      string                        `json:"content"`
-	Author       AuthorMinimised               `json:"author"`
-	LikeCount    int                           `json:"like_count"`
-	CommentCount int                           `json:"comment_count"`
-	ImageTitle   *string                       `json:"image_title,omitempty"`
-	ImageLink    *string                       `json:"image_link,omitempty"`
-	CreatedAt    time.Time                     `json:"created_at"`
-	TopicsTagged []*models.Topic                      `json:"topics_tagged,omitempty"`
+	ThreadID     int                      `json:"thread_id"`
+	Title        string                   `json:"title"`
+	Content      string                   `json:"content"`
+	Author       AuthorMinimised          `json:"author"`
+	LikeCount    int                      `json:"like_count"`
+	CommentCount int                      `json:"comment_count"`
+	CreatedAt    time.Time                `json:"created_at"`
+	TopicsTagged []*models.Topic          `json:"topics_tagged,omitempty"`
 	Comments     []*CommentWithAuthorName `json:"comments,omitempty"`
-	LikeStatus   bool                          `json:"like_status"`
+	LikeStatus   bool                     `json:"like_status"`
+	//Optional JSON Fields
+	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
+	ImageTitle     *string `json:"image_title,omitempty"`
+	ImageLink      *string `json:"image_link,omitempty"`
 }

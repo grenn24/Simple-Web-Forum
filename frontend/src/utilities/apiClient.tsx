@@ -1,17 +1,39 @@
 import axios from "axios";
 import { AxiosResponse } from "axios";
-import Cookies from "js-cookie";
+
+const apiClient = axios.create({
+	baseURL: "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com",
+});
+
+apiClient.interceptors.response.use(
+	// status code within 2xx
+	function (response) {
+		return response;
+	},
+	// status code outside 2xx
+	function (error) {
+		// check if error is caused by expired jwt token
+		if (error.response.status === 401) {
+			apiClient
+				.get("/authentication/refresh-jwt-token", { withCredentials: true })
+				.catch((err) => {});
+		} else {
+			return Promise.reject(error);
+		}
+	}
+);
 
 export function get(
 	url: string,
 	handleSuccessResponse: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
-	axios
+	apiClient
 		.get(url, {
 			headers: {
 				Accept: "application/json",
-			}, withCredentials: true
+			},
+			withCredentials: true,
 		})
 		.then(handleSuccessResponse)
 		.catch((err) => {
@@ -35,7 +57,7 @@ export function postJSON(
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
-	axios
+	apiClient
 		.post(url, requestBody, {
 			headers: {
 				"Content-Type": "application/json",
@@ -64,8 +86,8 @@ export function putJSON(
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
-	axios
-		.post(url, requestBody, {
+	apiClient
+		.put(url, requestBody, {
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -93,7 +115,7 @@ export function Delete(
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
-	axios
+	apiClient
 		.delete(url, {
 			data: requestBody,
 			headers: {

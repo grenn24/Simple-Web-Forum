@@ -33,6 +33,7 @@ import SimpleDialog from "../SimpleDialog";
 import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
+import { set } from "react-hook-form";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -66,14 +67,14 @@ interface Prop {
 	threadId: number;
 	threadTitle: string;
 	threadAuthor: string;
-	threadDate: string;
+	threadDate: Date;
 	threadLikeCount: number;
 	threadCommentCount: number;
 	threadContentSummarised: string;
 	threadImageLink?: string;
 	avatarIconLink: string;
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
-	initialLikeStatus: boolean;
+	threadLikeStatus: boolean;
 }
 
 const ThreadCard = ({
@@ -87,10 +88,12 @@ const ThreadCard = ({
 	threadImageLink,
 	avatarIconLink,
 	handleAvatarIconClick,
-	initialLikeStatus,
+	threadLikeStatus,
 }: Prop) => {
 	const [expandCardContent, setExpandCardContent] = useState(false);
-	const [likeStatus, setLikeStatus] = useState(initialLikeStatus);
+	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
+	const [likeCount, setLikeCount] = useState(threadLikeCount);
+
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 
@@ -156,7 +159,13 @@ const ThreadCard = ({
 						}
 						title={threadAuthor}
 						titleTypographyProps={{ fontWeight: 750 }}
-						subheader={threadDate}
+						subheader={
+							threadDate.getDay() +
+							"/" +
+							threadDate.getMonth() +
+							"/" +
+							threadDate.getFullYear()
+						}
 					/>
 
 					<CardContent>
@@ -201,11 +210,16 @@ const ThreadCard = ({
 							}}
 							handleButtonClick={(event) => {
 								setLikeStatus(!likeStatus);
-								!likeStatus && player();
+								if (likeStatus) {
+									setLikeCount(likeCount-1)
+								} else {
+									player();
+									setLikeCount(likeCount+1)
+								}
 								event.stopPropagation();
 							}}
 						>
-							{threadLikeCount}
+							{String(likeCount)}
 						</Button>
 						<Button
 							component="button"
@@ -225,7 +239,7 @@ const ThreadCard = ({
 								event.stopPropagation();
 							}}
 						>
-							{threadCommentCount}
+							{String(threadCommentCount)}
 						</Button>
 						<Button
 							component="button"

@@ -12,6 +12,51 @@ type CommentRepository struct {
 	DB *sql.DB
 }
 
+func (commentRepository *CommentRepository) GetAllComments(sort string) ([]*models.Comment, error) {
+
+	var rows *sql.Rows
+	var err error
+
+	if sort == "" {
+		rows, err = commentRepository.DB.Query("SELECT * FROM comment")
+	} else {
+		rows, err = commentRepository.DB.Query("SELECT * FROM comment ORDER BY created_at " + sort)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	comments := make([]*models.Comment, 0)
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a comment struct
+		comment := new(models.Comment)
+
+		// Scan the current row into the comment struct
+		err := rows.Scan(
+			&comment.CommentID,
+			&comment.ThreadID,
+			&comment.AuthorID,
+			&comment.CreatedAt,
+			&comment.Content,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned comment to comments slice
+		comments = append(comments, comment)
+	}
+
+	return comments, err
+}
+
 func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentWithAuthorName, error) {
 	if sort == "newest" {
 		sort = "DESC"

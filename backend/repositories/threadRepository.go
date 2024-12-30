@@ -22,7 +22,7 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []*models.Thread
+	threads := make([]*models.Thread, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread struct
@@ -111,7 +111,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadWithAuthorName, error) {
+func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadGridCard, error) {
 	rows, err := threadRepository.DB.Query(`
 		SELECT
 			thread.thread_id,
@@ -136,18 +136,18 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []*dtos.ThreadWithAuthorName
+	var threads []*dtos.ThreadGridCard
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread with author name struct
-		thread := new(dtos.ThreadWithAuthorName)
+		thread := new(dtos.ThreadGridCard)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&thread.ThreadID,
 			&thread.Title,
 			&thread.CreatedAt,
-			&thread.Content,
+			&thread.ContentSummarised,
 			&thread.AuthorID,
 			&thread.AuthorName,
 			&thread.AvatarIconLink,

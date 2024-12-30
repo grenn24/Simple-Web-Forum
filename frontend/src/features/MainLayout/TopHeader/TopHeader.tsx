@@ -133,6 +133,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 									navigate(event.currentTarget.dataset.value),
 								(event: React.MouseEvent<HTMLElement>) => {
 									Cookies.remove("jwtToken");
+									Cookies.remove("refreshToken");
 									event.currentTarget.dataset.value &&
 										navigate(event.currentTarget.dataset.value);
 								},

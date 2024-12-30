@@ -21,7 +21,7 @@ func (topicRepository *TopicRepository) GetAllTopics() ([]*models.Topic, error) 
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var topics []*models.Topic
+	topics := make([]*models.Topic, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a topic struct
@@ -61,7 +61,7 @@ func (topicRepository *TopicRepository) GetAllTopicsWithFollowStatus(authorID in
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var topics []*dtos.TopicWithFollowStatus
+	topics := make([]*dtos.TopicWithFollowStatus, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a topic struct

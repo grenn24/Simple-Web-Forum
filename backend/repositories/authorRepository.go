@@ -10,6 +10,46 @@ type AuthorRepository struct {
 	DB *sql.DB
 }
 
+func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, error) {
+	rows, err := authorRepository.DB.Query("SELECT * FROM author")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	authors := make([]*models.Author, 0)
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of an author struct
+		author := new(models.Author)
+
+		// Scan the current row into the author struct
+		err := rows.Scan(
+			&author.AuthorID,
+			&author.Name,
+			&author.Username,
+			&author.Email,
+			&author.PasswordHash,
+			&author.AvatarIconLink,
+			&author.CreatedAt,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned thread to threads slice
+		authors = append(authors, author)
+	}
+
+	return authors, err
+
+}
+
 func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) (*models.Author) {
 	author := new(models.Author)
 	row := authorRepository.DB.QueryRow("SELECT * FROM author WHERE LOWER(username) = LOWER($1)", username)

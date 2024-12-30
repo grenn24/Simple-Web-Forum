@@ -23,4 +23,8 @@ func AuthenticationRoutes(router *gin.Engine, db *sql.DB) {
 	authenticationRouter.POST("/sign-up", func(context *gin.Context) {
 		authenticationController.SignUp(context, db)
 	})
+
+	authenticationRouter.GET("/refresh-jwt-token", func(context *gin.Context) {
+		authenticationController.RefreshJwtToken(context, db)
+	})
 }

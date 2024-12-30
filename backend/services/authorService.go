@@ -13,43 +13,21 @@ type AuthorService struct {
 	DB *sql.DB
 }
 
-func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, error) {
-	rows, err := authorService.DB.Query("SELECT * FROM author")
+func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, *dtos.Error) {
+
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+
+	authors, err := authorRepository.GetAllAuthors()
 
 	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var authors []*models.Author
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of an author struct
-		author := new(models.Author)
-
-		// Scan the current row into the author struct
-		err := rows.Scan(
-			&author.AuthorID,
-			&author.Name,
-			&author.Username,
-			&author.Email,
-			&author.PasswordHash,
-			&author.AvatarIconLink,
-			&author.CreatedAt,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
-
-		// Append the scanned thread to threads slice
-		authors = append(authors, author)
 	}
 
-	return authors, err
+	return authors, nil
 }
 
 func (authorService *AuthorService) GetAuthorByID(authorID int) (*models.Author, error) {
@@ -78,7 +56,7 @@ func (authorService *AuthorService) GetAuthorByID(authorID int) (*models.Author,
 	return author, err
 }
 
-func (authorService *AuthorService) CreateAuthor(author *models.Author) (*dtos.Error) {
+func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
 	_, err := authorRepository.CreateAuthor(author)
@@ -118,18 +96,17 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) (*dtos.E
 	return nil
 }
 
-func (authorService *AuthorService) DeleteAllAuthors() (error) {
+func (authorService *AuthorService) DeleteAllAuthors() error {
 
 	_, err := authorService.DB.Exec("DELETE FROM author")
 
 	return err
 }
 
-func (authorService *AuthorService) DeleteauthorByID(authorID int) (*dtos.Error) {
+func (authorService *AuthorService) DeleteauthorByID(authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 	rowsDeleted, err := authorRepository.DeleteAuthorByID(authorID)
 
-	
 	if err != nil {
 		// Check for internal server errors
 		return &dtos.Error{

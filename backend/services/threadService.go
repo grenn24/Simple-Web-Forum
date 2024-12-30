@@ -156,7 +156,7 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*model
 	return threadRepository.GetThreadsByAuthorID(authorID)
 }
 
-func (threadService *ThreadService) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadWithAuthorName, error) {
+func (threadService *ThreadService) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadGridCard, error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	return threadRepository.GetThreadsByTopicID(topicID)
 }

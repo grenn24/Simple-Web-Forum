@@ -27,6 +27,7 @@ func (followController *FollowController) GetAllFollows(context *gin.Context, db
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		})
+		return
 	}
 
 	// Check for no follows found
@@ -36,6 +37,7 @@ func (followController *FollowController) GetAllFollows(context *gin.Context, db
 			ErrorCode: "NOT_FOUND",
 			Message:   "No follows in the database",
 		})
+		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
@@ -58,6 +60,7 @@ func (followController *FollowController) GetFollowedThreadsByAuthorID(context *
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		})
+		return
 	}
 
 	// Check for no followed threads found
@@ -67,6 +70,7 @@ func (followController *FollowController) GetFollowedThreadsByAuthorID(context *
 			ErrorCode: "NOT_FOUND",
 			Message:   "No threads being followed by author id: " + authorID,
 		})
+		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{

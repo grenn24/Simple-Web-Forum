@@ -18,25 +18,10 @@ type CommentController struct {
 func (commentController *CommentController) GetAllComments(context *gin.Context, db *sql.DB) {
 	commentService := commentController.CommentService
 
-	comments, err := commentService.GetAllComments(context.Query("sort"))
+	comments, responseErr := commentService.GetAllComments(context.Query("sort"))
 
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	// Check for empty comment table
-	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No comments in the database",
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 

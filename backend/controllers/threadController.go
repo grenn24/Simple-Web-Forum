@@ -30,15 +30,6 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 		return
 	}
 
-	// Check for no threads found
-	if len(threads) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No threads in the database",
-		})
-		return
-	}
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",

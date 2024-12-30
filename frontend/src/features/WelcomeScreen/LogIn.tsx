@@ -25,9 +25,6 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 				password: data.password,
 			},
 			(res) => {
-				const responseHeaders = res.headers;
-				const jwtToken = responseHeaders["authorization"].split(" ")[1];
-				Cookies.set("jwtToken", jwtToken);
 				navigate("../Following");
 			},
 			(err) => {

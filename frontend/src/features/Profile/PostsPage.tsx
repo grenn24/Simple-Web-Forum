@@ -16,6 +16,7 @@ const PostsPage = () => {
 							<Box
 								display="flex"
 								justifyContent="space-between"
+								key={post.id}
 							
 							>
 								<Typography
@@ -65,6 +66,7 @@ const PostsPage = () => {
 												fontSize={12}
 												variant="outlined"
 												backgroundColor="primary.light"
+												key={topic}
 											>
 												{topic}
 											</Button>

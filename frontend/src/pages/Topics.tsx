@@ -97,13 +97,13 @@ const Topics = () => {
 							handleButtonClick={() => {
 								if (followStatus) {
 									Delete(
-										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
+										"/follows/user",
 										{ followee_topic_id: topicID },
 										(err) => console.log(err)
 									);
 								} else {
 									postJSON(
-										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
+										"/follows/user",
 										{ followee_topic_id: topicID },
 										(err) => console.log(err)
 									);
@@ -161,36 +161,28 @@ const Topics = () => {
 	useEffect(
 		() =>
 			get(
-				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/topics/threads",
+				"/topics/threads",
 				(res) => {
 					const responseBody = res.data.data;
-					let topicsWithThreads: TopicsWithThreads[] = [];
-
-					for (let i = 0; i < responseBody.length; i++) {
-						const threads: Thread[] = [];
-						for (let j = 0; j < responseBody[i].threads.length; j++) {
-							threads.push({
-								threadID: responseBody[i].threads[j].thread_id,
-								title: responseBody[i].threads[j].title,
-								authorName: responseBody[i].threads[j].author_name,
-								authorID: responseBody[i].threads[j].author_id,
-								createdAt: new Date(responseBody[i].threads[j].created_at),
-								avatarIconLink: responseBody[i].threads[j].avatar_icon_link,
-								bookmarkedStatus: responseBody[i].threads[j].bookmarked_status,
-								contentSummarised:
-									responseBody[i].threads[j].content_summarised,
-							});
-						}
-						topicsWithThreads.push({
-							topicID: responseBody[i].topic_id,
-							name: responseBody[i].name,
-							followStatus: responseBody[i].follow_status,
-							threads: threads,
-						});
-					}
-
+					console.log(responseBody);
+					const topicsWithThreads = responseBody.map(
+						(topicWithThread: any) => ({
+							topicID: topicWithThread.topic_id,
+							name: topicWithThread.name,
+							followStatus: topicWithThread.follow_status,
+							threads: topicWithThread.threads.map((thread: any) => ({
+								threadID: thread.thread_id,
+								title: thread.title,
+								authorName: thread.author_name,
+								authorID: thread.author_id,
+								createdAt: new Date(thread.created_at),
+								avatarIconLink: thread.avatar_icon_link,
+								bookmarkedStatus: thread.bookmarked_status,
+								contentSummarised: thread.content_summarised,
+							})),
+						})
+					);
 					console.log(topicsWithThreads);
-
 					setTopicsWithThreads(topicsWithThreads);
 				},
 				(err) => console.log(err)

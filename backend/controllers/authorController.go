@@ -20,26 +20,10 @@ type AuthorController struct {
 func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 
-	authors, err := authorService.GetAllAuthors()
+	authors, responseErr := authorService.GetAllAuthors()
 
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	// Check for empty author table
-	if len(authors) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No authors in the database",
-		})
-		return
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{

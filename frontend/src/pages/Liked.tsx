@@ -1,5 +1,5 @@
 import { Box, Divider, Typography, Container } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ThreadCard from "../components/ThreadCard";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
@@ -11,11 +11,57 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortingMenuIcons from "../features/Liked/sortingMenuIcons";
 import sortingMenuItems from "../features/Liked/sortingMenuItems";
+import { get } from "../utilities/apiClient";
 
-const Bookmarked = () => {
+
+interface likedThread {
+	threadID: number;
+	title: string;
+	contentSummarised: string;
+	authorID: number;
+	authorName: string;
+	avatarIconLink: string;
+	createdAt: Date;
+	likes: number;
+	imageTitle: string;
+	imageLink: string;
+	commentCount: number;
+	likeCount: number;
+	likeStatus: boolean;
+}
+
+const Liked = () => {
 	const [sortingOrder, setSortingOrder] = useState("Likes (Highest)");
-
 	const navigate = useNavigate();
+	const [likedThreads, setLikedThreads] = useState<likedThread[]>([]);
+
+	useEffect(
+		() =>
+			get(
+				"/authors/user/likes",
+				(res) => {
+					const responseBody = res.data.data;
+					const likedThreads = responseBody.map((likedThread: any) => ({
+						threadID: likedThread.thread_id,
+						title: likedThread.title,
+						contentSummarised: likedThread.content_summarised,
+						authorID: likedThread.author_id,
+						authorName: likedThread.author_name,
+						avatarIconLink: likedThread.avatar_icon_link,
+						createdAt: new Date(likedThread.created_at),
+						likes: likedThread.likes,
+						imageTitle: likedThread.imageTitle,
+						imageLink: likedThread.imageLink,
+						likeCount: likedThread.like_count,
+						commentCount: likedThread.comment_count,
+						likeStatus: likedThread.like_status,
+					}));
+					setLikedThreads(likedThreads);
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
 
 	return (
 		<>
@@ -89,21 +135,21 @@ const Bookmarked = () => {
 					}}
 					disableGutters
 				>
-					{threads.map((thread) => (
-						<Box key={thread.id}>
+					{likedThreads.map((likedThread) => (
+						<Box key={likedThread.threadID}>
 							<ThreadCard
-								threadId={thread.id}
-								threadTitle={thread.title}
-								threadAuthor={thread.author}
-								threadDate={thread.date}
-								threadLikeCount={thread.likeCount}
-								threadCommentCount={thread.commentCount}
-								threadContentSummarised={thread.contentSummarised}
-								threadImageLink={thread.imageLink}
-								avatarIconLink={thread.avatarIconLink}
-								initialLikeStatus={thread.likeStatus}
+								threadId={likedThread.threadID}
+								threadTitle={likedThread.title}
+								threadAuthor={likedThread.authorName}
+								threadDate={likedThread.createdAt}
+								threadLikeCount={likedThread.likeCount}
+								threadCommentCount={likedThread.commentCount}
+								threadContentSummarised={likedThread.contentSummarised}
+								threadImageLink={likedThread.imageLink}
+								avatarIconLink={likedThread.avatarIconLink}
+								threadLikeStatus={likedThread.likeStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${thread.authorId}`)
+									navigate(`../Profile/${likedThread.authorID}`)
 								}
 							/>
 							<Divider />
@@ -115,4 +161,4 @@ const Bookmarked = () => {
 	);
 };
 
-export default Bookmarked;
+export default Liked;

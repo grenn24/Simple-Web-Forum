@@ -19,15 +19,11 @@ type LikeController struct {
 func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 
-	likes, err := likeService.GetAllLikes()
+	likes, responseErr := likeService.GetAllLikes()
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -52,25 +48,28 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 
 	authorID := context.Param("authorID")
 
-	likes, err := likeService.GetLikesByAuthorID(authorID)
+	likes, responseErr := likeService.GetLikesByAuthorID(utils.ConvertStringToInt(authorID, context))
 
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 	}
 
-	// Check for no likes found
-	if len(likes) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No likes in the database",
-		})
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   likes,
+	})
+}
+
+func (likeController *LikeController) GetUserLikes(context *gin.Context, db *sql.DB) {
+	likeService := likeController.LikeService
+
+	userAuthorID := utils.GetUserAuthorID(context)
+
+	likes, responseErr := likeService.GetLikesByAuthorID(userAuthorID)
+
+	// Check for internal server errors
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -181,7 +180,6 @@ func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context,
 }
 
 func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.DB) {
-	
 
 	likeService := likeController.LikeService
 
@@ -295,8 +293,7 @@ func (likeController *LikeController) CreateUserLike(context *gin.Context, db *s
 	})
 }
 
-
-func (likeController *LikeController)  DeleteUserLike(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) DeleteUserLike(context *gin.Context, db *sql.DB) {
 
 	likeService := likeController.LikeService
 
@@ -306,7 +303,7 @@ func (likeController *LikeController)  DeleteUserLike(context *gin.Context, db *
 	err := context.ShouldBind(like)
 	like.AuthorID = utils.GetUserAuthorID(context)
 
-		// Check for JSON binding errors
+	// Check for JSON binding errors
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
@@ -326,13 +323,12 @@ func (likeController *LikeController)  DeleteUserLike(context *gin.Context, db *
 		return
 	}
 
-	responseErr := likeService.DeleteLikeByThreadAuthorID(like.ThreadID, like.AuthorID) 
+	responseErr := likeService.DeleteLikeByThreadAuthorID(like.ThreadID, like.AuthorID)
 	if responseErr != nil && responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
-	
 	if responseErr != nil && responseErr.ErrorCode == "NOT_FOUND" {
 		context.JSON(http.StatusBadRequest, responseErr)
 		return
@@ -342,6 +338,5 @@ func (likeController *LikeController)  DeleteUserLike(context *gin.Context, db *
 		Status:  "success",
 		Message: "Like deleted successfully",
 	})
-
 
 }

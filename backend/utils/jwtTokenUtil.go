@@ -1,14 +1,18 @@
 package utils
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"os"
+	"net/http"
+	"strings"
 	"time"
+	"os"
+	"crypto/hmac"
+	"crypto/sha256"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/grenn24/simple-web-forum/dtos"
 )
 
 func GenerateJwtToken(userAuthorID int, expiresIn string) (string, error) {
@@ -38,8 +42,53 @@ func GenerateJwtToken(userAuthorID int, expiresIn string) (string, error) {
 	signature := hmac.Sum(nil)
 	signatureEncoded := base64.URLEncoding.EncodeToString(signature)
 
-	// JWT Token Response
+	// JWT Token
 	jwtToken := headerEncoded + "." + payloadEncoded + "." + signatureEncoded
 
 	return jwtToken, nil
 }
+
+func ParseJwtTokenPayload(jwtToken string) (map[string]any, *dtos.Error) {
+
+
+	jwtTokenSlice := strings.Split(jwtToken, ".")
+
+	payloadEncoded := jwtTokenSlice[1]
+	payloadDecoded, err := (base64.URLEncoding.DecodeString(payloadEncoded))
+
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	var payload map[string]any
+	err = json.Unmarshal(payloadDecoded, &payload)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	return payload, nil
+}
+
+func RetrieveJwtToken(context *gin.Context) (string) {
+	jwtToken, err := context.Cookie("jwtToken")
+
+	// Missing jwt token in cookie headers
+	if err == http.ErrNoCookie || jwtToken == "" {
+		context.JSON(http.StatusUnauthorized, dtos.Error{
+			Status:    "error",
+			ErrorCode: "UNAUTHORIZED",
+			Message:   "Missing jwt token",
+		})
+		context.Abort()
+		return ""
+	}
+	return jwtToken
+}
+

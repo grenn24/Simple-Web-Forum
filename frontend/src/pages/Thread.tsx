@@ -8,7 +8,7 @@ import {
 	Typography,
 	Box,
 	Divider,
-	Container
+	Container,
 } from "@mui/material";
 import {
 	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
@@ -116,14 +116,11 @@ const Thread = () => {
 		topicsTagged: [],
 	});
 	const { threadID } = useParams();
-		const [likeStatus, setLikeStatus] = useState<boolean>(false);
-		const [likeCount, setLikeCount] = useState<number>(0);
-		const [commentCount, setCommentCount] = useState<number>(0);
+
 	useEffect(
 		() =>
 			get(
-				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads/expanded/" +
-					threadID,
+				"/threads/expanded/" + threadID,
 				(res) => {
 					const responseBody = res.data.data;
 					const threadExpanded = {
@@ -160,35 +157,35 @@ const Thread = () => {
 					};
 
 					setThreadExpanded(threadExpanded);
-					setLikeStatus(threadExpanded.likeStatus);
+					setCommentCount(threadExpanded.commentCount);
 					setLikeCount(threadExpanded.likeCount);
-					setCommentCount(threadExpanded.commentCount)
-					console.log(responseBody);
+					setLikeStatus(threadExpanded.likeStatus);
 				},
 				(err) => console.log(err)
 			),
-		[commentCount]
+		[]
 	);
 
-
+	const [likeCount, setLikeCount] = useState(threadExpanded.likeCount);
+	const [likeStatus, setLikeStatus] = useState(threadExpanded.likeStatus);
+	const [commentCount, setCommentCount] = useState(threadExpanded.commentCount);
 
 	const {
 		register,
 		handleSubmit,
-		formState: { errors},
+		formState: { errors },
 		reset,
-		control
+		control,
 	} = useForm();
 
 	const handleCommentSubmit = handleSubmit((data) => {
-		setCommentCount(commentCount + 1);
 		reset();
 		postJSON(
-			`https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads/${threadExpanded.threadID}/comments/user`,
+			`/threads/${threadExpanded.threadID}/comments/user`,
 			{
 				content: data.comment,
 			},
-			() => {},
+			() => setCommentCount(commentCount + 1),
 			(err) => console.log(err)
 		);
 	});
@@ -362,11 +359,11 @@ const Thread = () => {
 								}}
 								handleButtonClick={() => {
 									setLikeStatus(!likeStatus);
-									setLikeCount(likeCount - 1);
+
 									if (likeStatus) {
 										setLikeCount(likeCount - 1);
 										Delete(
-											"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/likes/user",
+											"/likes/user",
 											{
 												thread_id: threadExpanded.threadID,
 											},
@@ -376,7 +373,7 @@ const Thread = () => {
 										player();
 										setLikeCount(likeCount + 1);
 										postJSON(
-											"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/likes/user",
+											"/likes/user",
 											{
 												thread_id: threadExpanded.threadID,
 											},
@@ -494,7 +491,8 @@ const Thread = () => {
 										<Button
 											buttonIcon={<CancelRoundedIcon sx={{ padding: 0 }} />}
 											color="primary.dark"
-											handleButtonClick={() => {setExpandTextField(false);
+											handleButtonClick={() => {
+												setExpandTextField(false);
 												reset();
 											}}
 										/>

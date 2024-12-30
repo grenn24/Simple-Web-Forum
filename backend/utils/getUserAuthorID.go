@@ -1,11 +1,17 @@
 package utils
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
 func GetUserAuthorID(context *gin.Context) int {
-	payload := ParseJwtTokenPayload(context)
+	payload, responseErr := ParseJwtTokenPayload(RetrieveJwtToken(context))
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+	}
 
 	authorID := payload["sub"]
 

@@ -52,6 +52,9 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.GET("/:authorID/likes", func(context *gin.Context) {
 		likeController.GetLikesByAuthorID(context, db)
 	})
+	authorRouter.GET("/user/likes", func(context *gin.Context) {
+		likeController.GetUserLikes(context, db)
+	})
 	authorRouter.GET("/:authorID/likes/count", func(context *gin.Context) {
 		likeController.CountLikesByAuthorID(context, db)
 	})
@@ -60,7 +63,7 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 		commentController.GetCommentsByAuthorID(context, db)
 	})
 	// Author Specific Follows
-	authorRouter.GET("/:authorID/followed/threads", func(context *gin.Context) {
+	authorRouter.GET("/:authorID/follow/threads", func(context *gin.Context) {
 		followController.GetFollowedThreadsByAuthorID(context, db)
 	})
 

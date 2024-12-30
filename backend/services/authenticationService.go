@@ -2,12 +2,12 @@ package services
 
 import (
 	"database/sql"
+	"os"
 
-	
 	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
 	"github.com/grenn24/simple-web-forum/utils"
-	"github.com/grenn24/simple-web-forum/models"
 )
 
 type AuthenticationService struct {
@@ -40,7 +40,7 @@ func (authenticationService *AuthenticationService) LogIn(email string, password
 		}
 	}
 
-	jwtToken, err := utils.GenerateJwtToken(userAuthorID, "15m")
+	jwtToken, err := utils.GenerateJwtToken(userAuthorID, os.Getenv("JWT_TOKEN_MAX_AGE") + "s")
 
 	if err != nil {
 		return "", &dtos.Error{
@@ -66,7 +66,7 @@ func (authenticationService *AuthenticationService) SignUp(name string, username
 	if err != nil {
 		// Check for existing name
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
-			return "", "",&dtos.Error{
+			return "", "", &dtos.Error{
 				Status:    "error",
 				ErrorCode: "NAME_ALREADY_EXISTS",
 				Message:   "The name provided has already been used. (case insensitive)",
@@ -74,7 +74,7 @@ func (authenticationService *AuthenticationService) SignUp(name string, username
 		}
 		// Check for existing username
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
-			return "", "",&dtos.Error{
+			return "", "", &dtos.Error{
 				Status:    "error",
 				ErrorCode: "USERNAME_ALREADY_EXISTS",
 				Message:   "The username provided has already been used. (case insensitive)",
@@ -82,32 +82,57 @@ func (authenticationService *AuthenticationService) SignUp(name string, username
 		}
 		// Check for existing email
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
-			return "", "",&dtos.Error{
+			return "", "", &dtos.Error{
 				Status:    "error",
 				ErrorCode: "EMAIL_ALREADY_EXISTS",
 				Message:   "The email provided has already been used. (case insensitive)",
 			}
 		}
 		// Check for internal server errors
-		return "","", &dtos.Error{
+		return "", "", &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		}
 	}
 
-	jwtToken, err := utils.GenerateJwtToken(userAuthorID , "15m")
+	// jwt token expires in 15 minutes from the time of creation
+	jwtToken, err := utils.GenerateJwtToken(userAuthorID, os.Getenv("JWT_TOKEN_MAX_AGE") + "s")
 
 	if err != nil {
-		return "","", &dtos.Error{
+		return "", "", &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   "Error generating jwt token",
+			Message:   err.Error(),
 		}
 	}
 
+	// refresh token expires in 3 months from the time of creation
 	var refreshToken string
-	refreshToken, err = utils.GenerateRefreshToken("3m")
+	refreshToken, err = utils.GenerateRefreshToken(userAuthorID, os.Getenv("REFRESH_TOKEN_MAX_AGE") + "s")
+
+	if err != nil {
+		return "", "", &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
 
 	return jwtToken, refreshToken, nil
+}
+
+func (authenticationService *AuthenticationService) GenerateJwtToken(userAuthorID int) (string, *dtos.Error) {
+	jwtToken, err := utils.GenerateJwtToken(userAuthorID, os.Getenv("JWT_TOKEN_MAX_AGE") + "s")
+
+	if err != nil {
+
+		return "", &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	return jwtToken, nil
 }

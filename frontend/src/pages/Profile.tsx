@@ -25,7 +25,7 @@ const Profile = () => {
 	useEffect(
 		() =>
 			get(
-				"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authors" + (authorID ? "/" + authorID : "/user"),
+				"/authors" + (authorID ? "/" + authorID : "/user"),
 				(res) => {
 					const responseBody = res.data.data
 					const author = {
