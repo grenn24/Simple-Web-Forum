@@ -1,7 +1,7 @@
 import { Box, TextField, InputAdornment } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
-import Cookies from "js-cookie";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { postJSON } from "../../utilities/apiClient";
 
@@ -26,10 +26,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 				email: data.email,
 				password: data.password,
 			},
-			(res) => {
-				const responseHeaders = res.headers;
-				const jwtToken = responseHeaders["authorization"].split(" ")[1];
-				Cookies.set("jwtToken", jwtToken);
+			() => {
 				navigate("../Following");
 			},
 			(err) => {
@@ -55,6 +52,8 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 			}
 		);
 	});
+	
+	
 	return (
 		<Box
 			position="absolute"

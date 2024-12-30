@@ -12,9 +12,18 @@ import (
 )
 
 func ParseJwtTokenPayload(context *gin.Context) map[string]any {
-	authorisationHeader := context.GetHeader("Authorization")
+	jwtToken, err := context.Cookie("jwtToken")
 
-	jwtToken := strings.TrimPrefix(authorisationHeader, "Bearer ")
+	if err == http.ErrNoCookie || jwtToken == "" {
+		context.JSON(http.StatusUnauthorized, dtos.Error{
+			Status:    "error",
+			ErrorCode: "UNAUTHORIZED",
+			Message:   "Authorisation header missing",
+		})
+		context.Abort()
+		return nil
+	}
+
 	jwtTokenSlice := strings.Split(jwtToken, ".")
 
 	payloadEncoded := jwtTokenSlice[1]

@@ -73,7 +73,7 @@ func (threadController *ThreadController) GetThreadExpandedByID(context *gin.Con
 
 	threadService := threadController.ThreadService
 
-	thread, responseErr := threadService.GetThreadExpandedByID(utils.ConvertStringToInt(threadID, context))
+	thread, responseErr := threadService.GetThreadExpandedByID(utils.ConvertStringToInt(threadID, context), utils.GetUserAuthorID(context))
 
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {

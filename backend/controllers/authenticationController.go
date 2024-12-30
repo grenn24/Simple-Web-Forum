@@ -103,7 +103,7 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 		return
 	}
 
-	jwtToken, responseErr := authenticationService.SignUp(signUpRequest.Name, signUpRequest.Username, signUpRequest.Email, signUpRequest.Password)
+	jwtToken, refreshToken, responseErr := authenticationService.SignUp(signUpRequest.Name, signUpRequest.Username, signUpRequest.Email, signUpRequest.Password)
 
 	// Check for existing authors with same credentials
 	if responseErr != nil {
@@ -115,8 +115,10 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 		return
 	}
 
-	// Return the newly created jwt token in http response header
-	context.Header("Authorization", "Bearer "+jwtToken)
+	// Return the newly created jwt token and refresh token in http response header as cookies
+	context.Writer.Header().Add("Set-Cookie", "jwtToken=" + jwtToken + "; Expires=900; Path=/; HttpOnly; Secure; SameSite=None");
+	context.Writer.Header().Add("Set-Cookie", "refreshToken=" + refreshToken + "; Expires=7884000; Path=/; HttpOnly; Secure; SameSite=None");
+
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",

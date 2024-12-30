@@ -8,7 +8,7 @@ import {
 	Typography,
 	Box,
 	Divider,
-	Container,
+	Container
 } from "@mui/material";
 import {
 	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
@@ -37,7 +37,8 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import FullScreenImage from "../components/FullScreenImage";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
-import { get } from "../utilities/apiClient.tsx";
+import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
+import { useForm, Controller } from "react-hook-form";
 
 interface Comment {
 	commentID: number;
@@ -115,6 +116,9 @@ const Thread = () => {
 		topicsTagged: [],
 	});
 	const { threadID } = useParams();
+		const [likeStatus, setLikeStatus] = useState<boolean>(false);
+		const [likeCount, setLikeCount] = useState<number>(0);
+		const [commentCount, setCommentCount] = useState<number>(0);
 	useEffect(
 		() =>
 			get(
@@ -156,15 +160,38 @@ const Thread = () => {
 					};
 
 					setThreadExpanded(threadExpanded);
+					setLikeStatus(threadExpanded.likeStatus);
+					setLikeCount(threadExpanded.likeCount);
+					setCommentCount(threadExpanded.commentCount)
 					console.log(responseBody);
 				},
 				(err) => console.log(err)
 			),
-		[]
+		[commentCount]
 	);
 
-	const [likeStatus, setLikeStatus] = useState(threadExpanded.likeStatus);
-	const [commentCount, setCommentCount] = useState(threadExpanded.commentCount);
+
+
+	const {
+		register,
+		handleSubmit,
+		formState: { errors},
+		reset,
+		control
+	} = useForm();
+
+	const handleCommentSubmit = handleSubmit((data) => {
+		setCommentCount(commentCount + 1);
+		reset();
+		postJSON(
+			`https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/threads/${threadExpanded.threadID}/comments/user`,
+			{
+				content: data.comment,
+			},
+			() => {},
+			(err) => console.log(err)
+		);
+	});
 
 	return (
 		<>
@@ -335,10 +362,30 @@ const Thread = () => {
 								}}
 								handleButtonClick={() => {
 									setLikeStatus(!likeStatus);
-									!likeStatus && player();
+									setLikeCount(likeCount - 1);
+									if (likeStatus) {
+										setLikeCount(likeCount - 1);
+										Delete(
+											"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/likes/user",
+											{
+												thread_id: threadExpanded.threadID,
+											},
+											(err) => console.log(err)
+										);
+									} else {
+										player();
+										setLikeCount(likeCount + 1);
+										postJSON(
+											"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/likes/user",
+											{
+												thread_id: threadExpanded.threadID,
+											},
+											(err) => console.log(err)
+										);
+									}
 								}}
 							>
-								{String(threadExpanded.likeCount)}
+								{String(likeCount)}
 							</Button>
 							<Button
 								component="button"
@@ -357,8 +404,9 @@ const Thread = () => {
 										textFieldExpanded.current.focus();
 								}}
 							>
-								{String(threadExpanded.commentCount)}
+								{String(commentCount)}
 							</Button>
+
 							<Button
 								component="button"
 								role={undefined}
@@ -413,6 +461,7 @@ const Thread = () => {
 							</SimpleDialog>
 						</CardActions>
 
+						{/* Comment Box */}
 						<CardContent sx={{ display: "flex", justifyContent: "center" }}>
 							{!expandTextField ? (
 								<TextFieldAutosize
@@ -424,22 +473,35 @@ const Thread = () => {
 								/>
 							) : (
 								<Box sx={{ width: "100%" }}>
-									<TextFieldAutosize
-										sx={{ width: "100%" }}
-										minRows={3}
-										placeholder="Add a comment"
-										ref={textFieldExpanded}
-										autoFocus
+									<Controller
+										name="comment"
+										control={control}
+										defaultValue=""
+										render={() => (
+											<TextFieldAutosize
+												sx={{ width: "100%" }}
+												minRows={3}
+												placeholder="Add a comment"
+												autoFocus
+												{...register("comment", {
+													required: "The comment field is required",
+												})}
+											/>
+										)}
 									/>
+
 									<Box sx={{ display: "flex", justifyContent: "right" }}>
 										<Button
 											buttonIcon={<CancelRoundedIcon sx={{ padding: 0 }} />}
 											color="primary.dark"
-											handleButtonClick={() => setExpandTextField(false)}
+											handleButtonClick={() => {setExpandTextField(false);
+												reset();
+											}}
 										/>
 										<Button
 											buttonIcon={<SendRoundedIcon />}
 											color="primary.dark"
+											handleButtonClick={handleCommentSubmit}
 										/>
 									</Box>
 								</Box>
@@ -454,7 +516,7 @@ const Thread = () => {
 								alignItems="center"
 							>
 								<Typography fontFamily="Open Sans" fontSize={18}>
-									{threadExpanded.commentCount} Comments
+									{commentCount} Comments
 								</Typography>
 								<Menu
 									menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}

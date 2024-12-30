@@ -10,10 +10,8 @@ export function get(
 	axios
 		.get(url, {
 			headers: {
-				Authorization:
-					"Bearer " + (Cookies.get("jwtToken") ? Cookies.get("jwtToken") : ""),
 				Accept: "application/json",
-			},
+			}, withCredentials: true
 		})
 		.then(handleSuccessResponse)
 		.catch((err) => {
@@ -40,10 +38,9 @@ export function postJSON(
 	axios
 		.post(url, requestBody, {
 			headers: {
-				Authorization:
-					"Bearer " + (Cookies.get("jwtToken") ? Cookies.get("jwtToken") : ""),
 				"Content-Type": "application/json",
 			},
+			withCredentials: true,
 		})
 		.then(handleSuccessResponse)
 		.catch((err) => {
@@ -70,10 +67,9 @@ export function putJSON(
 	axios
 		.post(url, requestBody, {
 			headers: {
-				Authorization:
-					"Bearer " + (Cookies.get("jwtToken") ? Cookies.get("jwtToken") : ""),
 				"Content-Type": "application/json",
 			},
+			withCredentials: true,
 		})
 		.then(handleSuccessResponse)
 		.catch((err) => {
@@ -101,10 +97,9 @@ export function Delete(
 		.delete(url, {
 			data: requestBody,
 			headers: {
-				Authorization:
-					"Bearer " + (Cookies.get("jwtToken") ? Cookies.get("jwtToken") : ""),
 				Accept: "application/json",
 			},
+			withCredentials: true,
 		})
 		.then(handleSuccessResponse)
 		.catch((err) => {

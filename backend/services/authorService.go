@@ -3,9 +3,10 @@ package services
 import (
 	"database/sql"
 
-	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type AuthorService struct {
@@ -122,4 +123,30 @@ func (authorService *AuthorService) DeleteAllAuthors() (error) {
 	_, err := authorService.DB.Exec("DELETE FROM author")
 
 	return err
+}
+
+func (authorService *AuthorService) DeleteauthorByID(authorID int) (*dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	rowsDeleted, err := authorRepository.DeleteAuthorByID(authorID)
+
+	
+	if err != nil {
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// Check for thread not found error
+	if rowsDeleted == 0 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No authors found for author id: " + utils.ConvertIntToString(authorID),
+		}
+	}
+
+	return nil
 }

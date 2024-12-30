@@ -214,7 +214,7 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 
 	if err != nil {
 		// Check for existing likes errors
-		if err.Error() == "pq: duplicate key value violates unique constraint \"Like_thread_id_author_id_key\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"like_thread_id_author_id_key\"" {
 			context.JSON(http.StatusBadRequest, dtos.Error{
 				Status:    "error",
 				ErrorCode: "LIKE_ALREADY_EXISTS",
@@ -272,7 +272,7 @@ func (likeController *LikeController) CreateUserLike(context *gin.Context, db *s
 
 	if err != nil {
 		// Check for existing likes errors
-		if err.Error() == "pq: duplicate key value violates unique constraint \"Like_thread_id_author_id_key\"" {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"like_thread_id_author_id_key\"" {
 			context.JSON(http.StatusBadRequest, dtos.Error{
 				Status:    "error",
 				ErrorCode: "LIKE_ALREADY_EXISTS",

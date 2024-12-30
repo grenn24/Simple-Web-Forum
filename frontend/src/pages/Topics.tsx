@@ -98,12 +98,14 @@ const Topics = () => {
 								if (followStatus) {
 									Delete(
 										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
-										{ followee_topic_id: topicID }
+										{ followee_topic_id: topicID },
+										(err) => console.log(err)
 									);
 								} else {
 									postJSON(
 										"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/follows/user",
-										{ followee_topic_id: topicID }
+										{ followee_topic_id: topicID },
+										(err) => console.log(err)
 									);
 								}
 								setFollowStatus(!followStatus);

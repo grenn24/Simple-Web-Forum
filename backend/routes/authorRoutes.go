@@ -41,6 +41,9 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.DELETE("", func(context *gin.Context) {
 		authorController.DeleteAllAuthors(context, db)
 	})
+	authorRouter.DELETE("/:authorID", func(context *gin.Context) {
+		authorController.DeleteAuthorByID(context, db)
+	})
 	// Author Specific Threads
 	authorRouter.GET("/:authorID/threads", func(context *gin.Context) {
 		threadController.GetThreadsByAuthorID(context, db)

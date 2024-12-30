@@ -1,46 +1,60 @@
-import { Box,TextField } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import Button from "../../components/Button";
 import EditorBar from "./EditorBar";
-import {FieldErrors } from "react-hook-form";
+import { FieldErrors, Control, Controller } from "react-hook-form";
 
 interface Prop {
-	register: (name: string, options?:object )=> object;
+	register: (name: string, options?: object) => object;
 	submitForm: () => void;
 	errors: FieldErrors;
-	watch: (name: string) => string;
+	control: Control;
 }
-const TextPage = ({ register , submitForm, errors, watch}: Prop) => {
+const TextPage = ({ register, submitForm, errors, control }: Prop) => {
 	return (
 		<>
-			<TextField
-				label="Thread Title"
-				variant="outlined"
-				fullWidth
-				required
-				{...register("title", { required: true })}
-				error={errors.title?.type === "required"}
-				helperText={
-					errors.title?.type === "required"
-						? "The title field is required"
-						: null
-				}
-				value={watch("title")}
+			<Controller
+				name="title"
+				control={control}
+				defaultValue=""
+				render={() => (
+					<TextField
+						label="Thread Title"
+						variant="outlined"
+						fullWidth
+						required
+						{...register("title", { required: true })}
+						error={errors.title?.type === "required"}
+						helperText={
+							errors.title?.type === "required"
+								? "The title field is required"
+								: null
+						}
+					/>
+				)}
 			/>
+
 			<br />
 			<br />
 			<br />
 			<EditorBar />
 			<br />
 			<br />
-			<TextField
-				label="Body"
-				multiline
-				variant="outlined"
-				minRows={4}
-				fullWidth
-				{...register("content")}
-				value={watch("content")}
+			<Controller
+				name="content"
+				control={control}
+				defaultValue=""
+				render={() => (
+					<TextField
+						label="Content"
+						multiline
+						variant="outlined"
+						minRows={4}
+						fullWidth
+						{...register("content")}
+					/>
+				)}
 			/>
+
 			<br />
 			<br />
 			<br />

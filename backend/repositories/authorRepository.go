@@ -101,3 +101,17 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 }
 
 
+func (authorRepository *AuthorRepository) DeleteAuthorByID(authorID int) (int, error) {
+	result, err := authorRepository.DB.Exec("DELETE FROM author WHERE author_id = $1", authorID)
+
+	// Check for any deletion errors
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, _ := result.RowsAffected()
+
+	return int(rowsDeleted), err
+}
+
+

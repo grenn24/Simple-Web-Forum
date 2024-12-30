@@ -166,3 +166,25 @@ func (authorController *AuthorController) DeleteAllAuthors(context *gin.Context,
 		Message: "Deleted all authors",
 	})
 }
+
+func (authorController *AuthorController) DeleteAuthorByID(context *gin.Context, db *sql.DB) {
+	authorID := context.Param("authorID")
+
+	authorService := authorController.AuthorService
+
+	responseErr := authorService.DeleteauthorByID(utils.ConvertStringToInt(authorID, context))
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusNotFound, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "author deleted successfully",
+	})
+}

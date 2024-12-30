@@ -3,9 +3,9 @@ package services
 import (
 	"database/sql"
 
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
-	"github.com/grenn24/simple-web-forum/dtos"
 )
 
 type LikeService struct {
@@ -122,13 +122,35 @@ func (likeService *LikeService) GetLikesByThreadID(threadID string) ([]*models.L
 	return likes, err
 }
 
+func (likeService *LikeService) GetLikeByThreadAuthorID(threadID int, authorID int) (*models.Like, *dtos.Error) {
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	like, err := likeRepository.GetLikeByThreadAuthorID(threadID, authorID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   "No likes found for the thread and author ids provided",
+			}
+		}
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   "Internal server error",
+		}
+	}
+
+	return like, nil
+}
+
 func (likeService *LikeService) CountAllLikes() (int, error) {
-	likeRepository :=  &repositories.LikeRepository{DB: likeService.DB}
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	return likeRepository.CountAllLikes()
 }
 
 func (likeService *LikeService) CountLikesByThreadID(threadID int) (int, error) {
-	likeRepository :=  &repositories.LikeRepository{DB: likeService.DB}
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	return likeRepository.CountLikesByThreadID(threadID)
 }
 
@@ -148,22 +170,18 @@ func (likeService *LikeService) CountLikesByAuthorID(authorID string) (int, erro
 	return likeCount, err
 }
 
-
-func (likeService *LikeService) CreateLike(like *models.Like) (error) {
-
+func (likeService *LikeService) CreateLike(like *models.Like) error {
 
 	_, err := likeService.DB.Exec("INSERT INTO \"like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
-
-	
 
 	return err
 }
 
-func (likeService *LikeService) DeleteLikeByThreadAuthorID(threadID int, authorID int) (*dtos.Error) {
-		likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+func (likeService *LikeService) DeleteLikeByThreadAuthorID(threadID int, authorID int) *dtos.Error {
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	rowsDeleted, err := likeRepository.DeleteLikeByThreadAuthorID(threadID, authorID)
 
-		// Check for internal server errors
+	// Check for internal server errors
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",

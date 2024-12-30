@@ -40,7 +40,7 @@ func (threadService *ThreadService) GetThreadByID(threadID int) (*models.Thread,
 	return thread, nil
 }
 
-func (threadService *ThreadService) GetThreadExpandedByID(threadID int) (*dtos.ThreadExpanded, *dtos.Error) {
+func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuthorID int) (*dtos.ThreadExpanded, *dtos.Error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
 	likeRepository := &repositories.LikeRepository{DB: threadService.DB}
@@ -110,6 +110,20 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int) (*dtos.T
 		}
 	}
 	threadExpanded.CommentCount = commentCount
+
+	// Retrieve like status
+	_, err = likeRepository.GetLikeByThreadAuthorID(threadID, userAuthorID)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	} else if err != nil && err == sql.ErrNoRows {
+		threadExpanded.LikeStatus = false
+	} else {
+		threadExpanded.LikeStatus = true
+	}
 
 	// Retrieve comments
 	comments, err := commentRepository.GetCommentsByThreadID(threadID, "")

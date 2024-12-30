@@ -17,6 +17,7 @@ const CreateThread = () => {
 		handleSubmit,
 		formState: { errors },
 		reset,
+		control
 		
 	} = useForm({
 		mode: "onSubmit",
@@ -89,9 +90,15 @@ const CreateThread = () => {
 								register={register}
 								submitForm={submitForm}
 								errors={errors}
-								watch={watch}
+								
+								control={control}
 							/>,
-							<ImagePage register={register} watch={watch} errors={errors} />,
+							<ImagePage
+								register={register}
+								watch={watch}
+								errors={errors}
+								control={control}
+							/>,
 						]}
 					/>
 				</Container>
