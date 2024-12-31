@@ -34,6 +34,26 @@ func (topicService *TopicService) GetTopicsByThreadID(threadID int) ([]*models.T
 	return topics, nil
 }
 
+func (topicService *TopicService) GetTopicByName(name string) (*models.Topic, *dtos.Error) {
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	topic, err := topicRepository.GetTopicByName(name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   fmt.Sprintf("No topics found with name:", name),
+			}
+		}
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return topic, nil
+}
+
 func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
@@ -177,7 +197,7 @@ func (topicService *TopicService) AddThreadToTopic(threadID int, topicID int) *d
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "THREAD_DOES_NOT_EXIST",
-				Message:   fmt.Sprintf("Thread of thread id: %v does not exist", threadID),
+				Message:   fmt.Sprintf("Error associating thread with topic, thread of thread id: %v does not exist", threadID),
 			}
 		}
 		// Topic does not exist
@@ -185,7 +205,7 @@ func (topicService *TopicService) AddThreadToTopic(threadID int, topicID int) *d
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "TOPIC_DOES_NOT_EXIST",
-				Message:   fmt.Sprintf("Thread of topic id: %v does not exist", topicID),
+				Message:   fmt.Sprintf("Error associating thread with topic, topic of topic id: %v does not exist", topicID),
 			}
 		}
 		// Internal server errors

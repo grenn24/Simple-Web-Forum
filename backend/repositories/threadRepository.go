@@ -71,7 +71,6 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 	return thread, err
 }
 
-
 func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*models.Thread, error) {
 	rows, err := threadRepository.DB.Query(fmt.Sprintf("SELECT * FROM thread WHERE author_id = %v", authorID))
 
@@ -167,10 +166,13 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) error {
-	_, err := threadRepository.DB.Exec("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5)", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
+func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {
+	var threadID int64
+	row := threadRepository.DB.QueryRow("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5) RETURNING thread_id", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
 
-	return err
+	// Check for errors while returning thread id
+	err := row.Scan(&threadID)
+	return int(threadID), err
 }
 
 func (threadRepository *ThreadRepository) DeleteAllThreads() error {

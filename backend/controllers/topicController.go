@@ -128,13 +128,17 @@ func (topicController *TopicController) GetAllThreadTopicJunctions(context *gin.
 	})
 }
 
+type Request struct {
+	ThreadID int `json:"thread_id"`
+	TopicID  int `json:"topic_id"`
+}
+
 func (topicController *TopicController) AddThreadToTopic(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
-	topicID := context.Param("topicID")
-	threadID := context.Param("threadID")
+	request := new(Request)
 
-	responseErr := topicService.AddThreadToTopic(utils.ConvertStringToInt(threadID, context),utils.ConvertStringToInt(topicID, context))
+	responseErr := topicService.AddThreadToTopic(request.ThreadID, request.TopicID)
 
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {

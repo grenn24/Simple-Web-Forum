@@ -126,6 +126,18 @@ func (topicRepository *TopicRepository) GetTopicsByThreadID(threadID int) ([]*mo
 	return topics, err
 }
 
+func (topicRepository *TopicRepository) GetTopicByName(name string) (*models.Topic, error) {
+
+	topic := new(models.Topic)
+
+	err := topicRepository.DB.QueryRow("SELECT * FROM topic WHERE name = $1", name).Scan(
+		&topic.TopicID,
+		&topic.Name,
+	)
+
+	return topic, err
+}
+
 func (topicRepository *TopicRepository) CreateTopic(topic *models.Topic) error {
 
 	_, err := topicRepository.DB.Exec("INSERT INTO topic (name) VALUES ($1)", topic.Name)

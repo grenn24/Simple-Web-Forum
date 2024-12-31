@@ -26,6 +26,9 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	bookmarkController := &controllers.BookmarkController{BookmarkService: &services.BookmarkService{
 		DB: db,
 	}}
+	topicController := &controllers.TopicController{TopicService: &services.TopicService{
+		DB: db,
+	}}
 
 	// Thread CRUD
 	threadRouter.GET("", func(context *gin.Context) {
@@ -76,6 +79,11 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	})
 	threadRouter.DELETE("/:threadID/likes/user", func(context *gin.Context) {
 		likeController.DeleteUserLikeByThreadID(context, db)
+	})
+
+	//Thread Specific Topics
+	threadRouter.GET("/:threadID/topics", func(context *gin.Context) {
+		topicController.GetTopicsByThreadID(context, db)
 	})
 
 	//Thread Specific Bookmarks

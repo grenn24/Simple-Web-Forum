@@ -134,7 +134,7 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 
 	row := authorRepository.DB.QueryRow("INSERT INTO author (name, username, email, password_hash, avatar_icon_link) VALUES ($1, $2, $3, $4, $5) RETURNING author_id", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
 	
-	// Check for insertion errors while returning author id
+	// Check for errors while returning author id
 	err := row.Scan(&authorID)
 
 	return int(authorID), err

@@ -185,6 +185,11 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
+
+	context.JSON(http.StatusCreated, dtos.Success{
+		Status:  "success",
+		Message: "Thread created successfully!",
+	})
 }
 
 func (threadController *ThreadController) DeleteAllThreads(context *gin.Context, db *sql.DB) {

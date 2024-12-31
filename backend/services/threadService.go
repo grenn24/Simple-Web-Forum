@@ -191,7 +191,7 @@ func (threadService *ThreadService) CreateThread(thread *dtos.ThreadMinimised) *
 
 	threadWithoutTopics := new(models.Thread)
 	copier.Copy(threadWithoutTopics, thread)
-	err := threadRepository.CreateThread(threadWithoutTopics)
+	threadID, err := threadRepository.CreateThread(threadWithoutTopics)
 
 	// Check for internal server errors
 	if err != nil {
@@ -203,17 +203,17 @@ func (threadService *ThreadService) CreateThread(thread *dtos.ThreadMinimised) *
 	}
 
 	// Create thread topic links (add thread to multiple topics)
-	topics := thread.TopicsTagged
-	for _, topic := range topics {
-		responseErr := threadService.AddThreadToTopic(thread.ThreadID, topic.TopicID)
-
-		// If topic does not exist, create a new topic and add the thread to it
-		if responseErr != nil && responseErr.ErrorCode == "TOPIC_DOES_NOT_EXIST" {
-			topicRepository.CreateTopic(topic)
-			responseErr = threadService.AddThreadToTopic(thread.ThreadID, topic.TopicID)
+	topicNames := thread.TopicsTagged
+	for _, topicName := range topicNames {
+		topic, err := topicRepository.GetTopicByName(topicName)
+		// If there is no topic with matching name found
+		if topic == nil || err == sql.ErrNoRows {
+			// Create new topic
+			topicRepository.CreateTopic(&models.Topic{Name: topicName})
 		}
-
-		// Other subsequent errors
+		topic, _ = topicRepository.GetTopicByName(topicName)
+		// Create thread topic link
+		responseErr := threadService.AddThreadToTopic(threadID, topic.TopicID)
 		if responseErr != nil {
 			return responseErr
 		}
@@ -254,7 +254,7 @@ func (threadService *ThreadService) AddThreadToTopic(threadID int, topicID int) 
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "THREAD_DOES_NOT_EXIST",
-				Message:   fmt.Sprintf("Thread of thread id: %v does not exist", threadID),
+				Message:   fmt.Sprintf("Error associating thread with topic, thread of thread id: %v does not exist", threadID),
 			}
 		}
 		// Topic does not exist
@@ -262,7 +262,7 @@ func (threadService *ThreadService) AddThreadToTopic(threadID int, topicID int) 
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "TOPIC_DOES_NOT_EXIST",
-				Message:   fmt.Sprintf("Thread of topic id: %v does not exist", topicID),
+				Message:   fmt.Sprintf("Error associating thread with topic, topic of topic id: %v does not exist", topicID),
 			}
 		}
 		// Internal server errors
