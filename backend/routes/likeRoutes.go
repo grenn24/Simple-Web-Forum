@@ -24,13 +24,5 @@ func LikeRoutes(router *gin.Engine, db *sql.DB) {
 	likeRouter.GET("/count", func(context *gin.Context) {
 		likeController.CountAllLikes(context, db)
 	})
-	likeRouter.POST("", func(context *gin.Context) {
-		likeController.CreateLike(context, db)
-	})
-	likeRouter.POST("/user", func(context *gin.Context) {
-		likeController.CreateUserLike(context, db)
-	})
-	likeRouter.DELETE("/user", func(context *gin.Context) {
-		likeController.DeleteUserLike(context, db)
-	})
+
 }

@@ -96,14 +96,24 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	return nil
 }
 
-func (authorService *AuthorService) DeleteAllAuthors() error {
+func (authorService *AuthorService) DeleteAllAuthors() *dtos.Error {
 
-	_, err := authorService.DB.Exec("DELETE FROM author")
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	return err
+	err := authorRepository.DeleteAllAuthors()
+
+	if err != nil {
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
 }
 
-func (authorService *AuthorService) DeleteauthorByID(authorID int) *dtos.Error {
+func (authorService *AuthorService) DeleteAuthorByID(authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 	rowsDeleted, err := authorRepository.DeleteAuthorByID(authorID)
 
@@ -116,7 +126,7 @@ func (authorService *AuthorService) DeleteauthorByID(authorID int) *dtos.Error {
 		}
 	}
 
-	// Check for thread not found error
+	// Check for author not found error
 	if rowsDeleted == 0 {
 		return &dtos.Error{
 			Status:    "error",

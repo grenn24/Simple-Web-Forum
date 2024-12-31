@@ -1,5 +1,5 @@
 import { Box, Divider, Typography, Container } from "@mui/material";
-import { useState} from "react";
+import { useState, useEffect } from "react";
 import ThreadCard from "../components/ThreadCard";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
@@ -11,13 +11,42 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortingMenuIcons from "../features/Bookmarked/sortingMenuIcons";
 import sortingMenuItems from "../features/Bookmarked/sortingMenuItems";
+import { ThreadCardDTO } from "../dtos/ThreadDTOs";
+import { get } from "../utilities/apiClient";
 
 const Bookmarked = () => {
-
-
 	const [sortingOrder, setSortingOrder] = useState("Date Added (Newest)");
-
 	const navigate = useNavigate();
+	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadCardDTO[]>(
+		[]
+	);
+
+	useEffect(() => {
+		get(
+			"/authors/user/bookmarks",
+			(res) => {
+				const responseBody = res.data.data;
+				const bookmarkedThreads = responseBody.map((bookmarkedThread: any) => ({
+					threadID: bookmarkedThread.thread_id,
+					title: bookmarkedThread.title,
+					contentSummarised: bookmarkedThread.content_summarised,
+					authorID: bookmarkedThread.author_id,
+					authorName: bookmarkedThread.author_name,
+					avatarIconLink: bookmarkedThread.avatar_icon_link,
+					createdAt: new Date(bookmarkedThread.created_at),
+					likes: bookmarkedThread.likes,
+					imageTitle: bookmarkedThread.imageTitle,
+					imageLink: bookmarkedThread.imageLink,
+					likeCount: bookmarkedThread.like_count,
+					commentCount: bookmarkedThread.comment_count,
+					likeStatus: bookmarkedThread.like_status,
+					bookmarkStatus: bookmarkedThread.bookmark_status
+				}));
+				setBookmarkedThreads(bookmarkedThreads);
+			},
+			(err) => console.log(err)
+		);
+	}, []);
 
 	return (
 		<>
@@ -74,11 +103,10 @@ const Bookmarked = () => {
 							color: "text.primary",
 						}}
 						handleMenuExpandedItemsClick={Array(sortingMenuItems.length).fill(
-													(event: React.MouseEvent<HTMLElement>) =>
-														event.currentTarget.dataset.value &&
-														setSortingOrder(event.currentTarget.dataset.value)
-												)
-						}
+							(event: React.MouseEvent<HTMLElement>) =>
+								event.currentTarget.dataset.value &&
+								setSortingOrder(event.currentTarget.dataset.value)
+						)}
 						toolTipText="Sort Options"
 						menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 					>
@@ -92,21 +120,22 @@ const Bookmarked = () => {
 					}}
 					disableGutters
 				>
-					{threads.map((thread) => (
-						<Box key={thread.id}>
+					{bookmarkedThreads.map((bookmarkedThread) => (
+						<Box key={bookmarkedThread.threadID}>
 							<ThreadCard
-								threadID={thread.id}
-								threadTitle={thread.title}
-								threadAuthor={thread.author}
-								threadDate={new Date(thread.date)}
-								threadLikeCount={thread.likeCount}
-								threadCommentCount={thread.commentCount}
-								threadContentSummarised={thread.contentSummarised}
-								threadImageLink={thread.imageLink}
-								avatarIconLink={thread.avatarIconLink}
-								threadLikeStatus={thread.likeStatus}
+								threadID={bookmarkedThread.threadID}
+								threadTitle={bookmarkedThread.title}
+								threadAuthor={bookmarkedThread.authorName}
+								threadDate={new Date(bookmarkedThread.createdAt)}
+								threadLikeCount={bookmarkedThread.likeCount}
+								threadCommentCount={bookmarkedThread.commentCount}
+								threadContentSummarised={bookmarkedThread.contentSummarised}
+								threadImageLink={bookmarkedThread.imageLink}
+								avatarIconLink={bookmarkedThread.avatarIconLink}
+								threadLikeStatus={bookmarkedThread.likeStatus}
+								threadBookmarkStatus={bookmarkedThread.bookmarkStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${thread.authorId}`)
+									navigate(`../Profile/${bookmarkedThread.authorID}`)
 								}
 							/>
 							<Divider />

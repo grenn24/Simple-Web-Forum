@@ -45,7 +45,7 @@ rows, err := ThreadTopicJunctionRepository.DB.Query("SELECT * FROM threadTopicJu
 	return threadTopicJunctions, err
 }
 
-func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) AddThreadToTopic(threadID string, topicID string) (error) {
+func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) AddThreadToTopic(threadID int, topicID int) (error) {
 
 	_, err := ThreadTopicJunctionRepository.DB.Exec("INSERT INTO threadTopicJunction (thread_id, topic_id) VALUES ($1, $2)", threadID, topicID)
 

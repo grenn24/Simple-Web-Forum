@@ -193,3 +193,31 @@ func (commentRepository *CommentRepository) CreateComment(comment *models.Commen
 
 	return err
 }
+
+func (commentRepository *CommentRepository) DeleteCommentByID(commentID int) (int, error) {
+
+	result, err := commentRepository.DB.Exec("DELETE FROM comment WHERE comment_id = $1", commentID)
+
+	// Check for any deletion errors
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, _ := result.RowsAffected()
+
+	return int(rowsDeleted), err
+
+}
+
+func (commentRepository *CommentRepository) DeleteAllComments() (error) {
+
+	_, err := commentRepository.DB.Exec("DELETE FROM comment")
+
+	// Check for any deletion errors
+	if err != nil {
+		return err
+	}
+
+	return err
+
+}

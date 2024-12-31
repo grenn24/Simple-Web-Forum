@@ -154,4 +154,17 @@ func (authorRepository *AuthorRepository) DeleteAuthorByID(authorID int) (int, e
 	return int(rowsDeleted), err
 }
 
+func (authorRepository *AuthorRepository) DeleteAllAuthors() (error) {
+
+	_, err := authorRepository.DB.Exec("DELETE FROM author")
+
+	// Check for any deletion errors
+	if err != nil {
+		return err
+	}
+
+	return err
+
+}
+
 

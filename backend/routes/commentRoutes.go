@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
-	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/middlewares"
+	"github.com/grenn24/simple-web-forum/services"
 )
 
 func CommentRoutes(router *gin.Engine, db *sql.DB) {
@@ -24,10 +24,10 @@ func CommentRoutes(router *gin.Engine, db *sql.DB) {
 	commentRouter.GET("/count", func(context *gin.Context) {
 		commentController.CountAllComments(context, db)
 	})
-	commentRouter.POST("", func(context *gin.Context) {
-		commentController.CreateComment(context, db)
-	})
-	commentRouter.DELETE("/", func(context *gin.Context) {
+	commentRouter.DELETE("", func(context *gin.Context) {
 		commentController.DeleteAllComments(context, db)
+	})
+	commentRouter.DELETE("/:commentID", func(context *gin.Context) {
+		commentController.DeleteCommentByID(context, db)
 	})
 }

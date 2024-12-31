@@ -23,7 +23,11 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	likeController := &controllers.LikeController{LikeService: &services.LikeService{
 		DB: db,
 	}}
+	bookmarkController := &controllers.BookmarkController{BookmarkService: &services.BookmarkService{
+		DB: db,
+	}}
 
+	// Thread CRUD
 	threadRouter.GET("", func(context *gin.Context) {
 		threadController.GetAllThreads(context, db)
 	})
@@ -33,8 +37,8 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter.GET("/expanded/:threadID", func(context *gin.Context) {
 		threadController.GetThreadExpandedByID(context, db)
 	})
-	threadRouter.POST("", func(context *gin.Context) {
-		threadController.CreateThread(context, db)
+	threadRouter.POST("/user", func(context *gin.Context) {
+		threadController.CreateUserThread(context, db)
 	})
 	threadRouter.DELETE("", func(context *gin.Context) {
 		threadController.DeleteAllThreads(context, db)
@@ -47,8 +51,11 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	threadRouter.GET("/:threadID/comments", func(context *gin.Context) {
 		commentController.GetCommentsByThreadID(context, db)
 	})
+	threadRouter.POST("/:threadID/comments", func(context *gin.Context) {
+		commentController.CreateCommentByThreadID(context, db)
+	})
 	threadRouter.POST("/:threadID/comments/user", func(context *gin.Context) {
-		commentController.CreateCommentByUser(context, db)
+		commentController.CreateUserCommentByThreadID(context, db)
 	})
 	threadRouter.GET("/:threadID/comments/count", func(context *gin.Context) {
 		commentController.CountCommentsByThreadID(context, db)
@@ -59,10 +66,23 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 		likeController.GetLikesByThreadID(context, db)
 	})
 	threadRouter.POST("/:threadID/likes", func(context *gin.Context) {
-		likeController.CreateLike(context, db)
+		likeController.CreateLikeByThreadID(context, db)
+	})
+	threadRouter.POST("/:threadID/likes/user", func(context *gin.Context) {
+		likeController.CreateUserLikeByThreadID(context, db)
 	})
 	threadRouter.GET("/:threadID/likes/count", func(context *gin.Context) {
 		likeController.CountLikesByThreadID(context, db)
 	})
+	threadRouter.DELETE("/:threadID/likes/user", func(context *gin.Context) {
+		likeController.DeleteUserLikeByThreadID(context, db)
+	})
 
+	//Thread Specific Bookmarks
+	threadRouter.POST("/:threadID/bookmarks/user", func(context *gin.Context) {
+		bookmarkController.CreateUserBookmarkByThreadID(context, db)
+	})
+	threadRouter.DELETE("/:threadID/bookmarks/user", func(context *gin.Context) {
+		bookmarkController.DeleteUserBookmarkByThreadID(context, db)
+	})
 }

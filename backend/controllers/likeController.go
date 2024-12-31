@@ -43,7 +43,7 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 	})
 }
 
-func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetLikedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 
 	authorID := context.Param("authorID")
@@ -60,7 +60,7 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 	})
 }
 
-func (likeController *LikeController) GetUserLikes(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetLikedThreadsByUser(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 
 	userAuthorID := utils.GetUserAuthorID(context)
@@ -179,14 +179,17 @@ func (likeController *LikeController) CountLikesByAuthorID(context *gin.Context,
 	})
 }
 
-func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) CreateLikeByThreadID(context *gin.Context, db *sql.DB) {
 
 	likeService := likeController.LikeService
+	threadID := context.Param("threadID")
 
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
 	err := context.ShouldBind(like)
+
+	like.ThreadID = utils.ConvertStringToInt(threadID, context)
 
 	// Check for JSON binding errors
 	if err != nil {
@@ -235,26 +238,19 @@ func (likeController *LikeController) CreateLike(context *gin.Context, db *sql.D
 	})
 }
 
-func (likeController *LikeController) CreateUserLike(context *gin.Context, db *sql.DB) {
-	authorID := utils.GetUserAuthorID(context)
-
+func (likeController *LikeController) CreateUserLikeByThreadID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
+	authorID := utils.GetUserAuthorID(context)
+	threadID := context.Param("threadID")
+
+	
 
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
-	err := context.ShouldBind(like)
+	like.ThreadID = utils.ConvertStringToInt(threadID, context)
 	like.AuthorID = authorID
 
-	// Check for JSON binding errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
 
 	// Check if the binded struct contains necessary fields
 	if like.AuthorID == 0 || like.ThreadID == 0 {
@@ -266,7 +262,7 @@ func (likeController *LikeController) CreateUserLike(context *gin.Context, db *s
 		return
 	}
 
-	err = likeService.CreateLike(like)
+	err := likeService.CreateLike(like)
 
 	if err != nil {
 		// Check for existing likes errors
@@ -293,25 +289,17 @@ func (likeController *LikeController) CreateUserLike(context *gin.Context, db *s
 	})
 }
 
-func (likeController *LikeController) DeleteUserLike(context *gin.Context, db *sql.DB) {
-
+func (likeController *LikeController) DeleteUserLikeByThreadID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
+	authorID := utils.GetUserAuthorID(context)
+	threadID := context.Param("threadID")
+	
 
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
-	err := context.ShouldBind(like)
-	like.AuthorID = utils.GetUserAuthorID(context)
-
-	// Check for JSON binding errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
+	like.ThreadID = utils.ConvertStringToInt(threadID, context)
+	like.AuthorID = authorID
 
 	// Check if the binded struct contains necessary fields
 	if like.AuthorID == 0 || like.ThreadID == 0 {

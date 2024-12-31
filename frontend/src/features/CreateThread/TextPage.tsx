@@ -2,14 +2,20 @@ import { Box, TextField } from "@mui/material";
 import Button from "../../components/Button";
 import EditorBar from "./EditorBar";
 import { FieldErrors, Control, Controller } from "react-hook-form";
+import SelectChip from "../../components/SelectChip";
+import { useState } from "react";
 
 interface Prop {
 	register: (name: string, options?: object) => object;
 	submitForm: () => void;
 	errors: FieldErrors;
 	control: Control;
+	topicsSelected: string[];
+	setTopicsSelected: (topics: string[]) => void;
 }
-const TextPage = ({ register, submitForm, errors, control }: Prop) => {
+
+const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTopicsSelected }: Prop) => {
+	
 	return (
 		<>
 			<Controller
@@ -22,6 +28,7 @@ const TextPage = ({ register, submitForm, errors, control }: Prop) => {
 						variant="outlined"
 						fullWidth
 						required
+						autoComplete="off"
 						{...register("title", { required: true })}
 						error={errors.title?.type === "required"}
 						helperText={
@@ -29,6 +36,28 @@ const TextPage = ({ register, submitForm, errors, control }: Prop) => {
 								? "The title field is required"
 								: null
 						}
+					/>
+				)}
+			/>
+
+			<br />
+			<br />
+			<br />
+			<Controller
+				name="topics"
+				control={control}
+				defaultValue=""
+				render={() => (
+					<SelectChip
+						predefinedTopics={[
+							"Exams",
+							"CCA",
+							"Homework",
+							"Orientation Camp",
+							"Exchange",
+						]}
+						topicsSelected={topicsSelected}
+						setTopicsSelected={setTopicsSelected}
 					/>
 				)}
 			/>

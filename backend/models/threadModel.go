@@ -11,5 +11,5 @@ type Thread struct {
     AuthorID   int       `json:"author_id" db:"author_id"`
     //Optional JSON Fields        
     ImageTitle *string    `json:"image_title,omitempty" db:"image_title"` 
-    ImageLink  *string    `json:"image_link,omitempty" db:"image_link"`   
+    ImageLink  *string    `json:"image_link,omitempty" db:"image_link"`  
 }

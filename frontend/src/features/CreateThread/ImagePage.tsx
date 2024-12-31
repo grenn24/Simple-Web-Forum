@@ -18,6 +18,7 @@ const ImagePage = ({ register, watch, errors, control }: Prop) => {
 					<TextField
 						label="Image Title"
 						variant="outlined"
+						autoComplete="off"
 						fullWidth
 						{...register("imageTitle")}
 					/>
@@ -35,6 +36,7 @@ const ImagePage = ({ register, watch, errors, control }: Prop) => {
 					<TextField
 						label="Image URL"
 						variant="outlined"
+						autoComplete="off"
 						fullWidth
 						{...register("imageLink", {
 							required: true,

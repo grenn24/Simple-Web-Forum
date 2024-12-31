@@ -7,43 +7,39 @@ import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { ThreadCardDTO } from "../../dtos/ThreadDTOs";
 import { Delete, get } from "../../utilities/apiClient";
+import removeFromArray from "../../utilities/removeFromArray";
 
 const PostsPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadCardDTO[]>([]);
-	const [threadDeleted, setThreadDeleted] = useState(false);
 	useEffect(
 		() =>
 			get(
 				"/authors/user/threads",
 				(res) => {
 					const responseBody = res.data.data;
-					const threads: ThreadCardDTO[] = responseBody.map(
-						(thread: any) => ({
-							threadID: thread.thread_id,
-							title: thread.title,
-							createdAt: new Date(thread.created_at),
-							authorID: thread.author_id,
-							authorName: thread.name,
-							contentSummarised: thread.content_summarised,
-							topicsTagged: thread.topics_tagged.map((topic: any) => ({
-								topicID: topic.topic_id,
-								name: topic.name,
-							})),
-						})
-					);
+					const threads: ThreadCardDTO[] = responseBody.map((thread: any) => ({
+						threadID: thread.thread_id,
+						title: thread.title,
+						createdAt: new Date(thread.created_at),
+						authorID: thread.author_id,
+						authorName: thread.name,
+						contentSummarised: thread.content_summarised,
+						topicsTagged: thread.topics_tagged.map((topic: any) => ({
+							topicID: topic.topic_id,
+							name: topic.name,
+						})),
+					}));
 					setThreads(threads);
-					setThreadDeleted(false);
-					console.log(threads);
 				},
 				(err) => console.log(err)
 			),
-		[threadDeleted === true]
+		[]
 	);
 	return (
 		<Box width="100%">
 			<List
-				listItemsArray={threads.map((thread, _) => {
+				listItemsArray={threads.map((thread, index) => {
 					return (
 						<Box key={thread.threadID}>
 							<Box
@@ -75,14 +71,15 @@ const PostsPage = () => {
 										}
 										handleButtonClick={(event) => {
 											event.stopPropagation();
+											setThreads(removeFromArray(threads, index));
 											Delete(
 												`/threads/${thread.threadID}`,
+												{},
 												() => {},
 												(err) => console.log(err)
 											);
-											setThreadDeleted(true);
 										}}
-										buttonStyle={{marginLeft:1}}
+										buttonStyle={{ marginLeft: 1 }}
 									/>
 								</Box>
 							</Box>
@@ -132,7 +129,7 @@ const PostsPage = () => {
 				disablePadding
 				disableRipple
 				divider
-			/>	
+			/>
 		</Box>
 	);
 };

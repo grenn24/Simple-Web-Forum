@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -42,7 +41,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 	// Check for internal server errors
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
-		return 
+		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
@@ -79,16 +78,6 @@ func (commentController *CommentController) GetCommentedThreadsByUser(context *g
 	// Check for internal server errors
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
-		return
-	}
-
-	// Check for empty comment table
-	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   fmt.Sprintf("No comments found for author id: %v", utils.GetUserAuthorID(context)),
-		})
 		return
 	}
 
@@ -142,13 +131,15 @@ func (commentController *CommentController) CountCommentsByThreadID(context *gin
 	})
 }
 
-func (commentController *CommentController) CreateComment(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) CreateCommentByThreadID(context *gin.Context, db *sql.DB) {
 	commentService := commentController.CommentService
+	threadID := context.Param("threadID")
 
 	// Declare a pointer to a new instance of a comment struct
 	comment := new(models.Comment)
 
 	err := context.ShouldBind(comment)
+	comment.ThreadID = utils.ConvertStringToInt(threadID, context)
 
 	// Check for JSON binding errors
 	if err != nil {
@@ -183,16 +174,17 @@ func (commentController *CommentController) CreateComment(context *gin.Context, 
 	})
 }
 
-func (commentController *CommentController) CreateCommentByUser(context *gin.Context, db *sql.DB) {
+func (commentController *CommentController) CreateUserCommentByThreadID(context *gin.Context, db *sql.DB) {
 	commentService := commentController.CommentService
 	threadID := context.Param("threadID")
+	authorID := utils.GetUserAuthorID(context)
 
 	// Declare a pointer to a new instance of a comment struct
 	comment := new(models.Comment)
-	comment.AuthorID = utils.GetUserAuthorID(context)
-	comment.ThreadID = utils.ConvertStringToInt(threadID, context)
 
 	err := context.ShouldBind(comment)
+	comment.AuthorID = authorID
+	comment.ThreadID = utils.ConvertStringToInt(threadID, context)
 
 	// Check for JSON binding errors
 	if err != nil {
@@ -230,20 +222,37 @@ func (commentController *CommentController) CreateCommentByUser(context *gin.Con
 func (commentController *CommentController) DeleteAllComments(context *gin.Context, db *sql.DB) {
 	commentService := commentController.CommentService
 
-	err := commentService.DeleteAllComments()
+	responseErr := commentService.DeleteAllComments()
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Deleted all comments",
+	})
+}
+
+func (commentController *CommentController) DeleteCommentByID(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+	commentID := context.Param("commentID")
+
+	responseErr := commentService.DeleteCommentByID(utils.ConvertStringToInt(commentID, context))
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusNotFound, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Deleted comment with comment id: " + commentID,
 	})
 }

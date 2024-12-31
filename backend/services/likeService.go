@@ -30,6 +30,7 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	commentRepository := &repositories.CommentRepository{DB: likeService.DB}
 	topicRepository := &repositories.TopicRepository{DB: likeService.DB}
+	bookmarkRepository := &repositories.BookmarkRepository{DB: likeService.DB}
 
 	likedThreads, err := likeRepository.GetLikedThreadsByAuthorID(authorID)
 
@@ -65,8 +66,10 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos
 		}
 		likedThread.CommentCount = commentCount
 
-		// Retrieve like status
+		// Retrieve like and bookmark status
 		likedThread.LikeStatus = true
+		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(likedThread.ThreadID, likedThread.AuthorID)
+		likedThread.BookmarkStatus = &bookmarkStatus
 
 		// Retrieve topics tagged
 		topics, err := topicRepository.GetTopicsByThreadID(likedThread.ThreadID)

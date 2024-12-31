@@ -40,6 +40,7 @@ const Liked = () => {
 						likeCount: likedThread.like_count,
 						commentCount: likedThread.comment_count,
 						likeStatus: likedThread.like_status,
+						bookmarkStatus: likedThread.bookmark_status
 					}));
 					setLikedThreads(likedThreads);
 				},
@@ -133,6 +134,7 @@ const Liked = () => {
 								threadImageLink={likedThread.imageLink}
 								avatarIconLink={likedThread.avatarIconLink}
 								threadLikeStatus={likedThread.likeStatus}
+								threadBookmarkStatus={likedThread.bookmarkStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${likedThread.authorID}`)
 								}

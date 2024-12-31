@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/utils"
 )
@@ -148,11 +147,11 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 	})
 }
 
-func (threadController *ThreadController) CreateThread(context *gin.Context, db *sql.DB) {
+func (threadController *ThreadController) CreateUserThread(context *gin.Context, db *sql.DB) {
 	threadService := threadController.ThreadService
 
 	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)
+	thread := new(dtos.ThreadMinimised)
 
 	err := context.ShouldBind(thread)
 
@@ -179,22 +178,13 @@ func (threadController *ThreadController) CreateThread(context *gin.Context, db 
 		return
 	}
 
-	err = threadService.CreateThread(thread)
+	// Create new thread
+	responseErr := threadService.CreateThread(thread)
 
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
-
-	context.JSON(http.StatusCreated, dtos.Success{
-		Status:  "success",
-		Message: "Thread created successfully",
-	})
 }
 
 func (threadController *ThreadController) DeleteAllThreads(context *gin.Context, db *sql.DB) {
@@ -238,7 +228,7 @@ func (threadController *ThreadController) DeleteThreadByID(context *gin.Context,
 		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
-			Message:   "No threads found for thread id: " + threadID,
+			Message:   "No threads found with thread id: " + threadID,
 		})
 		return
 	}
@@ -286,43 +276,16 @@ func (threadController *ThreadController) AddThreadToTopic(context *gin.Context,
 	topicID := context.Param("topicID")
 	threadID := context.Param("threadID")
 
-	err := threadService.AddThreadToTopic(threadID, topicID)
+	responseErr := threadService.AddThreadToTopic(utils.ConvertStringToInt(threadID, context), utils.ConvertStringToInt(topicID, context))
 
-	if err != nil {
-		// Thread-Topic Combination already exists
-		if err.Error() == "pq: duplicate key value violates unique constraint \"threadtopicjunction_thread_id_topic_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "THREADTOPICJUNCTION_ALREADY_EXISTS",
-				Message:   "Thread of thread id: " + threadID + " is already added to topic id " + topicID,
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		} else {
+			context.JSON(http.StatusBadRequest, responseErr)
 			return
 		}
-		// Thread does not exist
-		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_thread_id_fkey\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "THREAD_DOES_NOT_EXIST",
-				Message:   "Thread of thread id: " + threadID + " does not exist",
-			})
-			return
-		}
-		// Topic does not exist
-		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_topic_id_fkey\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "TOPIC_DOES_NOT_EXIST",
-				Message:   "Topic of topic id: " + topicID + " does not exist",
-			})
-			return
-		}
-		// Internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{

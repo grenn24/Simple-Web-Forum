@@ -79,26 +79,16 @@ func (topicController *TopicController) CreateTopic(context *gin.Context, db *sq
 		return
 	}
 
-	err = topicService.CreateTopic(topic)
+	responseErr := topicService.CreateTopic(topic)
 
-	// Check for sql insertion errors
-	if err != nil {
-		// Check for existing name
-		if err.Error() == "pq: duplicate key value violates unique constraint \"topic_name_lowercase\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "NAME_ALREADY_EXISTS",
-				Message:   "The topic name provided has already been used. (case insensitive)",
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		} else {
+			context.JSON(http.StatusBadRequest, responseErr)
 			return
 		}
-		// Other errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
 	}
 
 	context.JSON(http.StatusCreated, dtos.Success{
@@ -144,42 +134,14 @@ func (topicController *TopicController) AddThreadToTopic(context *gin.Context, d
 	topicID := context.Param("topicID")
 	threadID := context.Param("threadID")
 
-	err := topicService.AddThreadToTopic(threadID, topicID)
+	responseErr := topicService.AddThreadToTopic(utils.ConvertStringToInt(threadID, context),utils.ConvertStringToInt(topicID, context))
 
-	if err != nil {
-		// Thread-Topic Combination already exists
-		if err.Error() == "pq: duplicate key value violates unique constraint \"threadtopicjunction_thread_id_topic_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "THREADTOPICJUNCTION_ALREADY_EXISTS",
-				Message:   "Thread of thread id: " + threadID + " is already added to topic id " + topicID,
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
-		// Thread does not exist
-		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_thread_id_fkey\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "THREAD_DOES_NOT_EXIST",
-				Message:   "Thread of thread id: " + threadID + " does not exist",
-			})
-			return
-		}
-		// Topic does not exist
-		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_topic_id_fkey\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "TOPIC_DOES_NOT_EXIST",
-				Message:   "Topic of topic id: " + topicID + " does not exist",
-			})
-			return
-		}
-		// Internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+		context.JSON(http.StatusBadRequest, responseErr)
 		return
 	}
 

@@ -25,7 +25,7 @@ const Profile = () => {
 	useEffect(
 		() =>
 			get(
-				"/authors" + (authorID === "User" ? "/user" : authorID),
+				"/authors/" + (authorID === "User" ? "user" : authorID),
 				(res) => {
 					const responseBody = res.data.data
 					const author = {
@@ -38,7 +38,6 @@ const Profile = () => {
 						createdAt: new Date(responseBody.created_at),
 					}
 					setAuthor(author)
-					console.log(author)
 				},
 				(err) => console.log(err)
 			),

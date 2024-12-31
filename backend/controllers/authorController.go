@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/utils"
-	"github.com/grenn24/simple-web-forum/models"
 )
 
 type AuthorController struct {
@@ -133,15 +133,11 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 func (authorController *AuthorController) DeleteAllAuthors(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 
-	err := authorService.DeleteAllAuthors()
+	responseErr := authorService.DeleteAllAuthors()
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -156,7 +152,7 @@ func (authorController *AuthorController) DeleteAuthorByID(context *gin.Context,
 
 	authorService := authorController.AuthorService
 
-	responseErr := authorService.DeleteauthorByID(utils.ConvertStringToInt(authorID, context))
+	responseErr := authorService.DeleteAuthorByID(utils.ConvertStringToInt(authorID, context))
 
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {

@@ -73,8 +73,8 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int) (
 		}
 	}
 
-	// Retrieve like count
 	for _, followedThread := range followedThreads {
+		// Retrieve like count
 		likeCount, err := likeRepository.CountLikesByThreadID(followedThread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
@@ -84,10 +84,8 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int) (
 			}
 		}
 		followedThread.LikeCount = likeCount
-	}
 
-	// Retrieve comment count
-	for _, followedThread := range followedThreads {
+		// Retrieve comment count
 		commentCount, err := commentRepository.CountCommentsByThreadID(followedThread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
@@ -97,10 +95,8 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int) (
 			}
 		}
 		followedThread.CommentCount = commentCount
-	}
 
-	// Retrieve like status
-	for _, followedThread := range followedThreads {
+		// Retrieve like status
 		followedThread.LikeStatus = likeRepository.GetLikeStatusByThreadIDAuthorID(followedThread.ThreadID, followedThread.AuthorID)
 	}
 
@@ -109,7 +105,8 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int) (
 
 func (followService *FollowService) CreateFollow(follow *models.Follow) *dtos.Error {
 
-	_, err := followService.DB.Exec("INSERT INTO follow (follower_author_id, followee_author_id, followee_topic_id) VALUES ($1, $2, $3)", follow.FollowerAuthorID, follow.FolloweeAuthorID, follow.FolloweeTopicID)
+	followRepository := repositories.FollowRepository{DB: followService.DB}
+	err := followRepository.CreateFollow(follow)
 
 	if err != nil {
 		// Check for existing follower_author-followee_author combination

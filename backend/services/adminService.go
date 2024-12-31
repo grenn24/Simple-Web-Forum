@@ -94,6 +94,14 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			UNIQUE (follower_author_id, followee_author_id), 
 			UNIQUE (follower_author_id, followee_topic_id)
 		);
+		
+		CREATE TABLE IF NOT EXISTS bookmark (
+			bookmark_id SERIAL PRIMARY KEY,
+			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
+			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (thread_id, author_id),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
 	`)
 
 	return err

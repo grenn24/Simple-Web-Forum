@@ -10,9 +10,9 @@ const RemovedPage = () => {
 	return (
 		<Box width="100%">
 			<List
-				listItemsArray={profileDataSample.removed.map((post, _) => {
+				listItemsArray={profileDataSample.removed.map((post, index) => {
 					return (
-						<>
+						<Box key={index}>
 							<Box
 								display="flex"
 								justifyContent="space-between"
@@ -72,7 +72,7 @@ const RemovedPage = () => {
 							<Typography marginTop={2} fontSize={17}>
 								{post.contentSummarised}
 							</Typography>
-						</>
+						</Box>
 					);
 				})}
 				listItemsDataValues={profileDataSample.removed.map((post, _) =>

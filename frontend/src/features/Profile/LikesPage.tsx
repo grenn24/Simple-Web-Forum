@@ -113,9 +113,9 @@ const ThreadCardMini = ({
 					if (likeStatus) {
 						setCount(likeCount - 1);
 						Delete(
-							"/likes/user",
+							`/threads/${threadID}/likes/user`,
 							{
-								thread_id: threadID,
+
 							},
 							() => {},
 							(err) => console.log(err)
@@ -124,9 +124,9 @@ const ThreadCardMini = ({
 						player();
 						setCount(likeCount + 1);
 						postJSON(
-							"/likes/user",
+							`/threads/${threadID}/likes/user`,
 							{
-								thread_id: threadID,
+
 							},
 							() => {},
 							(err) => console.log(err)
@@ -167,7 +167,6 @@ const LikesPage = () => {
 						topicsTagged: likedThread.topics_tagged,
 					}));
 					setLikedThreads(likedThreads);
-					console.log(likedThreads)
 				},
 				(err) => console.log(err)
 			),

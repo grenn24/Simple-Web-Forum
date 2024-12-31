@@ -9,6 +9,7 @@ import {
 	Box,
 	Divider,
 	Container,
+	FormControl,
 } from "@mui/material";
 import {
 	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
@@ -28,9 +29,9 @@ import Button from "../components/Button/index.ts";
 import SimpleDialog from "../components/SimpleDialog/index.tsx";
 import Snackbar from "../components/Snackbar/index.ts";
 import List from "../components/List/index.tsx";
-import { useState, useRef, useEffect } from "react";
-import MenuExpandedIcons from "../features/Thread/MenuExpandedIcons.tsx";
-import MenuExpandedItems from "../features/Thread/MenuExpandedItems.tsx";
+import { useState, useEffect } from "react";
+import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
+import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems.tsx";
 import playerGenerator from "../utilities/playerGenerator.tsx";
 import likeSound from "../assets/audio/like-sound.mp3";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -40,6 +41,8 @@ import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
 import { useForm, Controller } from "react-hook-form";
 import { ThreadExpandedDTO } from "../dtos/ThreadDTOs.tsx";
+import MenuExpandedIconsBookmarkTrue from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkTrue.tsx";
+import MenuExpandedIconsBookmarkFalse from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
 
 const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -56,8 +59,6 @@ const Thread = () => {
 	);
 
 	const navigate = useNavigate();
-
-
 
 	// Check if an expand text field state was passed in during navigation as state
 	const location = useLocation();
@@ -80,12 +81,14 @@ const Thread = () => {
 		imageLink: "",
 		createdAt: new Date(),
 		topicsTagged: [],
+		bookmarkStatus: false,
 	});
 	const { threadID } = useParams();
 
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
 	const [commentCount, setCommentCount] = useState(0);
+	const [bookmarkStatus, setBookmarkStatus] = useState(false);
 
 	useEffect(
 		() =>
@@ -103,14 +106,13 @@ const Thread = () => {
 							avatarIconLink: responseBody.author.avatar_icon_link,
 						},
 						comments: responseBody.comments.map((comment: any) => ({
-									commentID: comment.comment_id,
-									threadID: comment.thread_id,
-									authorID: comment.author_id,
-									authorName: comment.author_name,
-									content: comment.content,
-									createdAt: new Date(comment.created_at),
-							  }))
-							,
+							commentID: comment.comment_id,
+							threadID: comment.thread_id,
+							authorID: comment.author_id,
+							authorName: comment.author_name,
+							content: comment.content,
+							createdAt: new Date(comment.created_at),
+						})),
 						likeCount: responseBody.like_count,
 						likeStatus: responseBody.like_status,
 						commentCount: responseBody.comment_count,
@@ -123,12 +125,14 @@ const Thread = () => {
 									topicName: topic.topic_name,
 							  }))
 							: [],
+						bookmarkStatus: responseBody.bookmark_status,
 					};
 
 					setThreadExpanded(threadExpanded);
 					setCommentCount(threadExpanded.commentCount);
 					setLikeCount(threadExpanded.likeCount);
 					setLikeStatus(threadExpanded.likeStatus);
+					setBookmarkStatus(threadExpanded.bookmarkStatus);
 					setExpandTextField(location.state?.expandTextField);
 				},
 				(err) => console.log(err)
@@ -216,8 +220,32 @@ const Thread = () => {
 								<>
 									<Menu
 										menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-										menuExpandedIconsArray={MenuExpandedIcons}
+										menuExpandedIconsArray={
+											bookmarkStatus
+												? MenuExpandedIconsBookmarkTrue
+												: MenuExpandedIconsBookmarkFalse
+										}
 										menuExpandedItemsArray={MenuExpandedItems}
+										handleMenuExpandedItemsClick={[
+											() => {},
+											() => {
+												setBookmarkStatus(!bookmarkStatus);
+												bookmarkStatus
+													? Delete(
+															`threads/${threadExpanded.threadID}/bookmarks/user`,
+															{},
+															() => {},
+															(err) => console.log(err)
+													  )
+													: postJSON(
+															`threads/${threadExpanded.threadID}/bookmarks/user`,
+															{},
+															() => {},
+															(err) => console.log(err)
+													  );
+											},
+											() => {},
+										]}
 										toolTipText="More"
 										scrollLock={true}
 									/>
@@ -328,10 +356,8 @@ const Thread = () => {
 									if (likeStatus) {
 										setLikeCount(likeCount - 1);
 										Delete(
-											"/likes/user",
-											{
-												thread_id: threadExpanded.threadID,
-											},
+											`/threads/${threadID}/likes/user`,
+											{},
 											() => {},
 											(err) => console.log(err)
 										);
@@ -339,10 +365,8 @@ const Thread = () => {
 										player();
 										setLikeCount(likeCount + 1);
 										postJSON(
-											"/likes/user",
-											{
-												thread_id: threadExpanded.threadID,
-											},
+											`/threads/${threadID}/likes/user`,
+											{},
 											() => {},
 											(err) => console.log(err)
 										);
@@ -436,21 +460,22 @@ const Thread = () => {
 								/>
 							) : (
 								<Box sx={{ width: "100%" }}>
-									<Controller
-										name="comment"
-										control={control}
-									
-										render={() => (
-											<TextFieldAutosize
-												sx={{ width: "100%" }}
-												placeholder="Add a comment"
-												minRows={3}
-												required
-												{...register("comment", { required: true })}
-												
-											/>
-										)}
-									/>
+									<FormControl fullWidth >
+										<Controller
+											name="comment"
+											control={control}
+											render={() => (
+												<TextFieldAutosize
+													sx={{ width: "100%" }}
+													placeholder="Add a comment"
+													minRows={3}
+													required
+													{...register("comment", { required: true })}
+													autoFocus
+												/>
+											)}
+										/>
+									</FormControl>
 
 									<Box sx={{ display: "flex", justifyContent: "right" }}>
 										<Button

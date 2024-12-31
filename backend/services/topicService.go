@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -33,14 +34,15 @@ func (topicService *TopicService) GetTopicsByThreadID(threadID int) ([]*models.T
 	return topics, nil
 }
 
-func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {
+func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
+	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
 
 	topicsWithThreads := make([]*dtos.TopicWithThreads, 0)
 
 	// Retrieve all topics with follow status
-	topics, err := topicRepository.GetAllTopicsWithFollowStatus(authorID)
+	topics, err := topicRepository.GetAllTopicsWithFollowStatus(userAuthorID)
 
 	if err != nil {
 		return nil, &dtos.Error{
@@ -65,13 +67,16 @@ func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos
 
 		threadGridCards := make([]*dtos.ThreadGridCard, 0)
 
-		// Copy the threads to the thread grid card dto
+		// Copy the fields from thread model struct to thread grid card dto struct
 		for _, thread := range threads {
 			threadGridCard := new(dtos.ThreadGridCard)
 			err = copier.Copy(threadGridCard, thread)
 
-			// Assign the remaining fields
+			// Truncate content
 			threadGridCard.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
+			// Get bookmark status
+			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+			threadGridCard.BookmarkStatus = &bookmarkStatus
 
 			threadGridCards = append(threadGridCards, threadGridCard)
 
@@ -101,9 +106,52 @@ func (topicService *TopicService) GetAllTopicsWithFollowStatus(authorID int) ([]
 	return topicRepository.GetAllTopicsWithFollowStatus(authorID)
 }
 
-func (topicService *TopicService) CreateTopic(topic *models.Topic) error {
+func (topicService *TopicService) CreateTopic(topic *models.Topic) *dtos.Error {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
-	return topicRepository.CreateTopic(topic)
+	err := topicRepository.CreateTopic(topic)
+	// Check for sql insertion errors
+	if err != nil {
+		// Check for existing topic name
+		if err.Error() == "pq: duplicate key value violates unique constraint \"topic_name_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "The topic name provided has already been used. (case insensitive)",
+			}
+		}
+		// Internal server error
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
+}
+
+func (topicService *TopicService) CreateMultipleTopics(topics []*models.Topic) *dtos.Error {
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	for _, topic := range topics {
+		err := topicRepository.CreateTopic(topic)
+		// Check for sql insertion errors
+		if err != nil {
+			// Check for existing topic name
+			if err.Error() == "pq: duplicate key value violates unique constraint \"topic_name_lowercase\"" {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "NAME_ALREADY_EXISTS",
+					Message:   "The topic name provided has already been used. (case insensitive)",
+				}
+			}
+			// Internal server error
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+	}
+	return nil
 }
 
 func (topicService *TopicService) GetAllThreadTopicJunctions() ([]*models.ThreadTopicJunction, error) {
@@ -111,7 +159,41 @@ func (topicService *TopicService) GetAllThreadTopicJunctions() ([]*models.Thread
 	return threadTopicJunctionRepository.GetAllThreadTopicJunctions()
 }
 
-func (topicService *TopicService) AddThreadToTopic(threadID string, topicID string) error {
+func (topicService *TopicService) AddThreadToTopic(threadID int, topicID int) *dtos.Error {
 	threadTopicJunctionRepository := &repositories.ThreadTopicJunctionRepository{DB: topicService.DB}
-	return threadTopicJunctionRepository.AddThreadToTopic(threadID, topicID)
+	err := threadTopicJunctionRepository.AddThreadToTopic(threadID, topicID)
+	if err != nil {
+		// Thread-Topic Combination already exists
+		if err.Error() == "pq: duplicate key value violates unique constraint \"threadtopicjunction_thread_id_topic_id_key\"" {
+
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "THREADTOPICJUNCTION_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Thread of thread id: %v is already added to topic id %v", threadID, topicID),
+			}
+		}
+		// Thread does not exist
+		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_thread_id_fkey\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "THREAD_DOES_NOT_EXIST",
+				Message:   fmt.Sprintf("Thread of thread id: %v does not exist", threadID),
+			}
+		}
+		// Topic does not exist
+		if err.Error() == "pq: insert or update on table \"threadtopicjunction\" violates foreign key constraint \"threadtopicjunction_topic_id_fkey\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "TOPIC_DOES_NOT_EXIST",
+				Message:   fmt.Sprintf("Thread of topic id: %v does not exist", topicID),
+			}
+		}
+		// Internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
 }

@@ -6,8 +6,9 @@ import profileDataSample from "./profileDataSample";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { CommentDTO } from "../../dtos/ThreadDTOs";
-import { get } from "../../utilities/apiClient";
+import { Delete, get } from "../../utilities/apiClient";
 import dateToString from "../../utilities/dateToString";
+import removeFromArray from "../../utilities/removeFromArray";
 
 const CommentsPage = () => {
 	const navigate = useNavigate();
@@ -17,7 +18,7 @@ const CommentsPage = () => {
 			"/authors/user/comments",
 			(res) => {
 				const responseBody = res.data.data;
-	
+
 				const comments = responseBody.map((comment: any) => ({
 					commentID: comment.comment_id,
 					threadID: comment.thread_id,
@@ -27,15 +28,14 @@ const CommentsPage = () => {
 					createdAt: new Date(comment.created_at),
 					authorID: comment.author_id,
 					authorName: comment.author_name,
-					topicsTagged: comment.topics_tagged.map(
-						(topic: any)=>({
-							topicID: topic.topic_id,
-							name: topic.name
-						})
-					)
+					topicsTagged: comment.topics_tagged.map((topic: any) => ({
+						topicID: topic.topic_id,
+						name: topic.name,
+					})),
 				}));
-	
-				setComments(comments)
+
+				setComments(comments);
+
 			},
 			(err) => console.log(err)
 		);
@@ -43,7 +43,7 @@ const CommentsPage = () => {
 	return (
 		<Box width="100%">
 			<List
-				listItemsArray={comments.map((comment, _) => {
+				listItemsArray={comments.map((comment, index) => {
 					return (
 						<>
 							<Box key={comment.commentID}>
@@ -70,7 +70,13 @@ const CommentsPage = () => {
 											buttonIcon={
 												<DeleteForeverRoundedIcon sx={{ fontSize: 27 }} />
 											}
-											handleButtonClick={(event) => event.stopPropagation()}
+											handleButtonClick={(event) => {
+												event.stopPropagation();
+												setComments(removeFromArray(comments, index));
+												Delete(`/comments/${comment.commentID}`,()=>{
+													
+												}, err=>console.log(err))
+											}}
 										/>
 									</Box>
 								</Box>

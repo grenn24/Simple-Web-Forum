@@ -1,3 +1,3 @@
-export default function dateToString (date: Date) {
-	return date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
+export default function dateToTimeYear (date: Date) {
+	return date.toLocaleTimeString("en-SG", { month: "numeric", day: "numeric", year: "numeric" });
 }

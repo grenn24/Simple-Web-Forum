@@ -1,4 +1,4 @@
-import { Box, TextField } from "@mui/material";
+import { Box, FormControl, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
@@ -55,7 +55,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 			}}
 			{...register("email", { required: true })}
 		>
-			<form onSubmit={handleFormSubmit}>
+			<FormControl onSubmit={handleFormSubmit}>
 				<TextField
 					label="Email"
 					variant="outlined"
@@ -80,7 +80,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 				<Button type="submit" buttonStyle={{ display: "none" }}>
 					Submit
 				</Button>
-			</form>
+			</FormControl>
 		</Box>
 	);
 };

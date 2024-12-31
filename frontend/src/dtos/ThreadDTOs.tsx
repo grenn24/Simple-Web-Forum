@@ -13,6 +13,7 @@ export interface ThreadCardDTO {
 	likeCount: number;
 	likeStatus: boolean;
 	topicsTagged: TopicDTO[];
+	bookmarkStatus: boolean;
 }
 
 export interface ThreadExpandedDTO {
@@ -32,6 +33,7 @@ export interface ThreadExpandedDTO {
 	imageTitle: string;
 	imageLink: string;
 	topicsTagged: TopicDTO[];
+	bookmarkStatus: boolean
 }
 
 export interface TopicDTO {

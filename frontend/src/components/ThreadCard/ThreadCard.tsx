@@ -27,13 +27,14 @@ import {
 } from "@mui/icons-material";
 import likeSound from "../../assets/audio/like-sound.mp3";
 import Menu from "../Menu";
-import MenuExpandedIcons from "./MenuExpandedIcons";
-import MenuExpandedItems from "./MenuExpandedItems";
+import MenuExpandedItems from "./TopRightMenu/MenuExpandedItems";
 import SimpleDialog from "../SimpleDialog";
 import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
 import { Delete, postJSON } from "../../utilities/apiClient";
+import MenuExpandedIconsBookmarkTrue from "./TopRightMenu/MenuExpandedIconsBookmarkTrue";
+import MenuExpandedIconsBookmarkFalse from "./TopRightMenu/MenuExpandedIconsBookmarkFalse";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -75,6 +76,7 @@ interface Prop {
 	avatarIconLink: string;
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	threadLikeStatus: boolean;
+	threadBookmarkStatus: boolean;
 }
 
 const ThreadCard = ({
@@ -89,13 +91,15 @@ const ThreadCard = ({
 	avatarIconLink,
 	handleAvatarIconClick,
 	threadLikeStatus,
+	threadBookmarkStatus
 }: Prop) => {
-	const [expandCardContent, setExpandCardContent] = useState(false);
-	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
-	const [likeCount, setLikeCount] = useState(threadLikeCount);
-
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
+	const [expandCardContent, setExpandCardContent] = useState(false);
+
+	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
+	const [likeCount, setLikeCount] = useState(threadLikeCount);
+	const [bookmarkStatus, setBookmarkStatus] = useState(threadBookmarkStatus)
 
 	const navigate = useNavigate();
 
@@ -149,11 +153,36 @@ const ThreadCard = ({
 							<>
 								<Menu
 									menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-									menuExpandedIconsArray={MenuExpandedIcons}
+									menuExpandedIconsArray={
+										bookmarkStatus
+											? MenuExpandedIconsBookmarkTrue
+											: MenuExpandedIconsBookmarkFalse
+									}
 									menuExpandedItemsArray={MenuExpandedItems}
 									toolTipText="More"
 									scrollLock={true}
-									handleMenuIconClick={(event) => event.stopPropagation()}
+									handleMenuIconClick={event=>event.stopPropagation()}
+									handleMenuExpandedItemsClick={[
+										(event) => event.stopPropagation(),
+										(event) => {
+											event.stopPropagation()
+											setBookmarkStatus(!bookmarkStatus);
+											bookmarkStatus
+												? Delete(
+														`threads/${threadID}/bookmarks/user`,
+														{},
+														() => {},
+														(err) => console.log(err)
+												  )
+												: postJSON(
+														`threads/${threadID}/bookmarks/user`,
+														{},
+														() => {},
+														(err) => console.log(err)
+												  );
+										},
+										(event) => event.stopPropagation(),
+									]}
 								/>
 							</>
 						}
@@ -212,10 +241,8 @@ const ThreadCard = ({
 								if (likeStatus) {
 									setLikeCount(likeCount - 1);
 									Delete(
-										"./likes/user",
-										{
-											"thread_id": threadID,
-										},
+										`/threads/${threadID}/likes/user`,
+										{},
 										() => {},
 										(err) => console.log(err)
 									);
@@ -223,10 +250,8 @@ const ThreadCard = ({
 									player();
 									setLikeCount(likeCount + 1);
 									postJSON(
-										"./likes/user",
-										{
-											"thread_id": threadID,
-										},
+										`/threads/${threadID}/likes/user`,
+										{},
 										() => {},
 										(err) => console.log(err)
 									);

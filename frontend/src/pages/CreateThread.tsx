@@ -7,9 +7,11 @@ import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
 import { postJSON } from "../utilities/apiClient";
+import { useState } from "react";
 
 const CreateThread = () => {
 	const navigate = useNavigate();
+	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
 
 	const {
 		register,
@@ -18,21 +20,23 @@ const CreateThread = () => {
 		formState: { errors },
 		reset,
 		control
-		
-	} = useForm();
+	} = useForm({mode:"onChange"});
 
 	const submitForm = handleSubmit((data) => {
+		console.log(data)
 		postJSON(
-			"/threads",
+			"/threads/user",
 			{
 				title: data.title,
 				content: data.content,
 				image_title: data.imageTitle,
 				image_link: data.imageLink,
+				topics_tagged: topicsSelected
 			},
 			() =>{} ,
 			(err) => console.log(err)
 		);
+		setTopicsSelected([]);
 		reset();
 	});
 	return (
@@ -88,8 +92,9 @@ const CreateThread = () => {
 								register={register}
 								submitForm={submitForm}
 								errors={errors}
-								
 								control={control}
+								topicsSelected={topicsSelected}
+								setTopicsSelected={setTopicsSelected}
 							/>,
 							<ImagePage
 								register={register}

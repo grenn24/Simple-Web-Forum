@@ -13,6 +13,7 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter := router.Group("/authors")
 	authorRouter.Use(middlewares.ValidateJwtToken)
 
+	// Initialise controller handlers
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
 	}}
@@ -28,7 +29,11 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	followController := &controllers.FollowController{FollowService: &services.FollowService{
 		DB: db,
 	}}
+	bookmarkController := &controllers.BookmarkController{BookmarkService: &services.BookmarkService{
+		DB: db,
+	}}
 
+	// Author CRUD
 	authorRouter.GET("", func(context *gin.Context) {
 		authorController.GetAllAuthors(context, db)
 	})
@@ -44,6 +49,7 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.DELETE("/:authorID", func(context *gin.Context) {
 		authorController.DeleteAuthorByID(context, db)
 	})
+
 	// Author Specific Threads
 	authorRouter.GET("/:authorID/threads", func(context *gin.Context) {
 		threadController.GetThreadsByAuthorID(context, db)
@@ -51,16 +57,18 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.GET("/user/threads", func(context *gin.Context) {
 		threadController.GetThreadsByUser(context, db)
 	})
+
 	// Author Specific Likes
 	authorRouter.GET("/:authorID/likes", func(context *gin.Context) {
-		likeController.GetLikesByAuthorID(context, db)
+		likeController.GetLikedThreadsByAuthorID(context, db)
 	})
 	authorRouter.GET("/user/likes", func(context *gin.Context) {
-		likeController.GetUserLikes(context, db)
+		likeController.GetLikedThreadsByUser(context, db)
 	})
 	authorRouter.GET("/:authorID/likes/count", func(context *gin.Context) {
 		likeController.CountLikesByAuthorID(context, db)
 	})
+
 	// Author Specific Comments
 	authorRouter.GET("/:authorID/comments", func(context *gin.Context) {
 		commentController.GetCommentedThreadsByAuthorID(context, db)
@@ -68,12 +76,18 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.GET("/user/comments", func(context *gin.Context) {
 		commentController.GetCommentedThreadsByUser(context, db)
 	})
+
 	// Author Specific Follows
 	authorRouter.GET("/:authorID/follows", func(context *gin.Context) {
 		followController.GetFollowedThreadsByAuthorID(context, db)
 	})
 	authorRouter.GET("/user/follows", func(context *gin.Context) {
 		followController.GetFollowedThreadsByUser(context, db)
+	})
+
+	// Author Specific Bookmarks
+	authorRouter.GET("/user/bookmarks", func(context *gin.Context) {
+		bookmarkController.GetBookmarkedThreadsByUser(context, db)
 	})
 
 	// User

@@ -135,10 +135,44 @@ func (commentService *CommentService) CreateComment(comment *models.Comment) err
 	return commentRepository.CreateComment(comment)
 }
 
-func (commentService *CommentService) DeleteAllComments() error {
+func (commentService *CommentService) DeleteAllComments() *dtos.Error {
 
-	_, err := commentService.DB.Exec("DELETE FROM comment")
+	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	err := commentRepository.DeleteAllComments()
+		if err != nil {
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
+}
 
-	return err
 
+func (commentService *CommentService) DeleteCommentByID(commentID int) *dtos.Error {
+
+	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	rowsDeleted, err := commentRepository.DeleteCommentByID(commentID)
+
+	if err != nil {
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// Check for comment not found error
+	if rowsDeleted == 0 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   "No comments found for comment id: " + utils.ConvertIntToString(commentID),
+		}
+	}
+
+	return nil
 }

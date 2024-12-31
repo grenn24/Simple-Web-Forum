@@ -41,6 +41,7 @@ const Following = () => {
 						likeCount: likedThread.like_count,
 						commentCount: likedThread.comment_count,
 						likeStatus: likedThread.like_status,
+						bookmarkStatus: likedThread.bookmark_status,
 					}));
 					setFollowedThreads(followedThreads);
 				},
@@ -133,6 +134,7 @@ const Following = () => {
 								threadImageLink={followedThread.imageLink}
 								avatarIconLink={followedThread.avatarIconLink}
 								threadLikeStatus={followedThread.likeStatus}
+								threadBookmarkStatus={followedThread.bookmarkStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${followedThread.authorID}`)
 								}

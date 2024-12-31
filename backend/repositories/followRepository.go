@@ -4,10 +4,16 @@ import (
 	"database/sql"
 
 	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/models"
 )
 
 type FollowRepository struct {
 	DB *sql.DB
+}
+
+func (followRepository *FollowRepository) CreateFollow(follow *models.Follow) error {
+	_, err := followRepository.DB.Exec("INSERT INTO follow (follower_author_id, followee_author_id, followee_topic_id) VALUES ($1, $2, $3)", follow.FollowerAuthorID, follow.FolloweeAuthorID, follow.FolloweeTopicID)
+	return err
 }
 
 func (followRepository *FollowRepository) DeleteFollowByFollowerFolloweeID(follower_author_id int, followee_topic_id *int, followee_author_id *int) (int, error) {
