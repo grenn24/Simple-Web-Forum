@@ -1,4 +1,5 @@
 # NUS Gossips
+Creator: Hoo Di Heng  
 
 **Tech Stack:**  
 Front-End: React DOM, TypeScript  
