@@ -9,6 +9,8 @@ Database: PostgreSQL
 Frontend Server: https://simple-web-forum.web.app/  
 Backend Server: https://simple-web-forum-backend-61723a55a3b5.herokuapp.com
 
-### Backend API Endpoints:
+### Backend API Endpoints:  
 - /threads
 - /authors
+
+### Setup:  
