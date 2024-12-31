@@ -40,7 +40,7 @@ type ThreadCard struct {
 	ImageLink      *string         `json:"image_link,omitempty" `
 }
 
-// Thread with all relevant information
+// Thread with all relevant information including comments
 type ThreadExpanded struct {
 	ThreadID     int             `json:"thread_id"`
 	Title        string          `json:"title"`
@@ -50,7 +50,7 @@ type ThreadExpanded struct {
 	CommentCount int             `json:"comment_count"`
 	CreatedAt    time.Time       `json:"created_at"`
 	TopicsTagged []*models.Topic `json:"topics_tagged"`
-	Comments     []*CommentCard  `json:"comments"`
+	Comments     []*CommentedThread  `json:"comments"`
 	LikeStatus   bool            `json:"like_status"`
 	//Optional JSON Fields
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `

@@ -6,7 +6,7 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 )
 
-type CommentCard struct {
+type CommentedThread struct {
 	CommentID int `json:"comment_id"`
 	ThreadID  int `json:"thread_id" `
 	AuthorID   int       `json:"author_id" `

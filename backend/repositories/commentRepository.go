@@ -57,7 +57,7 @@ func (commentRepository *CommentRepository) GetAllComments(sort string) ([]*mode
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentCard, error) {
+func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentedThread, error) {
 
 	var rows *sql.Rows
 	var err error
@@ -86,11 +86,11 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	//Close rows after finishing query
 	defer rows.Close()
 
-	comments := make([]*dtos.CommentCard, 0)
+	comments := make([]*dtos.CommentedThread, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a comment struct
-		comment := new(dtos.CommentCard)
+		comment := new(dtos.CommentedThread)
 
 		// Scan the current row into the comment struct
 		err := rows.Scan(
@@ -117,7 +117,7 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(authorID int, sort string) ([]*dtos.CommentCard, error) {
+func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(authorID int, sort string) ([]*dtos.CommentedThread, error) {
 	var rows *sql.Rows
 	var err error
 
@@ -146,11 +146,11 @@ func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(author
 	//Close rows after finishing query
 	defer rows.Close()
 
-	comments := make([]*dtos.CommentCard, 0)
+	comments := make([]*dtos.CommentedThread, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a comment struct
-		comment := new(dtos.CommentCard)
+		comment := new(dtos.CommentedThread)
 
 		// Scan the current row into the comment struct
 		err := rows.Scan(
