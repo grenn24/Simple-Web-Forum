@@ -4,90 +4,135 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import profileDataSample from "./profileDataSample";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
+import { useState, useEffect } from "react";
+import { CommentDTO } from "../../dtos/ThreadDTOs";
+import { get } from "../../utilities/apiClient";
+import dateToString from "../../utilities/dateToString";
 
 const CommentsPage = () => {
-    const navigate = useNavigate();
+	const navigate = useNavigate();
+	const [comments, setComments] = useState<CommentDTO[]>([]);
+	useEffect(() => {
+		get(
+			"/authors/user/comments",
+			(res) => {
+				const responseBody = res.data.data;
+	
+				const comments = responseBody.map((comment: any) => ({
+					commentID: comment.comment_id,
+					threadID: comment.thread_id,
+					threadTitle: comment.thread_title,
+					threadContentSummarised: comment.thread_content_summarised,
+					content: comment.content,
+					createdAt: new Date(comment.created_at),
+					authorID: comment.author_id,
+					authorName: comment.author_name,
+					topicsTagged: comment.topics_tagged.map(
+						(topic: any)=>({
+							topicID: topic.topic_id,
+							name: topic.name
+						})
+					)
+				}));
+	
+				setComments(comments)
+			},
+			(err) => console.log(err)
+		);
+	}, []);
 	return (
 		<Box width="100%">
 			<List
-				listItemsArray={profileDataSample.comments.map((post, _) => {
+				listItemsArray={comments.map((comment, _) => {
 					return (
 						<>
-							<Box display="flex" justifyContent="space-between">
-								<Typography
-									fontFamily="Open Sans"
-									fontSize={22}
-									fontWeight={600}
-								>
-									{post.title}
-								</Typography>
-								<Box display="flex" alignItems="center">
-									<Button
-										toolTipText="Delete Comment"
-										color="primary.dark"
-										buttonIcon={
-											<DeleteForeverRoundedIcon sx={{ fontSize: 27 }} />
-										}
-										handleButtonClick={(event) => event.stopPropagation()}
-									/>
+							<Box key={comment.commentID}>
+								<Box display="flex" justifyContent="space-between">
 									<Typography
 										fontFamily="Open Sans"
-										fontSize={13}
+										fontSize={22}
 										fontWeight={600}
-										fontStyle="text.secondary"
 									>
-										{post.date}
+										{comment.threadTitle}
 									</Typography>
+									<Box display="flex" alignItems="center">
+										<Typography
+											fontFamily="Open Sans"
+											fontSize={15}
+											fontWeight={600}
+											fontStyle="text.secondary"
+										>
+											{dateToString(comment.createdAt)}
+										</Typography>
+										<Button
+											toolTipText="Delete Comment"
+											color="primary.dark"
+											buttonIcon={
+												<DeleteForeverRoundedIcon sx={{ fontSize: 27 }} />
+											}
+											handleButtonClick={(event) => event.stopPropagation()}
+										/>
+									</Box>
 								</Box>
-							</Box>
-							<Typography
-								variant="h6"
-								color="text.secondary"
-								fontFamily="Open Sans"
-								fontSize={18}
-							>
-								{post.topicsTagged.map((topic) => {
-									return (
-										<>
-											<Button
-												disableRipple
-												handleButtonClick={() =>
-													navigate(`../Topics?topicName=${topic}`)
-												}
-												fontFamily="Open Sans"
-												buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
-												color="text.secondary"
-												fontSize={12}
-												variant="outlined"
-												backgroundColor="primary.light"
-											>
-												{topic}
-											</Button>
-										</>
-									);
-								})}
-							</Typography>
-							<Typography marginTop={2} fontSize={17}>
-								{post.contentSummarised}
-							</Typography>
-							<Box display="flex">
-								<Typography marginTop={2} fontSize={17} marginRight={1.7} fontWeight={750}>
-									You Replied:
+								<Typography
+									variant="h6"
+									color="text.secondary"
+									fontFamily="Open Sans"
+									fontSize={18}
+								>
+									{comment.topicsTagged.map((topic) => {
+										return (
+											<>
+												<Button
+													key={topic.topicID}
+													disableRipple
+													handleButtonClick={() =>
+														navigate(`../Topics?topicName=${topic}`)
+													}
+													fontFamily="Open Sans"
+													buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
+													color="text.secondary"
+													fontSize={12}
+													variant="outlined"
+													backgroundColor="primary.light"
+												>
+													{topic.name}
+												</Button>
+											</>
+										);
+									})}
 								</Typography>
 								<Typography marginTop={2} fontSize={17}>
-									{post.commentContent}
+									{comment.content}
 								</Typography>
+								<Box display="flex">
+									<Typography
+										marginTop={2}
+										fontSize={17}
+										marginRight={1.7}
+										fontWeight={750}
+									>
+										You Replied:
+									</Typography>
+									<Typography marginTop={2} fontSize={17}>
+										{comment.content}
+									</Typography>
+								</Box>
 							</Box>
 						</>
 					);
 				})}
-                listItemsDataValues={profileDataSample.comments.map((post, _) => String(post.id))}
-				handleListItemsClick={new Array(profileDataSample.comments.length).fill(
-					(event: React.MouseEvent<HTMLElement>) => event.currentTarget.dataset && navigate(`../Thread/${event.currentTarget.dataset.value}`)
-                )}
+				listItemsDataValues={comments.map((comment, _) =>
+					String(comment.threadID)
+				)}
+				handleListItemsClick={new Array(comments.length).fill(
+					(event: React.MouseEvent<HTMLElement>) =>
+						event.currentTarget.dataset &&
+						navigate(`../Thread/${event.currentTarget.dataset.value}`)
+				)}
 				disablePadding
 				disableRipple
-                divider
+				divider
 			/>
 		</Box>
 	);

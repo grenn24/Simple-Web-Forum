@@ -48,7 +48,7 @@ func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, d
 
 	authorID := context.Param("authorID")
 
-	likes, responseErr := likeService.GetLikesByAuthorID(utils.ConvertStringToInt(authorID, context))
+	likes, responseErr := likeService.GetLikedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
@@ -65,7 +65,7 @@ func (likeController *LikeController) GetUserLikes(context *gin.Context, db *sql
 
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	likes, responseErr := likeService.GetLikesByAuthorID(userAuthorID)
+	likes, responseErr := likeService.GetLikedThreadsByAuthorID(userAuthorID)
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -318,7 +318,7 @@ func (likeController *LikeController) DeleteUserLike(context *gin.Context, db *s
 		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
-			Message:   "Missing required fields in follow for deletion",
+			Message:   "Missing required fields in like for deletion",
 		})
 		return
 	}

@@ -9,3 +9,4 @@ type Comment struct {
     CreatedAt time.Time `json:"created_at" db:"created_at"`           
     Content   string    `json:"content" db:"content"`                 
 }
+

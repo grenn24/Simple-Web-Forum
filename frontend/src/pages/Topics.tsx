@@ -164,8 +164,7 @@ const Topics = () => {
 				"/topics/threads",
 				(res) => {
 					const responseBody = res.data.data;
-					console.log(responseBody);
-					const topicsWithThreads = responseBody.map(
+					const topicsWithThreads : TopicsWithThreads[] = responseBody.map(
 						(topicWithThread: any) => ({
 							topicID: topicWithThread.topic_id,
 							name: topicWithThread.name,
@@ -182,7 +181,6 @@ const Topics = () => {
 							})),
 						})
 					);
-					console.log(topicsWithThreads);
 					setTopicsWithThreads(topicsWithThreads);
 				},
 				(err) => console.log(err)
@@ -242,6 +240,7 @@ const Topics = () => {
 							initialFollowStatus={topic.followStatus}
 							threads={topic.threads}
 							topicID={topic.topicID}
+							key={topic.topicID}
 						/>
 					))}
 				</Container>

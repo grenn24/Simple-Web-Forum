@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -36,25 +37,30 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 
 	commentService := commentController.CommentService
 
-	comments, err := commentService.GetCommentsByThreadID(utils.ConvertStringToInt(threadID, context), context.Query("sort"))
+	comments, responseErr := commentService.GetCommentsByThreadID(utils.ConvertStringToInt(threadID, context), context.Query("sort"))
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return 
 	}
 
-	// Check for empty comment table
-	if len(comments) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No comments found for thread id: " + threadID,
-		})
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   comments,
+	})
+}
+
+func (commentController *CommentController) GetCommentedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
+	authorID := context.Param("authorID")
+
+	commentService := commentController.CommentService
+
+	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context), context.Query("sort"))
+
+	// Check for internal server errors
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -64,20 +70,15 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 	})
 }
 
-func (commentController *CommentController) GetCommentsByAuthorID(context *gin.Context, db *sql.DB) {
-	authorID := context.Param("authorID")
+func (commentController *CommentController) GetCommentedThreadsByUser(context *gin.Context, db *sql.DB) {
 
 	commentService := commentController.CommentService
 
-	comments, err := commentService.GetCommentsByAuthorID(authorID, context.Query("sort"))
+	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.GetUserAuthorID(context), context.Query("sort"))
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -86,7 +87,7 @@ func (commentController *CommentController) GetCommentsByAuthorID(context *gin.C
 		context.JSON(http.StatusNotFound, dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
-			Message:   "No comments found for author id: " + authorID,
+			Message:   fmt.Sprintf("No comments found for author id: %v", utils.GetUserAuthorID(context)),
 		})
 		return
 	}

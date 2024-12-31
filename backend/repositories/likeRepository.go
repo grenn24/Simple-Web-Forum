@@ -58,7 +58,7 @@ func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, auth
 	return like, err
 }
 
-func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+func (likeRepository *LikeRepository) GetLikedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
 	rows, err := likeRepository.DB.Query(`
 	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, author.author_id, author.name, author.avatar_icon_link, thread.image_title, thread.image_link
 	FROM "like"
@@ -104,6 +104,20 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int) ([]*dtos.
 	}
 
 	return likedThreads, err
+}
+
+func (likeRepository *LikeRepository) GetLikeStatusByThreadIDAuthorID(threadID int, authorID int) bool {
+	row := likeRepository.DB.QueryRow("SELECT * FROM \"like\" WHERE thread_id = $1 AND author_id = $2 ", threadID, authorID)
+
+	like := new(models.Like)
+
+	err := row.Scan(&like.LikeID, &like.ThreadID, &like.AuthorID, &like.CreatedAt)
+
+	if err != nil && err == sql.ErrNoRows {
+		return false
+	} else {
+		return true
+	}
 }
 
 func (likeRepository *LikeRepository) CountLikesByThreadID(threadID int) (int, error) {

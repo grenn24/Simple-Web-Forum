@@ -82,7 +82,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []*models.Thread
+	threads := make([]*models.Thread, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread struct

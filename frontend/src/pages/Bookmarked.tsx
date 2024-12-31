@@ -95,16 +95,16 @@ const Bookmarked = () => {
 					{threads.map((thread) => (
 						<Box key={thread.id}>
 							<ThreadCard
-								threadId={thread.id}
+								threadID={thread.id}
 								threadTitle={thread.title}
 								threadAuthor={thread.author}
-								threadDate={thread.date}
+								threadDate={new Date(thread.date)}
 								threadLikeCount={thread.likeCount}
 								threadCommentCount={thread.commentCount}
 								threadContentSummarised={thread.contentSummarised}
 								threadImageLink={thread.imageLink}
 								avatarIconLink={thread.avatarIconLink}
-								initialLikeStatus={thread.likeStatus}
+								threadLikeStatus={thread.likeStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${thread.authorId}`)
 								}

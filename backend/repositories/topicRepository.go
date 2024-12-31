@@ -86,7 +86,7 @@ func (topicRepository *TopicRepository) GetAllTopicsWithFollowStatus(authorID in
 	return topics, err
 }
 
-func (topicRepository *TopicRepository) GetTopicsByThreadID(threadID string) ([]*models.Topic, error) {
+func (topicRepository *TopicRepository) GetTopicsByThreadID(threadID int) ([]*models.Topic, error) {
 
 	rows, err := topicRepository.DB.Query(`
 		SELECT topic.topic_id, topic.name
@@ -102,7 +102,7 @@ func (topicRepository *TopicRepository) GetTopicsByThreadID(threadID string) ([]
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var topics []*models.Topic
+	topics := make([]*models.Topic, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a topic struct

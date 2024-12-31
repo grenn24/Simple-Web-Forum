@@ -12,7 +12,7 @@ const Profile = () => {
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const [followStatus, setFollowStatus] = useState(false);
-	const {authorID} = useParams()
+	const {authorID} = useParams();
 	const [author, setAuthor] = useState({
 		authorID: 0,
 		name: "",
@@ -25,7 +25,7 @@ const Profile = () => {
 	useEffect(
 		() =>
 			get(
-				"/authors" + (authorID ? "/" + authorID : "/user"),
+				"/authors" + (authorID === "User" ? "/user" : authorID),
 				(res) => {
 					const responseBody = res.data.data
 					const author = {
@@ -44,6 +44,7 @@ const Profile = () => {
 			),
 		[]
 	);
+	
 	return (
 		<Box
 			sx={{
@@ -136,11 +137,13 @@ const Profile = () => {
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
+		
 					variant={
 						useMediaQuery(theme.breakpoints.up("sm"))
 							? "fullWidth"
 							: "scrollable"
 					}
+					
 				/>
 			</Container>
 		</Box>

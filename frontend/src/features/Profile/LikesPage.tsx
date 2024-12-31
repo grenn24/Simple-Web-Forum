@@ -9,25 +9,33 @@ import {
 } from "@mui/icons-material";
 import playerGenerator from "../../utilities/playerGenerator";
 import likeSound from "../../assets/audio/like-sound.mp3";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { ThreadCardDTO, TopicDTO } from "../../dtos/ThreadDTOs";
+import { get } from "../../utilities/apiClient";
+import dateToString from "../../utilities/dateToString";
+import { Delete, postJSON } from "../../utilities/apiClient";
 
-interface Prop {
+interface ThreadCardMiniProp {
+	threadID: number;
 	title: string;
 	date: string;
-	initialLikeStatus: boolean;
+	initialLikeCount: number;
 	topicsTagged: string[];
 	likeCount: number;
 	contentSummarised: string;
+	initialLikeStatus: boolean;
 }
 const ThreadCardMini = ({
+	threadID,
 	title,
 	date,
 	initialLikeStatus,
 	topicsTagged,
-	likeCount,
+	initialLikeCount,
 	contentSummarised,
-}: Prop) => {
+}: ThreadCardMiniProp) => {
 	const [likeStatus, setLikeStatus] = useState(initialLikeStatus);
+	const [likeCount, setCount] = useState(initialLikeCount);
 	const player = playerGenerator(
 		likeSound,
 		0.9,
@@ -35,6 +43,7 @@ const ThreadCardMini = ({
 		"default"
 	);
 	const navigate = useNavigate();
+
 	return (
 		<>
 			<Box display="flex" justifyContent="space-between" marginBottom={1}>
@@ -43,7 +52,7 @@ const ThreadCardMini = ({
 				</Typography>
 				<Typography
 					fontFamily="Open Sans"
-					fontSize={13}
+					fontSize={15}
 					fontWeight={600}
 					fontStyle="text.secondary"
 				>
@@ -99,36 +108,90 @@ const ThreadCardMini = ({
 					px: 0.6,
 				}}
 				handleButtonClick={(event) => {
-					setLikeStatus(!likeStatus);
-					!likeStatus && player();
 					event.stopPropagation();
+					setLikeStatus(!likeStatus);
+					if (likeStatus) {
+						setCount(likeCount - 1);
+						Delete(
+							"/likes/user",
+							{
+								thread_id: threadID,
+							},
+							() => {},
+							(err) => console.log(err)
+						);
+					} else {
+						player();
+						setCount(likeCount + 1);
+						postJSON(
+							"/likes/user",
+							{
+								thread_id: threadID,
+							},
+							() => {},
+							(err) => console.log(err)
+						);
+					}
 				}}
 				fontSize={14}
 			>
-				{likeCount}
+				{String(likeCount)}
 			</Button>
 		</>
 	);
 };
 const LikesPage = () => {
 	const navigate = useNavigate();
+	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
+
+	useEffect(
+		() =>
+			get(
+				"/authors/user/likes",
+				(res) => {
+					const responseBody = res.data.data;
+					const likedThreads = responseBody.map((likedThread: any) => ({
+						threadID: likedThread.thread_id,
+						title: likedThread.title,
+						contentSummarised: likedThread.content_summarised,
+						authorID: likedThread.author_id,
+						authorName: likedThread.author_name,
+						avatarIconLink: likedThread.avatar_icon_link,
+						createdAt: new Date(likedThread.created_at),
+						likes: likedThread.likes,
+						imageTitle: likedThread.imageTitle,
+						imageLink: likedThread.imageLink,
+						likeCount: likedThread.like_count,
+						commentCount: likedThread.comment_count,
+						likeStatus: likedThread.like_status,
+						topicsTagged: likedThread.topics_tagged,
+					}));
+					setLikedThreads(likedThreads);
+					console.log(likedThreads)
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
 
 	return (
 		<Box width="100%">
 			<List
-				listItemsArray={profileDataSample.likes.map((post, _) => (
+				listItemsArray={likedThreads.map((likedThread, _) => (
 					<ThreadCardMini
-						title={post.title}
-						date={post.date}
-						initialLikeStatus={post.likeStatus}
-						topicsTagged={post.topicsTagged}
-						likeCount={post.likeCount}
-						contentSummarised={post.contentSummarised}
+						title={likedThread.title}
+						date={dateToString(likedThread.createdAt)}
+						initialLikeStatus={likedThread.likeStatus}
+						topicsTagged={likedThread.topicsTagged.map(
+							(topic: TopicDTO) => topic.name
+						)}
+						likeCount={likedThread.likeCount}
+						contentSummarised={likedThread.contentSummarised}
+						initialLikeCount={likedThread.likeCount}
+						threadID={likedThread.threadID}
 					/>
 				))}
-				listItemsDataValues={profileDataSample.likes.map((post, _) =>
-					String(post.id)
-				)}
+				listItemsDataValues={likedThreads.map((likedThread) => String(likedThread.threadID))}
 				handleListItemsClick={new Array(profileDataSample.likes.length).fill(
 					(event: React.MouseEvent<HTMLElement>) =>
 						event.currentTarget.dataset &&

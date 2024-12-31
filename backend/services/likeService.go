@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 
+
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
@@ -25,11 +26,12 @@ func (likeService *LikeService) GetAllLikes() ([]*models.Like, *dtos.Error) {
 	return likes, nil
 }
 
-func (likeService *LikeService) GetLikesByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	commentRepository := &repositories.CommentRepository{DB: likeService.DB}
+	topicRepository := &repositories.TopicRepository{DB: likeService.DB}
 
-	likedThreads, err := likeRepository.GetLikesByAuthorID(authorID)
+	likedThreads, err := likeRepository.GetLikedThreadsByAuthorID(authorID)
 
 	// Check for internal server errors
 	if err != nil {
@@ -40,8 +42,8 @@ func (likeService *LikeService) GetLikesByAuthorID(authorID int) ([]*dtos.Thread
 		}
 	}
 
-	// Assign like count
 	for _, likedThread := range likedThreads {
+		// Retrieve like count
 		likeCount, err := likeRepository.CountLikesByThreadID(likedThread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
@@ -51,10 +53,8 @@ func (likeService *LikeService) GetLikesByAuthorID(authorID int) ([]*dtos.Thread
 			}
 		}
 		likedThread.LikeCount = likeCount
-	}
 
-	// Assign comment count
-	for _, likedThread := range likedThreads {
+		// Retrieve comment count
 		commentCount, err := commentRepository.CountCommentsByThreadID(likedThread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
@@ -64,11 +64,20 @@ func (likeService *LikeService) GetLikesByAuthorID(authorID int) ([]*dtos.Thread
 			}
 		}
 		likedThread.CommentCount = commentCount
-	}
 
-	// Assign like status
-	for _, likedThread := range likedThreads {
+		// Retrieve like status
 		likedThread.LikeStatus = true
+
+		// Retrieve topics tagged
+		topics, err := topicRepository.GetTopicsByThreadID(likedThread.ThreadID)
+		likedThread.TopicsTagged = topics
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
 	}
 
 	return likedThreads, nil

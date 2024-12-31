@@ -19,9 +19,7 @@ const CreateThread = () => {
 		reset,
 		control
 		
-	} = useForm({
-		mode: "onSubmit",
-	});
+	} = useForm();
 
 	const submitForm = handleSubmit((data) => {
 		postJSON(
@@ -32,7 +30,7 @@ const CreateThread = () => {
 				image_title: data.imageTitle,
 				image_link: data.imageLink,
 			},
-			(res) => console.log(res),
+			() =>{} ,
 			(err) => console.log(err)
 		);
 		reset();

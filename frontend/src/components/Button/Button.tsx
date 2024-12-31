@@ -24,7 +24,7 @@ interface Prop {
 	toolTipText?: string;
 	disabled?: boolean;
 	disableRipple?: boolean;
-	iconPosition?: "start" | "end"
+	iconPosition?: "start" | "end";
 	type?: string;
 }
 const Button = ({
@@ -49,71 +49,73 @@ const Button = ({
 	toolTipText,
 	disabled = false,
 	disableRipple = false,
-	iconPosition="start",
-	type
+	iconPosition = "start",
+	type,
 }: Prop) => {
-	return (
+	const buttonWithoutTooltipText = (
 		<>
 			{children ? (
-				<Tooltip title={toolTipText}>
-					<ButtonBase
-						type={type}
-						component={component as React.ElementType}
-						role={role}
-						variant={variant}
-						tabIndex={tabIndex}
-						startIcon={iconPosition === "start" ? buttonIcon : undefined}
-						endIcon={iconPosition === "end" ? buttonIcon : undefined}
-						disabled={disabled}
-						size={size}
-						disableRipple={disableRipple}
-						sx={{
-							...buttonStyle,
-							borderRadius: { borderRadius },
-							border: { borderWeight },
-							color: color,
-							textTransform: allUppercaseText ? "uppercase" : "none",
-							fontSize: { fontSize },
-							fontFamily: { fontFamily },
-							fontWeight: { fontWeight },
-							"& .MuiSvgIcon-root": {
-								borderColor: borderColor,
-							},
+				<ButtonBase
+					type={type}
+					component={component as React.ElementType}
+					role={role}
+					variant={variant}
+					tabIndex={tabIndex}
+					startIcon={iconPosition === "start" ? buttonIcon : undefined}
+					endIcon={iconPosition === "end" ? buttonIcon : undefined}
+					disabled={disabled}
+					size={size}
+					disableRipple={disableRipple}
+					sx={{
+						...buttonStyle,
+						borderRadius: { borderRadius },
+						border: { borderWeight },
+						color: color,
+						textTransform: allUppercaseText ? "uppercase" : "none",
+						fontSize: { fontSize },
+						fontFamily: { fontFamily },
+						fontWeight: { fontWeight },
+						"& .MuiSvgIcon-root": {
+							borderColor: borderColor,
+						},
 
-							backgroundColor: backgroundColor,
-						}}
-						onClick={handleButtonClick}
-					>
-						{children}
-					</ButtonBase>
-				</Tooltip>
+						backgroundColor: backgroundColor,
+					}}
+					onClick={handleButtonClick}
+				>
+					{children}
+				</ButtonBase>
 			) : (
-				<Tooltip title={toolTipText}>
-					<IconButtonBase
-						type={type}
-						component={component as React.ElementType}
-						role={role}
-						variant={variant}
-						tabIndex={tabIndex}
-						disabled={disabled}
-						disableRipple={disableRipple}
-						sx={{
-							...buttonStyle,
-							borderRadius: { borderRadius },
-							border: { borderWeight },
-							"& .MuiSvgIcon-root": {
-								color: color,
-								borderColor: borderColor,
-							},
-							fontSize: { fontSize },
-						}}
-						onClick={handleButtonClick}
-					>
-						{buttonIcon}
-					</IconButtonBase>
-				</Tooltip>
+				<IconButtonBase
+					type={type}
+					component={component as React.ElementType}
+					role={role}
+					variant={variant}
+					tabIndex={tabIndex}
+					disabled={disabled}
+					disableRipple={disableRipple}
+					sx={{
+						...buttonStyle,
+						borderRadius: { borderRadius },
+						border: { borderWeight },
+						"& .MuiSvgIcon-root": {
+							color: color,
+							borderColor: borderColor,
+						},
+						fontSize: { fontSize },
+					}}
+					onClick={handleButtonClick}
+				>
+					{buttonIcon}
+				</IconButtonBase>
 			)}
 		</>
+	);
+
+	return (
+		<Tooltip title={toolTipText}>
+			<span>{buttonWithoutTooltipText}</span>
+		</Tooltip>
 	);
 };
 

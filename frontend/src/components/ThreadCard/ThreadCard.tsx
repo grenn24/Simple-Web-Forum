@@ -33,7 +33,7 @@ import SimpleDialog from "../SimpleDialog";
 import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
-import { set } from "react-hook-form";
+import { Delete, postJSON } from "../../utilities/apiClient";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -64,7 +64,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 interface Prop {
-	threadId: number;
+	threadID: number;
 	threadTitle: string;
 	threadAuthor: string;
 	threadDate: Date;
@@ -78,7 +78,7 @@ interface Prop {
 }
 
 const ThreadCard = ({
-	threadId,
+	threadID,
 	threadTitle,
 	threadAuthor,
 	threadDate,
@@ -116,7 +116,7 @@ const ThreadCard = ({
 			>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${threadId}`)}
+					onClick={() => navigate(`../Thread/${threadID}`)}
 					disableRipple
 				>
 					<CardHeader
@@ -191,7 +191,6 @@ const ThreadCard = ({
 						}}
 					>
 						<Button
-							component="button"
 							role={undefined}
 							variant="outlined"
 							buttonIcon={
@@ -211,10 +210,26 @@ const ThreadCard = ({
 							handleButtonClick={(event) => {
 								setLikeStatus(!likeStatus);
 								if (likeStatus) {
-									setLikeCount(likeCount-1)
+									setLikeCount(likeCount - 1);
+									Delete(
+										"./likes/user",
+										{
+											"thread_id": threadID,
+										},
+										() => {},
+										(err) => console.log(err)
+									);
 								} else {
 									player();
-									setLikeCount(likeCount+1)
+									setLikeCount(likeCount + 1);
+									postJSON(
+										"./likes/user",
+										{
+											"thread_id": threadID,
+										},
+										() => {},
+										(err) => console.log(err)
+									);
 								}
 								event.stopPropagation();
 							}}
@@ -233,8 +248,8 @@ const ThreadCard = ({
 								marginRight: 1,
 							}}
 							handleButtonClick={(event) => {
-								navigate(`../Thread/${threadId}`, {
-									state: { focusTextField: true },
+								navigate(`../Thread/${threadID}`, {
+									state: { expandTextField: true },
 								}); //Pass in state during navigation
 								event.stopPropagation();
 							}}
@@ -286,7 +301,7 @@ const ThreadCard = ({
 												currentPathObject.pathname.lastIndexOf("/")
 											);
 										const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${threadId}`;
+										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${threadID}`;
 										event.stopPropagation();
 									},
 								]}
@@ -305,7 +320,7 @@ const ThreadCard = ({
 										);
 									const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
 									navigator.clipboard.writeText(
-										`${parentPathAbsolute}/Thread/${threadId}`
+										`${parentPathAbsolute}/Thread/${threadID}`
 									);
 								}}
 								duration={1500}

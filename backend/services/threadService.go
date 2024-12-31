@@ -4,9 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/jinzhu/copier"
+
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type ThreadService struct {
@@ -45,17 +48,13 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
 	likeRepository := &repositories.LikeRepository{DB: threadService.DB}
 	commentRepository := &repositories.CommentRepository{DB: threadService.DB}
+	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
 	threadExpanded := new(dtos.ThreadExpanded)
 
 	// Retrieve expanded thread information
 	thread, err := threadRepository.GetThreadByID(threadID)
-	threadExpanded.ThreadID = thread.ThreadID
-	threadExpanded.Title = thread.Title
-	threadExpanded.Content = thread.Content
-	threadExpanded.ImageLink = thread.ImageLink
-	threadExpanded.ImageTitle = thread.ImageTitle
-	threadExpanded.CreatedAt = thread.CreatedAt
+	copier.Copy(threadExpanded, thread)
 
 	if err != nil {
 		// Check for thread not found error
@@ -137,8 +136,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	threadExpanded.Comments = comments
 
 	// Retrieve topics
-	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
-	topics, err := topicRepository.GetTopicsByThreadID(fmt.Sprintf("%v", threadID))
+	topics, err := topicRepository.GetTopicsByThreadID(threadID)
 	threadExpanded.TopicsTagged = topics
 	if err != nil {
 		return nil, &dtos.Error{
@@ -151,9 +149,40 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	return threadExpanded, nil
 }
 
-func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*models.Thread, error) {
+func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadGridCard, *dtos.Error) {
+	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
-	return threadRepository.GetThreadsByAuthorID(authorID)
+	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
+
+	threads, err := threadRepository.GetThreadsByAuthorID(authorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// Retrieve the topics array for each thread
+	threadsWithTopics := make([]*dtos.ThreadGridCard, 0)
+	for _, thread := range threads {
+		threadWithTopics := new(dtos.ThreadGridCard)
+		copier.Copy(threadWithTopics, thread)
+		topics, err := topicRepository.GetTopicsByThreadID(thread.ThreadID)
+		threadWithTopics.TopicsTagged = topics
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		threadWithTopics.ContentSummarised = utils.TruncateString(thread.Content, 10)
+		threadWithTopics.AuthorName = authorRepository.GetAuthorNameByAuthorID(thread.AuthorID)
+		threadsWithTopics = append(threadsWithTopics, threadWithTopics)
+	}
+
+	return threadsWithTopics, nil
 }
 
 func (threadService *ThreadService) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadGridCard, error) {

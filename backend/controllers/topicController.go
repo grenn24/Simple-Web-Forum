@@ -41,25 +41,11 @@ func (topicController *TopicController) GetTopicsByThreadID(context *gin.Context
 
 	threadID := context.Param("threadID")
 
-	topics, err := topicService.GetTopicsByThreadID(threadID)
+	topics, responseErr := topicService.GetTopicsByThreadID(utils.ConvertStringToInt(threadID, context))
 
 	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	// Check for no topics found
-	if len(topics) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No topics found for thread id: " + threadID,
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
@@ -236,4 +222,3 @@ func (topicController *TopicController) GetAllTopicsWithFollowStatus(context *gi
 		Data:   topicsWithFollowStatus,
 	})
 }
-

@@ -20,9 +20,17 @@ func (topicService *TopicService) GetAllTopics() ([]*models.Topic, error) {
 	return topicRepository.GetAllTopics()
 }
 
-func (topicService *TopicService) GetTopicsByThreadID(threadID string) ([]*models.Topic, error) {
+func (topicService *TopicService) GetTopicsByThreadID(threadID int) ([]*models.Topic, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
-	return topicRepository.GetTopicsByThreadID(threadID)
+	topics, err := topicRepository.GetTopicsByThreadID(threadID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return topics, nil
 }
 
 func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {

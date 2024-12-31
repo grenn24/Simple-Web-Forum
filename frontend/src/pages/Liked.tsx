@@ -12,28 +12,13 @@ import Menu from "../components/Menu";
 import sortingMenuIcons from "../features/Liked/sortingMenuIcons";
 import sortingMenuItems from "../features/Liked/sortingMenuItems";
 import { get } from "../utilities/apiClient";
+import { ThreadCardDTO } from "../dtos/ThreadDTOs";
 
-
-interface likedThread {
-	threadID: number;
-	title: string;
-	contentSummarised: string;
-	authorID: number;
-	authorName: string;
-	avatarIconLink: string;
-	createdAt: Date;
-	likes: number;
-	imageTitle: string;
-	imageLink: string;
-	commentCount: number;
-	likeCount: number;
-	likeStatus: boolean;
-}
 
 const Liked = () => {
 	const [sortingOrder, setSortingOrder] = useState("Likes (Highest)");
 	const navigate = useNavigate();
-	const [likedThreads, setLikedThreads] = useState<likedThread[]>([]);
+	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
 
 	useEffect(
 		() =>
@@ -138,7 +123,7 @@ const Liked = () => {
 					{likedThreads.map((likedThread) => (
 						<Box key={likedThread.threadID}>
 							<ThreadCard
-								threadId={likedThread.threadID}
+								threadID={likedThread.threadID}
 								threadTitle={likedThread.title}
 								threadAuthor={likedThread.authorName}
 								threadDate={likedThread.createdAt}

@@ -2,10 +2,12 @@ package services
 
 import (
 	"database/sql"
+	
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 type CommentService struct {
@@ -35,12 +37,29 @@ func (commentService *CommentService) GetAllComments(sort string) ([]*models.Com
 	return comments, nil
 }
 
-func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentWithAuthorName, error) {
+func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentCard, *dtos.Error) {
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
-	return commentRepository.GetCommentsByThreadID(threadID, sort)
+	if sort == "newest" {
+		sort = "DESC"
+	} else if sort == "oldest" {
+		sort = "ASC"
+	} else {
+		sort = ""
+	}
+	comments, err := commentRepository.GetCommentsByThreadID(threadID, sort)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return comments, nil
 }
 
-func (commentService *CommentService) GetCommentsByAuthorID(authorID string, sort string) ([]*models.Comment, error) {
+func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int, sort string) ([]*dtos.CommentCard, *dtos.Error) {
+	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
 
 	if sort == "newest" {
 		sort = "DESC"
@@ -50,47 +69,33 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID string, sor
 		sort = ""
 	}
 
-	var rows *sql.Rows
-	var err error
-
-	if sort == "" {
-		rows, err = commentService.DB.Query("SELECT * FROM comment WHERE author_id = $1", authorID)
-	} else {
-		rows, err = commentService.DB.Query("SELECT * FROM comment WHERE author_id = $1 ORDER BY created_at "+sort, authorID)
-	}
-
+	commentedThreads, err := commentRepository.GetCommentedThreadsByAuthorID(authorID, sort)
 	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	var comments []*models.Comment
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a comment struct
-		comment := new(models.Comment)
-
-		// Scan the current row into the comment struct
-		err := rows.Scan(
-			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.AuthorID,
-			&comment.CreatedAt,
-			&comment.Content,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
-
-		// Append the scanned comment to comments slice
-		comments = append(comments, comment)
 	}
 
-	return comments, err
+	for _, commentedThread := range commentedThreads {
+		// Truncate thread content
+		truncatedContent := utils.TruncateString(*commentedThread.ThreadContentSummarised, 20)
+		commentedThread.ThreadContentSummarised = &truncatedContent
+
+		// Retrieve topics tagged
+		topics, err := topicRepository.GetTopicsByThreadID(commentedThread.ThreadID)
+		commentedThread.TopicsTagged = topics
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+	}
+
+	return commentedThreads, nil
 }
 
 func (commentService *CommentService) CountAllComments() (int, error) {

@@ -1,5 +1,5 @@
 import { Box, Divider, Typography, Container } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ThreadCard from "../components/ThreadCard";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
@@ -11,11 +11,43 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortingMenuItems from "../features/Following/sortingMenuItems";
 import sortingMenuIcons from "../features/Following/sortingMenuIcons";
+import { get } from "../utilities/apiClient";
+import { ThreadCardDTO } from "../dtos/ThreadDTOs";
 
 const Following = () => {
 	const [sortingOrder, setSortingOrder] = useState("Best");
 
 	const navigate = useNavigate();
+
+	const [followedThreads, setFollowedThreads] = useState<ThreadCardDTO[]>([]);
+
+	useEffect(
+		() =>
+			get(
+				"./authors/user/follows",
+				(res) => {
+					const responseBody = res.data.data;
+					const followedThreads = responseBody.map((likedThread: any) => ({
+						threadID: likedThread.thread_id,
+						title: likedThread.title,
+						contentSummarised: likedThread.content_summarised,
+						authorID: likedThread.author_id,
+						authorName: likedThread.author_name,
+						avatarIconLink: likedThread.avatar_icon_link,
+						createdAt: new Date(likedThread.created_at),
+						likes: likedThread.likes,
+						imageTitle: likedThread.imageTitle,
+						imageLink: likedThread.imageLink,
+						likeCount: likedThread.like_count,
+						commentCount: likedThread.comment_count,
+						likeStatus: likedThread.like_status,
+					}));
+					setFollowedThreads(followedThreads);
+				},
+				(err) => console.log(err)
+			),
+		[]
+	);
 
 	return (
 		<>
@@ -88,21 +120,21 @@ const Following = () => {
 					}}
 					disableGutters
 				>
-					{threads.map((thread) => (
-						<Box key={thread.id}>
+					{followedThreads.map((followedThread) => (
+						<Box key={followedThread.threadID}>
 							<ThreadCard
-								threadId={thread.id}
-								threadTitle={thread.title}
-								threadAuthor={thread.author}
-								threadDate={thread.date}
-								threadLikeCount={thread.likeCount}
-								threadCommentCount={thread.commentCount}
-								threadContentSummarised={thread.contentSummarised}
-								threadImageLink={thread.imageLink}
-								avatarIconLink={thread.avatarIconLink}
-								initialLikeStatus={thread.likeStatus}
+								threadID={followedThread.threadID}
+								threadTitle={followedThread.title}
+								threadAuthor={followedThread.authorName}
+								threadDate={followedThread.createdAt}
+								threadLikeCount={followedThread.likeCount}
+								threadCommentCount={followedThread.commentCount}
+								threadContentSummarised={followedThread.contentSummarised}
+								threadImageLink={followedThread.imageLink}
+								avatarIconLink={followedThread.avatarIconLink}
+								threadLikeStatus={followedThread.likeStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${thread.authorId}`)
+									navigate(`../Profile/${followedThread.authorID}`)
 								}
 							/>
 							<Divider />

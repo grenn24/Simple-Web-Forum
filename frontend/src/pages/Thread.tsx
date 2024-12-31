@@ -23,62 +23,29 @@ import {
 	SortRounded as SortRoundedIcon,
 	ArrowBackRounded as ArrowBackRoundedIcon,
 } from "@mui/icons-material";
-import Menu from "../components/Menu";
-import Button from "../components/Button";
-import SimpleDialog from "../components/SimpleDialog";
-import Snackbar from "../components/Snackbar";
-import List from "../components/List";
+import Menu from "../components/Menu/index.ts";
+import Button from "../components/Button/index.ts";
+import SimpleDialog from "../components/SimpleDialog/index.tsx";
+import Snackbar from "../components/Snackbar/index.ts";
+import List from "../components/List/index.tsx";
 import { useState, useRef, useEffect } from "react";
-import MenuExpandedIcons from "../features/Thread/MenuExpandedIcons";
-import MenuExpandedItems from "../features/Thread/MenuExpandedItems";
-import playerGenerator from "../utilities/playerGenerator";
+import MenuExpandedIcons from "../features/Thread/MenuExpandedIcons.tsx";
+import MenuExpandedItems from "../features/Thread/MenuExpandedItems.tsx";
+import playerGenerator from "../utilities/playerGenerator.tsx";
 import likeSound from "../assets/audio/like-sound.mp3";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import FullScreenImage from "../components/FullScreenImage";
+import FullScreenImage from "../components/FullScreenImage/index.ts";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
 import { useForm, Controller } from "react-hook-form";
-
-interface Comment {
-	commentID: number;
-	threadID: number;
-	authorID: number;
-	content: string;
-	createdAt: Date;
-	authorName: string;
-	avatarIconLink: string;
-}
-
-interface Topic {
-	topicID: number;
-	topicName: string;
-}
-
-interface ThreadExpanded {
-	threadID: number;
-	title: string;
-	content: string;
-	commentCount: number;
-	author: {
-		authorName: string;
-		authorID: number;
-		avatarIconLink: string;
-	};
-	createdAt: Date;
-	likeCount: number;
-	likeStatus: boolean;
-	comments: Comment[];
-	imageTitle: string;
-	imageLink: string;
-	topicsTagged: Topic[];
-}
+import { ThreadExpandedDTO } from "../dtos/ThreadDTOs.tsx";
 
 const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
-	const [expandTextField, setExpandTextField] = useState(false);
+
 	const [commentSortingOrder, setCommentSortingOrder] = useState("Newest");
 
 	const player = playerGenerator(
@@ -90,14 +57,13 @@ const Thread = () => {
 
 	const navigate = useNavigate();
 
-	const textField = useRef<HTMLTextAreaElement>(null);
-	const textFieldExpanded = useRef<HTMLTextAreaElement>(null);
 
+
+	// Check if an expand text field state was passed in during navigation as state
 	const location = useLocation();
-	const focusTextField = location.state;
-	focusTextField && textField.current && textField.current.focus();
+	const [expandTextField, setExpandTextField] = useState(false);
 
-	const [threadExpanded, setThreadExpanded] = useState<ThreadExpanded>({
+	const [threadExpanded, setThreadExpanded] = useState<ThreadExpandedDTO>({
 		threadID: 0,
 		comments: [],
 		title: "",
@@ -117,6 +83,10 @@ const Thread = () => {
 	});
 	const { threadID } = useParams();
 
+	const [likeCount, setLikeCount] = useState(0);
+	const [likeStatus, setLikeStatus] = useState(false);
+	const [commentCount, setCommentCount] = useState(0);
+
 	useEffect(
 		() =>
 			get(
@@ -132,8 +102,7 @@ const Thread = () => {
 							authorID: responseBody.author.author_id,
 							avatarIconLink: responseBody.author.avatar_icon_link,
 						},
-						comments: responseBody.comments
-							? responseBody.comments.map((comment: any) => ({
+						comments: responseBody.comments.map((comment: any) => ({
 									commentID: comment.comment_id,
 									threadID: comment.thread_id,
 									authorID: comment.author_id,
@@ -141,7 +110,7 @@ const Thread = () => {
 									content: comment.content,
 									createdAt: new Date(comment.created_at),
 							  }))
-							: [],
+							,
 						likeCount: responseBody.like_count,
 						likeStatus: responseBody.like_status,
 						commentCount: responseBody.comment_count,
@@ -160,15 +129,12 @@ const Thread = () => {
 					setCommentCount(threadExpanded.commentCount);
 					setLikeCount(threadExpanded.likeCount);
 					setLikeStatus(threadExpanded.likeStatus);
+					setExpandTextField(location.state?.expandTextField);
 				},
 				(err) => console.log(err)
 			),
-		[]
+		[commentCount]
 	);
-
-	const [likeCount, setLikeCount] = useState(threadExpanded.likeCount);
-	const [likeStatus, setLikeStatus] = useState(threadExpanded.likeStatus);
-	const [commentCount, setCommentCount] = useState(threadExpanded.commentCount);
 
 	const {
 		register,
@@ -180,6 +146,7 @@ const Thread = () => {
 
 	const handleCommentSubmit = handleSubmit((data) => {
 		reset();
+		setExpandTextField(false);
 		postJSON(
 			`/threads/${threadExpanded.threadID}/comments/user`,
 			{
@@ -283,24 +250,22 @@ const Thread = () => {
 								fontFamily="Open Sans"
 								fontSize={17}
 							>
-								Topics Tagged:{" "}
 								{threadExpanded.topicsTagged.map((topic) => {
 									return (
-										<>
-											<Button
-												disableRipple
-												handleButtonClick={() =>
-													navigate(`../Topics?topicName=${topic}`)
-												}
-												fontFamily="Open Sans"
-												buttonStyle={{ px: 1, py: 0, mx: 0.5 }}
-												color="text.secondary"
-												variant="outlined"
-												backgroundColor="primary.light"
-											>
-												{topic.topicName}
-											</Button>
-										</>
+										<Button
+											key={topic.topicID}
+											disableRipple
+											handleButtonClick={() =>
+												navigate(`../Topics?topicName=${topic}`)
+											}
+											fontFamily="Open Sans"
+											buttonStyle={{ px: 1, py: 0, mx: 0.5 }}
+											color="text.secondary"
+											variant="outlined"
+											backgroundColor="primary.light"
+										>
+											{topic.name}
+										</Button>
 									);
 								})}
 							</Typography>
@@ -367,6 +332,7 @@ const Thread = () => {
 											{
 												thread_id: threadExpanded.threadID,
 											},
+											() => {},
 											(err) => console.log(err)
 										);
 									} else {
@@ -377,6 +343,7 @@ const Thread = () => {
 											{
 												thread_id: threadExpanded.threadID,
 											},
+											() => {},
 											(err) => console.log(err)
 										);
 									}
@@ -396,9 +363,7 @@ const Thread = () => {
 									marginRight: 1,
 								}}
 								handleButtonClick={() => {
-									textField.current && textField.current.focus();
-									textFieldExpanded.current &&
-										textFieldExpanded.current.focus();
+									setExpandTextField(true);
 								}}
 							>
 								{String(commentCount)}
@@ -465,24 +430,24 @@ const Thread = () => {
 									sx={{ width: "100%", marginBottom: 1.5 }}
 									minRows={1}
 									placeholder="Add a comment"
-									onClick={() => setExpandTextField(true)}
-									ref={textField}
+									onClick={() => {
+										setExpandTextField(true);
+									}}
 								/>
 							) : (
 								<Box sx={{ width: "100%" }}>
 									<Controller
 										name="comment"
 										control={control}
-										defaultValue=""
+									
 										render={() => (
 											<TextFieldAutosize
 												sx={{ width: "100%" }}
-												minRows={3}
 												placeholder="Add a comment"
-												autoFocus
-												{...register("comment", {
-													required: "The comment field is required",
-												})}
+												minRows={3}
+												required
+												{...register("comment", { required: true })}
+												
 											/>
 										)}
 									/>
@@ -537,6 +502,7 @@ const Thread = () => {
 									return (
 										<Comment
 											id={comment.commentID}
+											key={comment.commentID}
 											author={comment.authorName}
 											likeCount={0}
 											content={comment.content}

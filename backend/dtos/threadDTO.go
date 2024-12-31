@@ -7,6 +7,7 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 )
 
+// Thread Grid Card
 type ThreadGridCard struct {
 	ThreadID          int       `json:"thread_id" `
 	Title             string    `json:"title"`
@@ -14,13 +15,14 @@ type ThreadGridCard struct {
 	ContentSummarised string    `json:"content_summarised" `
 	AuthorID          int       `json:"author_id" `
 	AuthorName        string    `json:"author_name"`
+	TopicsTagged   []*models.Topic `json:"topics_tagged"`
 	//Optional JSON Fields
-	AvatarIconLink *string `json:"avatar_icon_link,omitempty"`
-	ImageTitle     *string `json:"image_title,omitempty" `
-	ImageLink      *string `json:"image_link,omitempty" `
+	AvatarIconLink *string         `json:"avatar_icon_link,omitempty"`
+	ImageTitle     *string         `json:"image_title,omitempty" `
+	ImageLink      *string         `json:"image_link,omitempty" `
 }
 
-// Thread Grid Card with Like Status, Like Count, Comment Count
+// Thread Card with Like Status, Like Count, Comment Count, TopicsTagged
 type ThreadCard struct {
 	ThreadID          int       `json:"thread_id" `
 	Title             string    `json:"title"`
@@ -31,23 +33,25 @@ type ThreadCard struct {
 	LikeStatus        bool      `json:"like_status"`
 	LikeCount         int       `json:"like_count"`
 	CommentCount      int       `json:"comment_count"`
+	TopicsTagged   []*models.Topic `json:"topics_tagged"`
 	//Optional JSON Fields
-	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
-	ImageTitle     *string `json:"image_title,omitempty" `
-	ImageLink      *string `json:"image_link,omitempty" `
+	AvatarIconLink *string         `json:"avatar_icon_link,omitempty" `
+	ImageTitle     *string         `json:"image_title,omitempty" `
+	ImageLink      *string         `json:"image_link,omitempty" `
 }
 
+// Thread with all relevant information
 type ThreadExpanded struct {
-	ThreadID     int                      `json:"thread_id"`
-	Title        string                   `json:"title"`
-	Content      string                   `json:"content"`
-	Author       AuthorMinimised          `json:"author"`
-	LikeCount    int                      `json:"like_count"`
-	CommentCount int                      `json:"comment_count"`
-	CreatedAt    time.Time                `json:"created_at"`
-	TopicsTagged []*models.Topic          `json:"topics_tagged,omitempty"`
-	Comments     []*CommentWithAuthorName `json:"comments,omitempty"`
-	LikeStatus   bool                     `json:"like_status"`
+	ThreadID     int             `json:"thread_id"`
+	Title        string          `json:"title"`
+	Content      string          `json:"content"`
+	Author       AuthorMinimised `json:"author"`
+	LikeCount    int             `json:"like_count"`
+	CommentCount int             `json:"comment_count"`
+	CreatedAt    time.Time       `json:"created_at"`
+	TopicsTagged []*models.Topic `json:"topics_tagged"`
+	Comments     []*CommentCard  `json:"comments"`
+	LikeStatus   bool            `json:"like_status"`
 	//Optional JSON Fields
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
 	ImageTitle     *string `json:"image_title,omitempty"`

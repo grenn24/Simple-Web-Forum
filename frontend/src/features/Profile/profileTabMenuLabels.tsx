@@ -1,1 +1,1 @@
-export default ["Activity", "Posts", "Comments", "Likes", "Removed"];
+export default ["Activity", "Posts", "Comments", "Likes", "Archived"];

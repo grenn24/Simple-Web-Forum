@@ -1,3 +1,3 @@
 
 
-export default [`../Profile`, "../Settings", "../Welcome"];
+export default [`../Profile/User`, "../Settings", "../Welcome"];

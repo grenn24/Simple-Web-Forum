@@ -1,3 +1,3 @@
 export default [
-"Remove", "Bookmark", "Report"
+"Archive", "Bookmark", "Report"
 ];

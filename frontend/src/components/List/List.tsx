@@ -1,16 +1,23 @@
-import { List as ListBase, ListItem, ListItemButton , ListItemText, Divider} from "@mui/material"
+import {
+	List as ListBase,
+	ListItem,
+	ListItemButton,
+	ListItemText,
+	Divider,
+	Box,
+} from "@mui/material";
 interface Prop {
-    listItemsArray: string[] | JSX.Element[];
-    listIconsArray?: JSX.Element[];
-    disablePadding?: boolean;
-    backgroundColor?: string;
-	listItemsDataValues?: string[]
+	listItemsArray: string[] | JSX.Element[];
+	listIconsArray?: JSX.Element[];
+	disablePadding?: boolean;
+	backgroundColor?: string;
+	listItemsDataValues?: string[];
 	handleListItemsClick?: ((event: React.MouseEvent<HTMLElement>) => void)[];
 	listItemsStyles?: object;
 	disabled?: boolean;
-	disableRipple?: boolean
-	variant?: "text" | "button"
-	divider?: boolean
+	disableRipple?: boolean;
+	variant?: "text" | "button";
+	divider?: boolean;
 }
 
 const List = ({
@@ -18,19 +25,23 @@ const List = ({
 	listIconsArray,
 	disablePadding,
 	backgroundColor,
-	listItemsDataValues, handleListItemsClick,
+	listItemsDataValues,
+	handleListItemsClick,
 	listItemsStyles,
 	disabled,
-	disableRipple=false,
-	variant="button",
-	divider=false
+	disableRipple = false,
+	variant = "button",
+	divider = false,
 }: Prop) => {
 	return (
 		<>
-			<ListBase sx={{ backgroundColor: backgroundColor }} disablePadding={disablePadding}>
+			<ListBase
+				sx={{ backgroundColor: backgroundColor }}
+				disablePadding={disablePadding}
+			>
 				{listItemsArray.map((item, index) => (
-					<>
-						<ListItem disablePadding={disablePadding} key={index}>
+					<Box key={index}>
+						<ListItem disablePadding={disablePadding}>
 							{variant === "button" ? (
 								<ListItemButton
 									data-value={listItemsDataValues && listItemsDataValues[index]}
@@ -48,15 +59,14 @@ const List = ({
 									data-value={listItemsDataValues && listItemsDataValues[index]}
 									onClick={handleListItemsClick && handleListItemsClick[index]}
 									sx={{ ...listItemsStyles }}
-									
 								>
 									{listIconsArray && listIconsArray[index]}
 									<ListItemText primary={item} />
 								</ListItemText>
 							)}
 						</ListItem>
-					    {divider ? <Divider variant="inset" component="li" /> : null}
-					</>
+						{divider ? <Divider variant="inset" component="li" /> : null}
+					</Box>
 				))}
 			</ListBase>
 		</>

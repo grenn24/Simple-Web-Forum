@@ -1,5 +1,5 @@
-import PostsPage from "./PostsPage";
-import RemovedPage from "./RemovedPage";
+import PostsPage from "./ThreadsPage";
+import RemovedPage from "./ArchivedPage";
 import LikesPage from "./LikesPage";
 import CommentsPage from "./CommentsPage";
 
