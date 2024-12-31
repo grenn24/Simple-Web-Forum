@@ -1,4 +1,4 @@
-# NUS Web Forum
+# NUS Gossips
 
 **Tech Stack:**  
 Front-End: React DOM, TypeScript  
