@@ -22,7 +22,7 @@ func ValidateJwtToken(context *gin.Context) {
 	if err == http.ErrNoCookie || jwtToken == "" {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "MISSING_TOKEN",
 			Message:   "Missing jwt token",
 		})
 		context.Abort()
@@ -35,7 +35,7 @@ func ValidateJwtToken(context *gin.Context) {
 	if len(jwtTokenSlice) != 3 {
 				context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired jwt token",
 		})
 		context.Abort()
@@ -56,7 +56,7 @@ func ValidateJwtToken(context *gin.Context) {
 	if signatureOriginalEncoded != signatureRecreatedEncoded {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired jwt token",
 		})
 		context.Abort()
@@ -70,7 +70,7 @@ func ValidateJwtToken(context *gin.Context) {
 	if !ok {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired jwt token",
 		})
 		context.Abort()
@@ -82,7 +82,7 @@ func ValidateJwtToken(context *gin.Context) {
 	if currentTime > expirationTime {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired jwt token",
 		})
 		context.Abort()

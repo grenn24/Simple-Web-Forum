@@ -60,11 +60,12 @@ func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, auth
 
 func (likeRepository *LikeRepository) GetLikedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
 	rows, err := likeRepository.DB.Query(`
-	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, author.author_id, author.name, author.avatar_icon_link, thread.image_title, thread.image_link
+	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, poster.author_id, poster.name, liker.avatar_icon_link, thread.image_title, thread.image_link
 	FROM "like"
 	INNER JOIN thread ON "like".thread_id = thread.thread_id
-	INNER JOIN author ON thread.author_id = author.author_id
-	WHERE author.author_id = $1
+	INNER JOIN author AS liker ON "like".author_id = liker.author_id
+	INNER JOIN author AS poster ON thread.author_id = poster.author_id
+	WHERE liker.author_id = $1
 	`, authorID)
 
 	if err != nil {

@@ -134,7 +134,7 @@ func (authenticationController *AuthenticationController) RefreshJwtToken(contex
 	if err == http.ErrNoCookie || refreshToken == "" {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "MISSING_REFRESH_TOKEN",
 			Message:   "Missing refresh token",
 		})
 		return

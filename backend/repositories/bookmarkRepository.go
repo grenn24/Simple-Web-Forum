@@ -51,8 +51,9 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, author.author_id, author.name, author.avatar_icon_link, thread.image_title, thread.image_link
 	FROM bookmark
 	INNER JOIN thread ON bookmark.thread_id = thread.thread_id
-	INNER JOIN author ON thread.author_id = author.author_id
-	WHERE author.author_id = $1
+	INNER JOIN author AS bookmarker ON bookmark.author_id = bookmarker.author_id
+	INNER JOIN author AS poster ON thread.author_id = poster.author_id
+	WHERE bookmark.author_id = $1
 	`, authorID)
 
 	if err != nil {

@@ -2,7 +2,7 @@ package dtos
 
 type Error struct {
 	Status       string `json:"status"`
-	ErrorCode    string `json:"errorCode"`
+	ErrorCode    string `json:"error_code"`
 	Message string `json:"message"`
 }
 

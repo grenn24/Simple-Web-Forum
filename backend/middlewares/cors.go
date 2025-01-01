@@ -8,12 +8,16 @@ import (
 
 func CORS(context *gin.Context) {
 	// Specify allowed cross origins, methods, headers
-	secureOrigins := []string{
+	secureOriginsSlice := []string{
 		"http://localhost:5173",
 		"https://simple-web-forum.web.app",
 	}
+	origin := context.GetHeader("Origin")
 
-	context.Header("Access-Control-Allow-Origin", secureOrigins[0])
+	if origin == secureOriginsSlice[0] || origin == secureOriginsSlice[1] {
+		context.Header("Access-Control-Allow-Origin", origin)
+	}
+
 	context.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	context.Header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	context.Header("Access-Control-Expose-Headers", "Authorization")
