@@ -12,7 +12,7 @@ import likeSound from "../../assets/audio/like-sound.mp3";
 import { useState, useEffect } from "react";
 import { ThreadCardDTO, TopicDTO } from "../../dtos/ThreadDTOs";
 import { get } from "../../utilities/apiClient";
-import dateToString from "../../utilities/dateToString";
+import {dateToTimeYear} from "../../utilities/dateToString";
 import { Delete, postJSON } from "../../utilities/apiClient";
 
 interface ThreadCardMiniProp {
@@ -179,7 +179,7 @@ const LikesPage = () => {
 				listItemsArray={likedThreads.map((likedThread, _) => (
 					<ThreadCardMini
 						title={likedThread.title}
-						date={dateToString(likedThread.createdAt)}
+						date={dateToTimeYear(likedThread.createdAt)}
 						initialLikeStatus={likedThread.likeStatus}
 						topicsTagged={likedThread.topicsTagged.map(
 							(topic: TopicDTO) => topic.name

@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Theme, useTheme } from "@mui/material/styles";
 import {
 	Box,
@@ -12,7 +11,6 @@ import {
 	SelectChangeEvent,
 } from "@mui/material";
 import { useState } from "react";
-import { UseFormRegister } from "react-hook-form";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;

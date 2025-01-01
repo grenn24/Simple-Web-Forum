@@ -5,7 +5,6 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
-import threads from "../features/Following/followingDataSample";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";

@@ -30,7 +30,6 @@ import SimpleDialog from "../components/SimpleDialog/index.tsx";
 import Snackbar from "../components/Snackbar/index.ts";
 import List from "../components/List/index.tsx";
 import { useState, useEffect } from "react";
-import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
 import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems.tsx";
 import playerGenerator from "../utilities/playerGenerator.tsx";
 import likeSound from "../assets/audio/like-sound.mp3";
@@ -143,7 +142,6 @@ const Thread = () => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
 		reset,
 		control,
 	} = useForm();

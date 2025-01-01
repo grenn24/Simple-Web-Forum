@@ -1,8 +1,7 @@
-import { Box, FormControl, TextField } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import { postJSON } from "../../utilities/apiClient";
 
 interface Prop {
@@ -19,17 +18,18 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 	const navigate = useNavigate();
 	const handleFormSubmit = handleSubmit((data) =>
 		postJSON(
-			"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authentication/log-in",
+			"/authentication/log-in",
 			{
 				email: data.email,
 				password: data.password,
 			},
-			(res) => {
+			() => {
 				navigate("../Following");
 			},
 			(err) => {
+				console.log(err)
 				const responseBody = err.data;
-				if (responseBody.errorCode === "UNAUTHORISED") {
+				if (responseBody.error_code === "UNAUTHORISED") {
 					setError("email", {
 						type: "custom",
 						message: responseBody.message,
@@ -55,7 +55,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 			}}
 			{...register("email", { required: true })}
 		>
-			<FormControl onSubmit={handleFormSubmit}>
+			<form onSubmit={handleFormSubmit}>
 				<TextField
 					label="Email"
 					variant="outlined"
@@ -80,7 +80,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 				<Button type="submit" buttonStyle={{ display: "none" }}>
 					Submit
 				</Button>
-			</FormControl>
+			</form>
 		</Box>
 	);
 };

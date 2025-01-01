@@ -1,7 +1,6 @@
 import { Box, TextField, InputAdornment } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { postJSON } from "../../utilities/apiClient";
 
@@ -19,7 +18,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 	const navigate = useNavigate();
 	const handleFormSubmit = handleSubmit((data) => {
 		postJSON(
-			"https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/authentication/sign-up",
+			"/authentication/sign-up",
 			{
 				name: data.name,
 				username: data.username,
@@ -31,19 +30,19 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 			},
 			(err) => {
 				const responseBody = err.data;
-				if (responseBody.errorCode === "EMAIL_ALREADY_EXISTS") {
+				if (responseBody.error_code === "EMAIL_ALREADY_EXISTS") {
 					setError("email", {
 						type: "custom",
 						message: responseBody.message,
 					});
 				}
-				if (responseBody.errorCode === "NAME_ALREADY_EXISTS") {
+				if (responseBody.error_code === "NAME_ALREADY_EXISTS") {
 					setError("name", {
 						type: "custom",
 						message: responseBody.message,
 					});
 				}
-				if (responseBody.errorCode === "USERNAME_ALREADY_EXISTS") {
+				if (responseBody.error_code === "USERNAME_ALREADY_EXISTS") {
 					setError("username", {
 						type: "custom",
 						message: responseBody.message,

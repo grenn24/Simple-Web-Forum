@@ -3,7 +3,6 @@ import Button from "../../components/Button";
 import EditorBar from "./EditorBar";
 import { FieldErrors, Control, Controller } from "react-hook-form";
 import SelectChip from "../../components/SelectChip";
-import { useState } from "react";
 
 interface Prop {
 	register: (name: string, options?: object) => object;

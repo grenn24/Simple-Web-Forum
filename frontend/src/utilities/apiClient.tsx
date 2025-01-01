@@ -12,11 +12,15 @@ apiClient.interceptors.response.use(
 	},
 	// status code outside 2xx
 	function (error) {
+		console.log(error)
 		// check if error is caused by expired jwt token
-		if (error.response.status === 401) {
+		const errResponseBody = error.response.data
+		if (errResponseBody.error_code === "INVALID_TOKEN") {
 			apiClient
 				.get("/authentication/refresh-jwt-token", { withCredentials: true })
-				.catch((err) => {});
+				.catch((err) => {
+					console.log(err);
+				});
 		} else {
 			return Promise.reject(error);
 		}

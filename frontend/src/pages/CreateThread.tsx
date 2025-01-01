@@ -23,7 +23,6 @@ const CreateThread = () => {
 	} = useForm({mode:"onChange"});
 
 	const submitForm = handleSubmit((data) => {
-		console.log(data)
 		postJSON(
 			"/threads/user",
 			{
