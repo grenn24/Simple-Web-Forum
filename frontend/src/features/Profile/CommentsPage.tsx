@@ -6,7 +6,7 @@ import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { CommentDTO } from "../../dtos/ThreadDTOs";
 import { Delete, get } from "../../utilities/apiClient";
-import {dateToTimeYear} from "../../utilities/dateToString";
+import { dateToTimeYear } from "../../utilities/dateToString";
 import removeFromArray from "../../utilities/removeFromArray";
 
 const CommentsPage = () => {
@@ -34,7 +34,6 @@ const CommentsPage = () => {
 				}));
 
 				setComments(comments);
-
 			},
 			(err) => console.log(err)
 		);
@@ -61,7 +60,7 @@ const CommentsPage = () => {
 											fontWeight={600}
 											fontStyle="text.secondary"
 										>
-											{dateToTimeYear(comment.createdAt)}
+											{dateToTimeYear(comment.createdAt, "short")}
 										</Typography>
 										<Button
 											toolTipText="Delete Comment"
@@ -72,9 +71,11 @@ const CommentsPage = () => {
 											handleButtonClick={(event) => {
 												event.stopPropagation();
 												setComments(removeFromArray(comments, index));
-												Delete(`/comments/${comment.commentID}`,()=>{
-													
-												}, err=>console.log(err))
+												Delete(
+													`/comments/${comment.commentID}`,
+													() => {},
+													(err) => console.log(err)
+												);
 											}}
 										/>
 									</Box>
@@ -87,23 +88,21 @@ const CommentsPage = () => {
 								>
 									{comment.topicsTagged.map((topic) => {
 										return (
-											<>
-												<Button
-													key={topic.topicID}
-													disableRipple
-													handleButtonClick={() =>
-														navigate(`../Topics?topicName=${topic}`)
-													}
-													fontFamily="Open Sans"
-													buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
-													color="text.secondary"
-													fontSize={12}
-													variant="outlined"
-													backgroundColor="primary.light"
-												>
-													{topic.name}
-												</Button>
-											</>
+											<Button
+												key={topic.topicID}
+												disableRipple
+												handleButtonClick={() =>
+													navigate(`../Topics?topicName=${topic}`)
+												}
+												fontFamily="Open Sans"
+												buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
+												color="text.secondary"
+												fontSize={12}
+												variant="outlined"
+												backgroundColor="primary.light"
+											>
+												{topic.name}
+											</Button>
 										);
 									})}
 								</Typography>

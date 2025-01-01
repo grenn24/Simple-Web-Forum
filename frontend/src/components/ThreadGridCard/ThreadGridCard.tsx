@@ -9,7 +9,8 @@ import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded
 import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
 import { CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-
+import { dateToYear } from "../../utilities/dateToString";
+import { Delete, postJSON } from "../../utilities/apiClient";
 
 interface Prop {
 	threadId: number;
@@ -20,7 +21,7 @@ interface Prop {
 	avatarIconLink: string;
 	threadContentSummarised: string;
 	handleAvatarIconClick?: () => void;
-	bookmarkedStatus: boolean;
+	threadinitialBookmarkStatus: boolean;
 }
 
 const ThreadGridCard = ({
@@ -31,10 +32,32 @@ const ThreadGridCard = ({
 	avatarIconLink,
 	threadContentSummarised,
 	handleAvatarIconClick,
-	bookmarkedStatus
+	threadinitialBookmarkStatus,
 }: Prop) => {
-	const [bookMarkedClickedStatus, setBookmarkClickedStatus] = useState(bookmarkedStatus);
+	const [bookmarkStatus, setBookmarkStatus] = useState(
+		threadinitialBookmarkStatus
+	);
 	const navigate = useNavigate();
+
+	const handleBookmarkIconClick = (event: React.MouseEvent<HTMLElement>) => {
+		event.stopPropagation();
+		setBookmarkStatus(!bookmarkStatus);
+		if (bookmarkStatus) {
+			Delete(
+				`threads/${threadId}/bookmarks/user`,
+				{},
+				() => {},
+				(err) => console.log(err)
+			);
+		} else {
+			postJSON(
+				`threads/${threadId}/bookmarks/user`,
+				{},
+				() => {},
+				(err) => console.log(err)
+			);
+		}
+	};
 	return (
 		<>
 			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
@@ -66,40 +89,28 @@ const ThreadGridCard = ({
 									event.stopPropagation();
 								}}
 								showMenuExpandedOnClick={false}
-								
 							/>
 						}
 						action={
-							<>
-								<Menu
-									menuIcon={
-										!bookMarkedClickedStatus ? (
-											<BookmarkBorderRoundedIcon
-												sx={{ color: "primary.dark" }}
-											/>
-										) : (
-											<BookmarkRemoveRoundedIcon
-												sx={{ color: "primary.dark" }}
-											/>
-										)
-									}
-									menuExpandedItemsArray={[]}
-									toolTipText={
-										!bookMarkedClickedStatus
-											? "Add Bookmark"
-											: "Remove Bookmark"
-									}
-									scrollLock={true}
-									showMenuExpandedOnClick={false}
-									handleMenuIconClick={(event) => {
-										setBookmarkClickedStatus(!bookMarkedClickedStatus);
-										event.stopPropagation();
-									}}
-								/>
-							</>
+							<Menu
+								menuIcon={
+									!bookmarkStatus ? (
+										<BookmarkBorderRoundedIcon sx={{ color: "primary.dark" }} />
+									) : (
+										<BookmarkRemoveRoundedIcon sx={{ color: "primary.dark" }} />
+									)
+								}
+								menuExpandedItemsArray={[]}
+								toolTipText={
+									!bookmarkStatus ? "Add Bookmark" : "Remove Bookmark"
+								}
+								scrollLock={true}
+								showMenuExpandedOnClick={false}
+								handleMenuIconClick={handleBookmarkIconClick}
+							/>
 						}
 						title={threadAuthorName}
-						subheader={threadCreatedAt.getDate() + "/" + (threadCreatedAt.getMonth() + 1) + "/" + threadCreatedAt.getFullYear()}
+						subheader={dateToYear(threadCreatedAt, "short")}
 						titleTypographyProps={{ fontWeight: 750 }}
 						sx={{ paddingBottom: 0.5 }}
 					/>

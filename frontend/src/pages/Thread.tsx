@@ -42,6 +42,7 @@ import { useForm, Controller } from "react-hook-form";
 import { ThreadExpandedDTO } from "../dtos/ThreadDTOs.tsx";
 import MenuExpandedIconsBookmarkTrue from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkTrue.tsx";
 import MenuExpandedIconsBookmarkFalse from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
+import { dateToTimeYear } from "../utilities/dateToString.tsx";
 
 const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -139,12 +140,7 @@ const Thread = () => {
 		[commentCount]
 	);
 
-	const {
-		register,
-		handleSubmit,
-		reset,
-		control,
-	} = useForm();
+	const { register, handleSubmit, reset, control } = useForm();
 
 	const handleCommentSubmit = handleSubmit((data) => {
 		reset();
@@ -251,13 +247,7 @@ const Thread = () => {
 							}
 							title={threadExpanded.author.authorName}
 							titleTypographyProps={{ fontWeight: 750 }}
-							subheader={
-								threadExpanded.createdAt.getDate() +
-								"/" +
-								(threadExpanded.createdAt.getMonth() + 1) +
-								"/" +
-								threadExpanded.createdAt.getFullYear()
-							}
+							subheader={dateToTimeYear(threadExpanded.createdAt, "long")}
 						/>
 						<Divider />
 
@@ -449,7 +439,13 @@ const Thread = () => {
 						<CardContent sx={{ display: "flex", justifyContent: "center" }}>
 							{!expandTextField ? (
 								<TextFieldAutosize
-									sx={{ width: "100%", marginBottom: 1.5 }}
+									sx={{
+										width: "100%",
+										marginBottom: 1.5,
+										fontSize: 18,
+										fontFamily: "Nunito",
+										fontWeight: "Medium",
+									}}
 									minRows={1}
 									placeholder="Add a comment"
 									onClick={() => {
@@ -458,13 +454,18 @@ const Thread = () => {
 								/>
 							) : (
 								<Box sx={{ width: "100%" }}>
-									<FormControl fullWidth >
+									<FormControl fullWidth>
 										<Controller
 											name="comment"
 											control={control}
 											render={() => (
 												<TextFieldAutosize
-													sx={{ width: "100%" }}
+													sx={{
+														width: "100%",
+														fontSize: 18,
+														fontFamily: "Nunito",
+														fontWeight: "Medium",
+													}}
 													placeholder="Add a comment"
 													minRows={3}
 													required
@@ -529,13 +530,7 @@ const Thread = () => {
 											author={comment.authorName}
 											likeCount={0}
 											content={comment.content}
-											date={
-												comment.createdAt.getDate() +
-												"/" +
-												(comment.createdAt.getMonth() + 1) +
-												"/" +
-												comment.createdAt.getFullYear()
-											}
+											date={dateToTimeYear(comment.createdAt, "short")}
 											avatarIconLink={comment.avatarIconLink}
 											handleAvatarIconClick={() =>
 												navigate(`../Profile/${comment.authorID}`)

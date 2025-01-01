@@ -30,12 +30,16 @@ func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, *dtos.Err
 	return authors, nil
 }
 
-func (authorService *AuthorService) GetAuthorByID(authorID int) (*models.Author, error) {
+func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*models.Author, error) {
 
 	row := authorService.DB.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
 
 	// Declare a pointer to a new instance of an author struct
 	author := new(models.Author)
+	if authorID == userAuthorID {
+		isUser := true
+		author.IsUser = &isUser
+	}
 
 	// Scan the current row into the author struct
 	err := row.Scan(

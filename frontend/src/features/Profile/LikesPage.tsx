@@ -179,7 +179,7 @@ const LikesPage = () => {
 				listItemsArray={likedThreads.map((likedThread, _) => (
 					<ThreadCardMini
 						title={likedThread.title}
-						date={dateToTimeYear(likedThread.createdAt)}
+						date={dateToTimeYear(likedThread.createdAt, "short")}
 						initialLikeStatus={likedThread.likeStatus}
 						topicsTagged={likedThread.topicsTagged.map(
 							(topic: TopicDTO) => topic.name

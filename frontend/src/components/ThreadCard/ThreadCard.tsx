@@ -35,6 +35,7 @@ import playerGenerator from "../../utilities/playerGenerator";
 import { Delete, postJSON } from "../../utilities/apiClient";
 import MenuExpandedIconsBookmarkTrue from "./TopRightMenu/MenuExpandedIconsBookmarkTrue";
 import MenuExpandedIconsBookmarkFalse from "./TopRightMenu/MenuExpandedIconsBookmarkFalse";
+import { dateToYear } from "../../utilities/dateToString";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -68,7 +69,7 @@ interface Prop {
 	threadID: number;
 	threadTitle: string;
 	threadAuthor: string;
-	threadDate: Date;
+	threadCreatedAt: Date;
 	threadLikeCount: number;
 	threadCommentCount: number;
 	threadContentSummarised: string;
@@ -83,7 +84,7 @@ const ThreadCard = ({
 	threadID,
 	threadTitle,
 	threadAuthor,
-	threadDate,
+	threadCreatedAt,
 	threadLikeCount,
 	threadCommentCount,
 	threadContentSummarised,
@@ -91,7 +92,7 @@ const ThreadCard = ({
 	avatarIconLink,
 	handleAvatarIconClick,
 	threadLikeStatus,
-	threadBookmarkStatus
+	threadBookmarkStatus,
 }: Prop) => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -99,7 +100,7 @@ const ThreadCard = ({
 
 	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
 	const [likeCount, setLikeCount] = useState(threadLikeCount);
-	const [bookmarkStatus, setBookmarkStatus] = useState(threadBookmarkStatus)
+	const [bookmarkStatus, setBookmarkStatus] = useState(threadBookmarkStatus);
 
 	const navigate = useNavigate();
 
@@ -161,11 +162,11 @@ const ThreadCard = ({
 									menuExpandedItemsArray={MenuExpandedItems}
 									toolTipText="More"
 									scrollLock={true}
-									handleMenuIconClick={event=>event.stopPropagation()}
+									handleMenuIconClick={(event) => event.stopPropagation()}
 									handleMenuExpandedItemsClick={[
 										(event) => event.stopPropagation(),
 										(event) => {
-											event.stopPropagation()
+											event.stopPropagation();
 											setBookmarkStatus(!bookmarkStatus);
 											bookmarkStatus
 												? Delete(
@@ -188,13 +189,7 @@ const ThreadCard = ({
 						}
 						title={threadAuthor}
 						titleTypographyProps={{ fontWeight: 750 }}
-						subheader={
-							threadDate.getDay() +
-							"/" +
-							threadDate.getMonth() +
-							"/" +
-							threadDate.getFullYear()
-						}
+						subheader={dateToYear(threadCreatedAt, "long")}
 					/>
 
 					<CardContent>

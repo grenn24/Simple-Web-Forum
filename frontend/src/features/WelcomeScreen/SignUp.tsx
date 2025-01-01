@@ -29,6 +29,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 				navigate("../Following");
 			},
 			(err) => {
+			
 				const responseBody = err.data;
 				if (responseBody.error_code === "EMAIL_ALREADY_EXISTS") {
 					setError("email", {

@@ -126,7 +126,7 @@ const Following = () => {
 								threadID={followedThread.threadID}
 								threadTitle={followedThread.title}
 								threadAuthor={followedThread.authorName}
-								threadDate={followedThread.createdAt}
+								threadCreatedAt={followedThread.createdAt}
 								threadLikeCount={followedThread.likeCount}
 								threadCommentCount={followedThread.commentCount}
 								threadContentSummarised={followedThread.contentSummarised}

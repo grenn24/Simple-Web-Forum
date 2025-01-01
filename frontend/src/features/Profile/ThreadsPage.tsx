@@ -61,7 +61,7 @@ const PostsPage = () => {
 										fontWeight={600}
 										fontStyle="text.secondary"
 									>
-										{dateToTimeYear(thread.createdAt)}
+										{dateToTimeYear(thread.createdAt, "short")}
 									</Typography>
 									<Button
 										toolTipText="Delete Thread"

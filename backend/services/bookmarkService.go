@@ -18,8 +18,8 @@ func (bookmarkService *BookmarkService) CreateBookmark(bookmark *models.Bookmark
 	err := bookmarkRepository.CreateBookmark(bookmark)
 
 		if err != nil {
-		// Check for existing follower_author-followee_author combination
-		if err.Error() == "pq: duplicate key value violates unique constraint \"thread_id_author_id_key\"" {
+		// Check for existing bookmarks with same thread id and author id
+		if err.Error() == "pq: duplicate key value violates unique constraint \"bookmark_thread_id_author_id_key\"" {
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "BOOKMARK_ALREADY_EXISTS",

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -35,9 +34,10 @@ func (authorController *AuthorController) GetAllAuthors(context *gin.Context, db
 func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 
-	authorID, _ := strconv.Atoi(context.Param("authorID"))
+	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
+	userAuthorID := utils.GetUserAuthorID(context)
 
-	author, err := authorService.GetAuthorByID(authorID)
+	author, err := authorService.GetAuthorByID(authorID, userAuthorID)
 
 	if err != nil {
 		// Check for author not found error
@@ -66,8 +66,9 @@ func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db
 
 func (authorController *AuthorController) GetUser(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
+	userAuthorID := utils.GetUserAuthorID(context)
 
-	author, err := authorService.GetAuthorByID(utils.GetUserAuthorID(context))
+	author, err := authorService.GetAuthorByID(userAuthorID, userAuthorID)
 
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{

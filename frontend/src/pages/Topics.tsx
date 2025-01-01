@@ -17,28 +17,20 @@ import {
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { get, postJSON, Delete } from "../utilities/apiClient";
+import { ThreadCardDTO } from "../dtos/ThreadDTOs";
 
 interface TopicsWithThreads {
 	topicID: number;
 	name: string;
 	followStatus: boolean;
-	threads: Thread[];
+	threads: ThreadCardDTO[];
 }
 
-interface Thread {
-	threadID: number;
-	title: string;
-	authorName: string;
-	authorID: number;
-	createdAt: Date;
-	avatarIconLink: string;
-	bookmarkedStatus: boolean;
-	contentSummarised: string;
-}
+
 interface TopicProp {
 	name: string;
 	initialFollowStatus: boolean;
-	threads: Thread[];
+	threads: ThreadCardDTO[];
 	topicID: number;
 }
 
@@ -140,7 +132,7 @@ const Topics = () => {
 										threadCreatedAt={thread.createdAt}
 										avatarIconLink={thread.avatarIconLink}
 										threadContentSummarised={thread.contentSummarised}
-										bookmarkedStatus={thread.bookmarkedStatus}
+										threadinitialBookmarkStatus={thread.bookmarkStatus}
 										handleAvatarIconClick={() => {
 											navigate(`../Profile/${thread.authorID}`);
 										}}
@@ -176,7 +168,7 @@ const Topics = () => {
 								authorID: thread.author_id,
 								createdAt: new Date(thread.created_at),
 								avatarIconLink: thread.avatar_icon_link,
-								bookmarkedStatus: thread.bookmarked_status,
+								bookmarkStatus: thread.bookmark_status,
 								contentSummarised: thread.content_summarised,
 							})),
 						})

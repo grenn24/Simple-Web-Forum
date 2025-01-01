@@ -13,6 +13,7 @@ const Profile = () => {
 	const theme = useTheme();
 	const [followStatus, setFollowStatus] = useState(false);
 	const {authorID} = useParams();
+	const [isUser, setIsUser] = useState(true);
 	const [author, setAuthor] = useState({
 		authorID: 0,
 		name: "",
@@ -21,6 +22,7 @@ const Profile = () => {
 		passwordHash: "",
 		avatarIconLink: "",
 		createdAt: new Date,
+		isUser: false
 	});
 	useEffect(
 		() =>
@@ -36,8 +38,10 @@ const Profile = () => {
 						passwordHash: responseBody.password_hash,
 						avatarIconLink: responseBody.avatar_icon_link,
 						createdAt: new Date(responseBody.created_at),
+						isUser: responseBody.is_user
 					}
 					setAuthor(author)
+					setIsUser(author.isUser)
 				},
 				(err) => console.log(err)
 			),
@@ -113,7 +117,7 @@ const Profile = () => {
 							</Typography>
 						</Box>
 						<Box>
-							{authorID ?<Button
+							{!isUser ?<Button
 								buttonStyle={{ py: 0 }}
 								borderRadius={40}
 								fontSize={20}

@@ -126,7 +126,7 @@ const Liked = () => {
 								threadID={likedThread.threadID}
 								threadTitle={likedThread.title}
 								threadAuthor={likedThread.authorName}
-								threadDate={likedThread.createdAt}
+								threadCreatedAt={likedThread.createdAt}
 								threadLikeCount={likedThread.likeCount}
 								threadCommentCount={likedThread.commentCount}
 								threadContentSummarised={likedThread.contentSummarised}

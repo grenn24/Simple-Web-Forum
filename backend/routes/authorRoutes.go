@@ -40,6 +40,9 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	authorRouter.GET("/:authorID", func(context *gin.Context) {
 		authorController.GetAuthorByID(context, db)
 	})
+	authorRouter.GET("/user", func(context *gin.Context) {
+		authorController.GetUser(context, db)
+	})
 	authorRouter.POST("", func(context *gin.Context) {
 		authorController.CreateAuthor(context, db)
 	})
@@ -88,10 +91,5 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	// Author Specific Bookmarks
 	authorRouter.GET("/user/bookmarks", func(context *gin.Context) {
 		bookmarkController.GetBookmarkedThreadsByUser(context, db)
-	})
-
-	// User
-	authorRouter.GET("/user", func(context *gin.Context) {
-		authorController.GetUser(context, db)
 	})
 }

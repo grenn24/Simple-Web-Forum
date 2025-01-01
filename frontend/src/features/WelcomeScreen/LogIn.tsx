@@ -27,7 +27,6 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 				navigate("../Following");
 			},
 			(err) => {
-				console.log(err)
 				const responseBody = err.data;
 				if (responseBody.error_code === "UNAUTHORISED") {
 					setError("email", {

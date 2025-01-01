@@ -125,7 +125,7 @@ const Bookmarked = () => {
 								threadID={bookmarkedThread.threadID}
 								threadTitle={bookmarkedThread.title}
 								threadAuthor={bookmarkedThread.authorName}
-								threadDate={new Date(bookmarkedThread.createdAt)}
+								threadCreatedAt={new Date(bookmarkedThread.createdAt)}
 								threadLikeCount={bookmarkedThread.likeCount}
 								threadCommentCount={bookmarkedThread.commentCount}
 								threadContentSummarised={bookmarkedThread.contentSummarised}
