@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -55,7 +56,7 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 		return
 	}
 
-	jwtToken, responseErr := authenticationService.LogIn(logInRequest.Email, logInRequest.Password)
+	jwtToken, refreshToken, responseErr := authenticationService.LogIn(logInRequest.Email, logInRequest.Password)
 
 	if responseErr != nil && responseErr.ErrorCode == "UNAUTHORISED" {
 		context.JSON(http.StatusUnauthorized, responseErr)
@@ -67,8 +68,9 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 		return
 	}
 
-	// Return the newly created jwt token in a cookie
-	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
+	// Send the cookies containing the newly created jwt and refresh tokens
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/authentication/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("REFRESH_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -76,6 +78,7 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 	})
 }
 
+// Issue authentication tokens (jwt and refresh token)
 func (authenticationController *AuthenticationController) SignUp(context *gin.Context, db *sql.DB) {
 	authenticationService := authenticationController.AuthenticationService
 
@@ -117,8 +120,8 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 	}
 
 	// Return the newly created jwt token and refresh token in http response header as cookies
-	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
-	context.Writer.Header().Add("Set-Cookie", "refreshToken="+refreshToken+"; Max-Age="+os.Getenv("REFRESH_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -172,11 +175,29 @@ func (authenticationController *AuthenticationController) RefreshJwtToken(contex
 		return
 	}
 
-	context.Writer.Header().Add("Set-Cookie", "jwtToken="+jwtToken+"; Max-Age="+os.Getenv("JWT_TOKEN_MAX_AGE")+"; Path=/; HttpOnly; Secure; SameSite=None")
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Jwt Token refreshed successfully!",
 	})
 
+}
+
+/*
+Authentication tokens need to be deleted on logout
+Since the cookies storing auth tokens are set to httponly, they cannot be accessed or modified or deleted on the client-side.
+Cookies can be indirectly deleted by sending over new cookies from the api with a max-age of 0
+*/
+func (authenticationController *AuthenticationController) LogOut(context *gin.Context, db *sql.DB) {
+	jwtToken, _ := context.Cookie("jwtToken")
+	refreshToken, _ := context.Cookie("refreshToken")
+	// Return the expired cookies
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, 0, os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/authentication/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, 0, os.Getenv("DOMAIN_NAME")))
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Logged out successfully!",
+	})
 }

@@ -39,7 +39,7 @@ import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize
 import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
 import { useForm, Controller } from "react-hook-form";
-import { ThreadExpandedDTO } from "../dtos/ThreadDTOs.tsx";
+import { ThreadExpandedDTO } from "../dtos/ThreadDTO.tsx";
 import MenuExpandedIconsBookmarkTrue from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkTrue.tsx";
 import MenuExpandedIconsBookmarkFalse from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
 import { dateToTimeYear } from "../utilities/dateToString.tsx";
@@ -122,7 +122,7 @@ const Thread = () => {
 						topicsTagged: responseBody.topics_tagged
 							? responseBody.topics_tagged.map((topic: any) => ({
 									topicID: topic.topic_id,
-									topicName: topic.topic_name,
+									name: topic.name,
 							  }))
 							: [],
 						bookmarkStatus: responseBody.bookmark_status,

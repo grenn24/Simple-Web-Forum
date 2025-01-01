@@ -76,6 +76,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					})}
 					error={!!errors.name}
 					helperText={errors.name ? (errors.name.message as String) : null}
+					fullWidth
 				/>
 				<br />
 				<br />
@@ -96,6 +97,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					helperText={
 						errors.username ? (errors.username.message as String) : null
 					}
+					fullWidth
 				/>
 				<br />
 				<br />
@@ -112,6 +114,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					})}
 					error={!!errors.email}
 					helperText={errors.email ? (errors.email.message as String) : null}
+					fullWidth
 				/>
 				<br />
 				<br />
@@ -131,6 +134,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 					helperText={
 						errors.password ? (errors.password.message as String) : null
 					}
+					fullWidth
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>
 					Submit

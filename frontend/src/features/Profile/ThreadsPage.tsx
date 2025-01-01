@@ -1,11 +1,11 @@
 import { Box, Typography } from "@mui/material";
 import List from "../../components/List";
-import {dateToTimeYear} from "../../utilities/dateToString";
+import { dateToTimeYear } from "../../utilities/dateToString";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
-import { ThreadCardDTO } from "../../dtos/ThreadDTOs";
+import { ThreadCardDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
 import removeFromArray from "../../utilities/removeFromArray";
 

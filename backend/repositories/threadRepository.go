@@ -135,7 +135,7 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 	//Close rows after finishing query
 	defer rows.Close()
 
-	var threads []*dtos.ThreadGridCard
+	threads := make([]*dtos.ThreadGridCard, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread with author name struct

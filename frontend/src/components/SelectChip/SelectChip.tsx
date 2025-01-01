@@ -11,6 +11,8 @@ import {
 	SelectChangeEvent,
 } from "@mui/material";
 import { useState } from "react";
+import removeFromArray from "../../utilities/removeFromArray";
+import checkAnagrams from "../../utilities/checkAnagrams";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -54,9 +56,29 @@ export default function SelectChip({
 		setTopicsSelected(typeof value === "string" ? value.split(",") : value);
 	};
 
+	const handleCustomTopicType = (
+		event: React.ChangeEvent<HTMLInputElement>
+	) => {
+		setCustomTopicField(event.target.value);
+	};
+
+	const handleAddCustomTopicToTopicsSelected = (event: React.KeyboardEvent) => {
+		if (event.key === "Enter") {
+			let customTopics = customTopicField.split(",");
+			//check if custom topics are already inside topics selected
+			customTopics.forEach((customTopic, index) => {
+				if (checkAnagrams(topicsSelected, customTopic)) {
+					customTopics = removeFromArray(customTopics, index);
+				}
+			});
+			setTopicsSelected([...topicsSelected, ...customTopics]);
+			setCustomTopicField("");
+		}
+	};
+
 	return (
 		<>
-			<FormControl fullWidth>
+			<FormControl fullWidth style={{ userSelect: "none" }}>
 				<InputLabel id="demo-multiple-chip-label">Topics</InputLabel>
 				<Select
 					labelId="demo-multiple-chip-label"
@@ -77,6 +99,9 @@ export default function SelectChip({
 							: () => null
 					}
 					MenuProps={MenuProps}
+					onKeyDownCapture={(event) =>
+						event.key !== "Enter" && event.stopPropagation()
+					}
 				>
 					{predefinedTopics.map((topic) => (
 						<MenuItem
@@ -108,17 +133,9 @@ export default function SelectChip({
 							onClick={(event) => event.stopPropagation()}
 							fullWidth
 							autoComplete="off"
-							onChange={(event) => setCustomTopicField(event.target.value)}
+							onChange={handleCustomTopicType}
 							value={customTopicField}
-							onKeyDown={(event) => {
-								if (event.key === "Enter") {
-									setTopicsSelected(
-										topicsSelected.concat(customTopicField.split(","))
-									);
-									setCustomTopicField("");
-									console.log(customTopicField);
-								}
-							}}
+							onKeyDown={handleAddCustomTopicToTopicsSelected}
 						/>
 					</MenuItem>
 				</Select>

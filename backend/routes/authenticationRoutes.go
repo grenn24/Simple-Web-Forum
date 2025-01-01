@@ -27,4 +27,8 @@ func AuthenticationRoutes(router *gin.Engine, db *sql.DB) {
 	authenticationRouter.GET("/refresh-jwt-token", func(context *gin.Context) {
 		authenticationController.RefreshJwtToken(context, db)
 	})
+
+	authenticationRouter.GET("/log-out", func(context *gin.Context) {
+		authenticationController.LogOut(context, db)
+	})
 }

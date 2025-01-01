@@ -11,8 +11,7 @@ import Menu from "../components/Menu";
 import sortingMenuIcons from "../features/Liked/sortingMenuIcons";
 import sortingMenuItems from "../features/Liked/sortingMenuItems";
 import { get } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTOs";
-
+import { ThreadCardDTO } from "../dtos/ThreadDTO";
 
 const Liked = () => {
 	const [sortingOrder, setSortingOrder] = useState("Likes (Highest)");
@@ -39,7 +38,7 @@ const Liked = () => {
 						likeCount: likedThread.like_count,
 						commentCount: likedThread.comment_count,
 						likeStatus: likedThread.like_status,
-						bookmarkStatus: likedThread.bookmark_status
+						bookmarkStatus: likedThread.bookmark_status,
 					}));
 					setLikedThreads(likedThreads);
 				},

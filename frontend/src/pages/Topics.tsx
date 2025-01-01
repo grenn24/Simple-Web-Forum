@@ -17,7 +17,7 @@ import {
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { get, postJSON, Delete } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTOs";
+import { ThreadCardDTO } from "../dtos/ThreadDTO";
 
 interface TopicsWithThreads {
 	topicID: number;
@@ -25,7 +25,6 @@ interface TopicsWithThreads {
 	followStatus: boolean;
 	threads: ThreadCardDTO[];
 }
-
 
 interface TopicProp {
 	name: string;
@@ -156,7 +155,7 @@ const Topics = () => {
 				"/topics/threads",
 				(res) => {
 					const responseBody = res.data.data;
-					const topicsWithThreads : TopicsWithThreads[] = responseBody.map(
+					const topicsWithThreads: TopicsWithThreads[] = responseBody.map(
 						(topicWithThread: any) => ({
 							topicID: topicWithThread.topic_id,
 							name: topicWithThread.name,

@@ -61,6 +61,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 					{...register("email", { required: "The email field is required" })}
 					error={!!errors.email}
 					helperText={errors.email ? (errors.email.message as String) : null}
+					fullWidth
 				/>
 				<br />
 				<br />
@@ -75,6 +76,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 					helperText={
 						errors.password ? (errors.password.message as String) : null
 					}
+					fullWidth
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>
 					Submit

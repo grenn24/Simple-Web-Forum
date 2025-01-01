@@ -10,9 +10,9 @@ import {
 import playerGenerator from "../../utilities/playerGenerator";
 import likeSound from "../../assets/audio/like-sound.mp3";
 import { useState, useEffect } from "react";
-import { ThreadCardDTO, TopicDTO } from "../../dtos/ThreadDTOs";
+import { ThreadCardDTO, TopicDTO } from "../../dtos/ThreadDTO";
 import { get } from "../../utilities/apiClient";
-import {dateToTimeYear} from "../../utilities/dateToString";
+import { dateToTimeYear } from "../../utilities/dateToString";
 import { Delete, postJSON } from "../../utilities/apiClient";
 
 interface ThreadCardMiniProp {
@@ -114,9 +114,7 @@ const ThreadCardMini = ({
 						setCount(likeCount - 1);
 						Delete(
 							`/threads/${threadID}/likes/user`,
-							{
-
-							},
+							{},
 							() => {},
 							(err) => console.log(err)
 						);
@@ -125,9 +123,7 @@ const ThreadCardMini = ({
 						setCount(likeCount + 1);
 						postJSON(
 							`/threads/${threadID}/likes/user`,
-							{
-
-							},
+							{},
 							() => {},
 							(err) => console.log(err)
 						);
@@ -190,7 +186,9 @@ const LikesPage = () => {
 						threadID={likedThread.threadID}
 					/>
 				))}
-				listItemsDataValues={likedThreads.map((likedThread) => String(likedThread.threadID))}
+				listItemsDataValues={likedThreads.map((likedThread) =>
+					String(likedThread.threadID)
+				)}
 				handleListItemsClick={new Array(profileDataSample.likes.length).fill(
 					(event: React.MouseEvent<HTMLElement>) =>
 						event.currentTarget.dataset &&

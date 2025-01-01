@@ -51,9 +51,8 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: threadService.DB}
 
-	threadExpanded := new(dtos.ThreadExpanded)
-
 	// Retrieve expanded thread information
+	threadExpanded := new(dtos.ThreadExpanded)
 	thread, err := threadRepository.GetThreadByID(threadID)
 	copier.Copy(threadExpanded, thread)
 
@@ -185,13 +184,11 @@ func (threadService *ThreadService) GetThreadsByTopicID(topicID int) ([]*dtos.Th
 }
 
 // Create a new thread and add it to the topics tagged (if any)
-func (threadService *ThreadService) CreateThread(thread *dtos.ThreadMinimised) *dtos.Error {
+func (threadService *ThreadService) CreateThread(thread *models.Thread) *dtos.Error {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
-	threadWithoutTopics := new(models.Thread)
-	copier.Copy(threadWithoutTopics, thread)
-	threadID, err := threadRepository.CreateThread(threadWithoutTopics)
+	threadID, err := threadRepository.CreateThread(thread)
 
 	// Check for internal server errors
 	if err != nil {

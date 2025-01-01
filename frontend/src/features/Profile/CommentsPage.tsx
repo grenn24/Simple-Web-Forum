@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
-import { CommentDTO } from "../../dtos/ThreadDTOs";
+import { CommentDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
 import { dateToTimeYear } from "../../utilities/dateToString";
 import removeFromArray from "../../utilities/removeFromArray";

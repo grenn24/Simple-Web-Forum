@@ -11,7 +11,7 @@ type AuthorRepository struct {
 }
 
 func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, error) {
-	rows, err := authorRepository.DB.Query("SELECT * FROM author")
+	rows, err := authorRepository.DB.Query("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author")
 
 	if err != nil {
 		return nil, err
@@ -32,7 +32,6 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, err
 			&author.Name,
 			&author.Username,
 			&author.Email,
-			&author.PasswordHash,
 			&author.AvatarIconLink,
 			&author.CreatedAt,
 		)
@@ -52,8 +51,8 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, err
 
 func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) (*models.Author) {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT * FROM author WHERE LOWER(username) = LOWER($1)", username)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.PasswordHash, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(username) = LOWER($1)", username)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -65,8 +64,8 @@ func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) (
 
 func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) (*models.Author) {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT * FROM author WHERE LOWER(email) = LOWER($1)", email)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.PasswordHash, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(email) = LOWER($1)", email)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -76,10 +75,10 @@ func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) (*model
 	return author
 }
 
-func (authorRepository *AuthorRepository) GetAuthorByPassword(password string) (*models.Author) {
+func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash string) (*models.Author) {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT * FROM author WHERE password_hash = $1", password)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.PasswordHash, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE password_hash = $1", passwordHash)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -91,8 +90,8 @@ func (authorRepository *AuthorRepository) GetAuthorByPassword(password string) (
 
 func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*models.Author, error) {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.PasswordHash, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
 
 	// No authors found
 	if err != nil {

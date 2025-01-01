@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -37,24 +36,14 @@ func (authorController *AuthorController) GetAuthorByID(context *gin.Context, db
 	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	author, err := authorService.GetAuthorByID(authorID, userAuthorID)
+	author, responseErr := authorService.GetAuthorByID(authorID, userAuthorID)
 
-	if err != nil {
-		// Check for author not found error
-		if err == sql.ErrNoRows {
-			context.JSON(http.StatusNotFound, dtos.Error{
-				Status:    "error",
-				ErrorCode: "NOT_FOUND",
-				Message:   fmt.Sprintf("No author found for author id: %v", authorID),
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
-		// Check for internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+		context.JSON(http.StatusNotFound, responseErr)
 		return
 	}
 
@@ -68,14 +57,10 @@ func (authorController *AuthorController) GetUser(context *gin.Context, db *sql.
 	authorService := authorController.AuthorService
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	author, err := authorService.GetAuthorByID(userAuthorID, userAuthorID)
+	author, responseErr := authorService.GetAuthorByID(userAuthorID, userAuthorID)
 
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 

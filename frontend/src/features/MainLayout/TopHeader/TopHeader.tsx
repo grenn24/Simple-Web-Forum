@@ -20,7 +20,7 @@ import MenuExpandedDataValues from "./MenuExpandedDataValues";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
-import Cookies from "js-cookie";
+import { get } from "../../../utilities/apiClient";
 
 interface Prop {
 	openLeftNavBar: () => void;
@@ -132,8 +132,11 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 									event.currentTarget.dataset.value &&
 									navigate(event.currentTarget.dataset.value),
 								(event: React.MouseEvent<HTMLElement>) => {
-									Cookies.remove("jwtToken");
-									Cookies.remove("refreshToken");
+									get(
+										"/authentication/log-out",
+										() => {},
+										(err) => console.log(err)
+									);
 									event.currentTarget.dataset.value &&
 										navigate(event.currentTarget.dataset.value);
 								},

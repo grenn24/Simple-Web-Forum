@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -30,34 +31,31 @@ func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, *dtos.Err
 	return authors, nil
 }
 
-func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*models.Author, error) {
+func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*models.Author, *dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	row := authorService.DB.QueryRow("SELECT * FROM author WHERE author_id = $1", authorID)
-
-	// Declare a pointer to a new instance of an author struct
-	author := new(models.Author)
-	if authorID == userAuthorID {
-		isUser := true
-		author.IsUser = &isUser
-	}
-
-	// Scan the current row into the author struct
-	err := row.Scan(
-		&author.AuthorID,
-		&author.Name,
-		&author.Username,
-		&author.Email,
-		&author.PasswordHash,
-		&author.AvatarIconLink,
-		&author.CreatedAt,
-	)
-
-	// Check for any scanning errors
+	author, err := authorRepository.GetAuthorByID(authorID)
 	if err != nil {
-		return nil, err
+		// Check for author not found error
+		if err == sql.ErrNoRows {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   fmt.Sprintf("No author found for author id: %v", authorID),
+			}
+		}
+		// Check for internal server errors
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
 	}
-
-	return author, err
+	if userAuthorID == author.AuthorID {
+		bool := true
+		author.IsUser = &bool
+	}
+	return author, nil
 }
 
 func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Error {

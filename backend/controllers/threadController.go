@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
+	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/services"
 	"github.com/grenn24/simple-web-forum/utils"
 )
@@ -151,7 +152,7 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 	threadService := threadController.ThreadService
 
 	// Declare a pointer to a new instance of a thread struct
-	thread := new(dtos.ThreadMinimised)
+	thread := new(models.Thread)
 
 	err := context.ShouldBind(thread)
 

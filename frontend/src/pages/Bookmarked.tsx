@@ -10,7 +10,7 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortingMenuIcons from "../features/Bookmarked/sortingMenuIcons";
 import sortingMenuItems from "../features/Bookmarked/sortingMenuItems";
-import { ThreadCardDTO } from "../dtos/ThreadDTOs";
+import { ThreadCardDTO } from "../dtos/ThreadDTO";
 import { get } from "../utilities/apiClient";
 
 const Bookmarked = () => {
@@ -39,7 +39,7 @@ const Bookmarked = () => {
 					likeCount: bookmarkedThread.like_count,
 					commentCount: bookmarkedThread.comment_count,
 					likeStatus: bookmarkedThread.like_status,
-					bookmarkStatus: bookmarkedThread.bookmark_status
+					bookmarkStatus: bookmarkedThread.bookmark_status,
 				}));
 				setBookmarkedThreads(bookmarkedThreads);
 			},

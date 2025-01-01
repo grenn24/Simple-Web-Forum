@@ -11,7 +11,7 @@ import Menu from "../components/Menu";
 import sortingMenuItems from "../features/Following/sortingMenuItems";
 import sortingMenuIcons from "../features/Following/sortingMenuIcons";
 import { get } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTOs";
+import { ThreadCardDTO } from "../dtos/ThreadDTO";
 
 const Following = () => {
 	const [sortingOrder, setSortingOrder] = useState("Best");

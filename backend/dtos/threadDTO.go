@@ -7,7 +7,7 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 )
 
-// Thread Grid Card
+// Thread Grid Card (without like, comment count) for viewing in a grid
 type ThreadGridCard struct {
 	ThreadID          int             `json:"thread_id" `
 	Title             string          `json:"title"`
@@ -23,7 +23,7 @@ type ThreadGridCard struct {
 	ImageLink      *string `json:"image_link,omitempty" `
 }
 
-// Thread Card with Like Status, Like Count, Comment Count, TopicsTagged
+// Thread Card (with like, comment count etc.) for viewing in horizontal rows
 type ThreadCard struct {
 	ThreadID          int             `json:"thread_id" `
 	Title             string          `json:"title"`
@@ -42,7 +42,7 @@ type ThreadCard struct {
 	ImageLink      *string `json:"image_link,omitempty" `
 }
 
-// Thread with all relevant information including comments
+// Thread with all relevant information for viewing in a page
 type ThreadExpanded struct {
 	ThreadID     int                `json:"thread_id"`
 	Title        string             `json:"title"`
@@ -61,13 +61,13 @@ type ThreadExpanded struct {
 	ImageLink      *string `json:"image_link,omitempty"`
 }
 
-// Thread Model with Topics Tagged field
+// Thread Minimised (without author name and content) for viewing in profile settings
 type ThreadMinimised struct {
-	ThreadID     int             `json:"thread_id" db:"thread_id"`
-	Title        string          `json:"title" db:"title"`
-	AuthorID     int             `json:"author_id" db:"author_id" `
+	ThreadID     int      `json:"thread_id" db:"thread_id"`
+	Title        string   `json:"title" db:"title"`
+	AuthorID     int      `json:"author_id" db:"author_id" `
 	TopicsTagged []string `json:"topics_tagged"`
 	//Optional JSON Fields
-	ImageTitle   *string         `json:"image_title,omitempty" db:"image_title"`
-	ImageLink    *string         `json:"image_link,omitempty"  db:"image_link"`
+	ImageTitle *string `json:"image_title,omitempty" db:"image_title"`
+	ImageLink  *string `json:"image_link,omitempty"  db:"image_link"`
 }

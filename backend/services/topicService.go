@@ -54,16 +54,14 @@ func (topicService *TopicService) GetTopicByName(name string) (*models.Topic, *d
 	return topic, nil
 }
 
+// Get all topics with threads tagged to it (filters out topics with no threads)
 func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
 
-	topicsWithThreads := make([]*dtos.TopicWithThreads, 0)
-
 	// Retrieve all topics with follow status
-	topics, err := topicRepository.GetAllTopicsWithFollowStatus(userAuthorID)
-
+	topicsWithFollowStatus, err := topicRepository.GetAllTopicsWithFollowStatus(userAuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -72,10 +70,17 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 		}
 	}
 
-	// For each topic, retrieve the threads associated with it
-	for _, topic := range topics {
+	topicsWithThreads := make([]*dtos.TopicWithThreads, 0)
 
-		threads, err := threadRepository.GetThreadsByTopicID(topic.TopicID)
+	// For each topic, retrieve the threads associated with it
+	for _, topicWithFollowStatus := range topicsWithFollowStatus {
+		
+		threads, err := threadRepository.GetThreadsByTopicID(topicWithFollowStatus.TopicID)
+
+		// Skip if the topic has no threads
+		if len(threads) == 0 {
+			continue
+		}
 
 		if err != nil {
 			return nil, &dtos.Error{
@@ -85,36 +90,18 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 			}
 		}
 
-		threadGridCards := make([]*dtos.ThreadGridCard, 0)
-
-		// Copy the fields from thread model struct to thread grid card dto struct
+		// For each thread, retrieve other necessary fields
 		for _, thread := range threads {
-			threadGridCard := new(dtos.ThreadGridCard)
-			err = copier.Copy(threadGridCard, thread)
-
 			// Truncate content
-			threadGridCard.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
+			thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
 			// Get bookmark status
 			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
-			threadGridCard.BookmarkStatus = &bookmarkStatus
-
-			threadGridCards = append(threadGridCards, threadGridCard)
-
-			if err != nil {
-				return nil, &dtos.Error{
-					Status:    "error",
-					ErrorCode: "INTERNAL_SERVER_ERROR",
-					Message:   err.Error(),
-				}
-			}
+			thread.BookmarkStatus = &bookmarkStatus
 		}
 
-		topicWithThreads := &dtos.TopicWithThreads{
-			TopicID:      topic.TopicID,
-			Name:         topic.Name,
-			FollowStatus: topic.FollowStatus,
-			Threads:      threadGridCards,
-		}
+		topicWithThreads := new(dtos.TopicWithThreads)
+		copier.Copy(topicWithThreads, topicWithFollowStatus)
+		topicWithThreads.Threads = threads
 		topicsWithThreads = append(topicsWithThreads, topicWithThreads)
 	}
 
