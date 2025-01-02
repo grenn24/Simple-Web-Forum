@@ -73,8 +73,19 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 	return thread, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*models.Thread, error) {
-	rows, err := threadRepository.DB.Query(fmt.Sprintf("SELECT * FROM thread WHERE author_id = %v", authorID))
+func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+	rows, err := threadRepository.DB.Query(fmt.Sprintf(`
+		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread.author_id, thread.image_title, thread.image_link, thread.like_count,
+		CASE 
+			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+			THEN TRUE 
+			ELSE FALSE 
+		END AS archive_status
+		FROM thread
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = thread.author_id
+		WHERE thread.author_id = %v
+		
+	`, authorID))
 
 	if err != nil {
 		return nil, err
@@ -83,22 +94,23 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	//Close rows after finishing query
 	defer rows.Close()
 
-	threads := make([]*models.Thread, 0)
+	threads := make([]*dtos.ThreadCard, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread struct
-		thread := new(models.Thread)
+		thread := new(dtos.ThreadCard)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&thread.ThreadID,
 			&thread.Title,
 			&thread.CreatedAt,
-			&thread.Content,
+			&thread.ContentSummarised,
 			&thread.AuthorID,
 			&thread.ImageTitle,
 			&thread.ImageLink,
 			&thread.LikeCount,
+			&thread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors

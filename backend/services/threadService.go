@@ -131,7 +131,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	return threadExpanded, nil
 }
 
-func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadGridCard, *dtos.Error) {
+func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
@@ -146,12 +146,10 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.
 	}
 
 	// Retrieve the topics array for each thread
-	threadsWithTopics := make([]*dtos.ThreadGridCard, 0)
+	threadsWithTopics := make([]*dtos.ThreadCard, 0)
 	for _, thread := range threads {
-		threadWithTopics := new(dtos.ThreadGridCard)
-		copier.Copy(threadWithTopics, thread)
 		topics, err := topicRepository.GetTopicsByThreadID(thread.ThreadID)
-		threadWithTopics.TopicsTagged = topics
+		thread.TopicsTagged = topics
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",
@@ -159,17 +157,53 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.
 				Message:   err.Error(),
 			}
 		}
-		threadWithTopics.ContentSummarised = utils.TruncateString(thread.Content, 10)
-		threadWithTopics.AuthorName = authorRepository.GetAuthorNameByAuthorID(thread.AuthorID)
-		threadsWithTopics = append(threadsWithTopics, threadWithTopics)
+		thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
+		thread.AuthorName = authorRepository.GetAuthorNameByAuthorID(thread.AuthorID)
+		threadsWithTopics = append(threadsWithTopics, thread)
 	}
 
 	return threadsWithTopics, nil
 }
 
-func (threadService *ThreadService) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadGridCard, error) {
+func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorID int) (*dtos.TopicWithThreads, *dtos.Error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
-	return threadRepository.GetThreadsByTopicID(topicID)
+	bookmarkRepository := &repositories.BookmarkRepository{DB: threadService.DB}
+	archiveRepository := &repositories.ArchiveRepository{DB: threadService.DB}
+	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
+
+	topic, err := topicRepository.GetTopicByID(topicID, userAuthorID)
+	if err != nil || err == sql.ErrNoRows {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "TOPIC_DOES_NOT_EXIST",
+			Message:   fmt.Sprintf("No topics found with topic id: %v", topicID),
+		}
+	}
+
+	threads, err := threadRepository.GetThreadsByTopicID(topicID)
+
+	// Check for internal server errors
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	for _, thread := range threads {
+		// Truncate content
+		thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
+		// Get bookmark and archive status
+		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+		thread.BookmarkStatus = &bookmarkStatus
+		archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+		thread.ArchiveStatus = &archiveStatus
+	}
+
+	topic.Threads = threads
+	return topic, nil
+
 }
 
 // Create a new thread and add it to the topics tagged (if any)

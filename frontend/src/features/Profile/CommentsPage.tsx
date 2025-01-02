@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -12,6 +12,7 @@ import {removeFromArray} from "../../utilities/arrayManipulation";
 const CommentsPage = () => {
 	const navigate = useNavigate();
 	const [comments, setComments] = useState<CommentDTO[]>([]);
+	const [isLoading, setIsLoading] = useState(true)
 	useEffect(() => {
 		get(
 			"/authors/user/comments",
@@ -34,13 +35,16 @@ const CommentsPage = () => {
 				}));
 
 				setComments(comments);
+				setIsLoading(false);
 			},
 			(err) => console.log(err)
 		);
 	}, []);
 	return (
-		<Box width="100%">
+		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+			{isLoading && <CircularProgress size={70} />}
 			<List
+				listStyle={{ width: "100%" }}
 				listItemsArray={comments.map((comment, index) => {
 					return (
 						<>
@@ -91,9 +95,10 @@ const CommentsPage = () => {
 											<Button
 												key={topic.topicID}
 												disableRipple
-												handleButtonClick={() =>
-													navigate(`../Topics?topicName=${topic}`)
-												}
+												handleButtonClick={(event) => {
+													event.stopPropagation();
+													navigate(`../Topics/${topic.topicID}`);
+												}}
 												fontFamily="Open Sans"
 												buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
 												color="text.secondary"

@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import profileDataSample from "./profileDataSample";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,7 @@ interface ThreadCardMiniProp {
 	title: string;
 	createdAt: string;
 	initialLikeCount: number;
-	topicsTagged: string[];
+	topicsTagged: TopicDTO[];
 	likeCount: number;
 	contentSummarised: string;
 	initialLikeStatus: boolean;
@@ -67,23 +67,22 @@ const ThreadCardMini = ({
 			>
 				{topicsTagged.map((topic) => {
 					return (
-					
-							<Button
-							key={topic}
-								disableRipple
-								handleButtonClick={() =>
-									navigate(`../Topics?topicName=${topic}`)
-								}
-								fontFamily="Open Sans"
-								buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
-								color="text.secondary"
-								fontSize={12}
-								variant="outlined"
-								backgroundColor="primary.light"
-							>
-								{topic}
-							</Button>
-						
+						<Button
+							key={topic.topicID}
+							disableRipple
+							handleButtonClick={(event) => {
+								event.stopPropagation();
+								navigate(`../Topics/${topic.topicID}`);
+							}}
+							fontFamily="Open Sans"
+							buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
+							color="text.secondary"
+							fontSize={12}
+							variant="outlined"
+							backgroundColor="primary.light"
+						>
+							{topic.name}
+						</Button>
 					);
 				})}
 			</Typography>
@@ -140,6 +139,7 @@ const ThreadCardMini = ({
 const LikesPage = () => {
 	const navigate = useNavigate();
 	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(
 		() =>
@@ -161,9 +161,10 @@ const LikesPage = () => {
 						likeCount: likedThread.like_count,
 						commentCount: likedThread.comment_count,
 						likeStatus: likedThread.like_status,
-						topicsTagged: likedThread.topics_tagged,
+						topicsTagged: likedThread.topics_tagged.map((topic:any)=>({topicID: topic.topic_id, name: topic.name})),
 					}));
 					setLikedThreads(likedThreads);
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
@@ -171,16 +172,16 @@ const LikesPage = () => {
 	);
 
 	return (
-		<Box width="100%">
+		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+			{isLoading && <CircularProgress size={70} />}
 			<List
+				listStyle={{ width: "100%" }}
 				listItemsArray={likedThreads.map((likedThread, _) => (
 					<ThreadCardMini
 						title={likedThread.title}
 						createdAt={dateToTimeYear(likedThread.createdAt, "short")}
 						initialLikeStatus={likedThread.likeStatus}
-						topicsTagged={likedThread.topicsTagged.map(
-							(topic: TopicDTO) => topic.name
-						)}
+						topicsTagged={likedThread.topicsTagged}
 						likeCount={likedThread.likeCount}
 						contentSummarised={likedThread.contentSummarised}
 						initialLikeCount={likedThread.likeCount}

@@ -2,19 +2,17 @@ import axios from "axios";
 import { AxiosResponse } from "axios";
 
 const apiClient = axios.create({
-	baseURL: "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/api",
+	baseURL: "https://nus-gossips-6a2501962208.herokuapp.com/api",
 });
 
 apiClient.interceptors.response.use(
 	// status code within 2xx
-	function (response) {
-		return response;
-	},
+	(response) => response,
 	// status code outside 2xx
-	function (error) {
-		console.log(error)
+	(error) => {
+		console.log(error);
 		// check if error is caused by expired jwt token
-		const errResponseBody = error.response.data
+		const errResponseBody = error.response.data;
 		if (errResponseBody.error_code === "INVALID_TOKEN") {
 			apiClient
 				.get("/authentication/refresh-jwt-token", { withCredentials: true })

@@ -8,17 +8,10 @@ import (
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/repositories"
 	"github.com/grenn24/simple-web-forum/utils"
-	"github.com/jinzhu/copier"
 )
 
 type TopicService struct {
 	DB *sql.DB
-}
-
-func (topicService *TopicService) GetAllTopics() ([]*models.Topic, error) {
-	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
-
-	return topicRepository.GetAllTopics()
 }
 
 func (topicService *TopicService) GetTopicsByThreadID(threadID int) ([]*models.Topic, *dtos.Error) {
@@ -54,15 +47,15 @@ func (topicService *TopicService) GetTopicByName(name string) (*models.Topic, *d
 	return topic, nil
 }
 
-// Get all topics with threads tagged to it (filters out topics with no threads)
+// Get all topics with threads tagged to it
 func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*dtos.TopicWithThreads, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
 	archiveRepository := &repositories.ArchiveRepository{DB: topicService.DB}
 
-	// Retrieve all topics with follow status
-	topicsWithFollowStatus, err := topicRepository.GetAllTopicsWithFollowStatus(userAuthorID)
+	// Retrieve all topics
+	topicsWithThreads, err := topicRepository.GetAllTopics(userAuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -71,16 +64,10 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 		}
 	}
 
-	topicsWithThreads := make([]*dtos.TopicWithThreads, 0)
 	// For each topic, retrieve the threads associated with it
-	for _, topicWithFollowStatus := range topicsWithFollowStatus {
+	for _, topicWithThreads := range topicsWithThreads {
 
-		threads, err := threadRepository.GetThreadsByTopicID(topicWithFollowStatus.TopicID)
-
-		// Skip if the topic has no threads
-		if len(threads) == 0 {
-			continue
-		}
+		threads, err := threadRepository.GetThreadsByTopicID(topicWithThreads.TopicID)
 
 		if err != nil {
 			return nil, &dtos.Error{
@@ -101,18 +88,15 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 			thread.ArchiveStatus = &archiveStatus
 		}
 
-		topicWithThreads := new(dtos.TopicWithThreads)
-		copier.Copy(topicWithThreads, topicWithFollowStatus)
 		topicWithThreads.Threads = threads
-		topicsWithThreads = append(topicsWithThreads, topicWithThreads)
 	}
 
 	return topicsWithThreads, nil
 }
 
-func (topicService *TopicService) GetAllTopicsWithFollowStatus(authorID int) ([]*dtos.TopicWithFollowStatus, error) {
+func (topicService *TopicService) GetAllTopics(authorID int) ([]*dtos.TopicWithThreads, error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
-	return topicRepository.GetAllTopicsWithFollowStatus(authorID)
+	return topicRepository.GetAllTopics(authorID)
 }
 
 func (topicService *TopicService) CreateTopic(topic *models.Topic) *dtos.Error {

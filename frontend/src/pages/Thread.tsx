@@ -43,13 +43,14 @@ import { ThreadExpandedDTO } from "../dtos/ThreadDTO.tsx";
 import { dateToTimeYear } from "../utilities/dateToString.tsx";
 import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIcons.tsx";
 import handleMenuExpandedItemsClick from "../features/Thread/TopRightMenu/handleMenuExpandedItemsClick.tsx";
+import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading.tsx";
 
 const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
-
 	const [commentSortingOrder, setCommentSortingOrder] = useState("Newest");
+	const [isLoading, setIsLoading] = useState(true);
 
 	const player = playerGenerator(
 		likeSound,
@@ -82,13 +83,13 @@ const Thread = () => {
 		createdAt: new Date(),
 		topicsTagged: [],
 		bookmarkStatus: false,
-		archiveStatus: false
+		archiveStatus: false,
 	});
 	const { threadID } = useParams();
 
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
-	const [archiveStatus, setArchiveStatus] = useState(false)
+	const [archiveStatus, setArchiveStatus] = useState(false);
 	const [commentCount, setCommentCount] = useState(0);
 	const [bookmarkStatus, setBookmarkStatus] = useState(false);
 
@@ -128,16 +129,17 @@ const Thread = () => {
 							  }))
 							: [],
 						bookmarkStatus: responseBody.bookmark_status,
-						archiveStatus: responseBody.archive_status
+						archiveStatus: responseBody.archive_status,
 					};
 
 					setThreadExpanded(threadExpanded);
 					setCommentCount(threadExpanded.commentCount);
 					setLikeCount(threadExpanded.likeCount);
 					setLikeStatus(threadExpanded.likeStatus);
-					setArchiveStatus(threadExpanded.archiveStatus)
+					setArchiveStatus(threadExpanded.archiveStatus);
 					setBookmarkStatus(threadExpanded.bookmarkStatus);
 					setExpandTextField(location.state?.expandTextField);
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
@@ -186,349 +188,358 @@ const Thread = () => {
 						marginTop: 2,
 					}}
 				>
-					<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 2 } }}>
-						<CardHeader
-							avatar={
-								<Menu
-									menuExpandedItemsArray={[]}
-									menuIcon={
-										<Avatar src={threadExpanded.author.avatarIconLink} />
-									}
-									menuStyle={{
-										padding: 0,
-										"&:hover": {
-											filter: "brightness(0.9)",
-										},
-									}}
-									menuIconDataValue="Profile"
-									menuExpandedPosition={{
-										vertical: "top",
-										horizontal: "right",
-									}}
-									dividerPositions={[2]}
-									menuExpandedDataValuesArray={[]}
-									toolTipText="View Profile"
-									showMenuExpandedOnClick={false}
-									handleMenuIconClick={() =>
-										navigate(`../Profile/${threadExpanded.author.authorID}`)
-									}
-								/>
-							}
-							action={
-								<>
+					{isLoading ? (
+						<ThreadCardLoading bodyHeight={350}/>
+					) : (
+						<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 2 } }}>
+							<CardHeader
+								avatar={
 									<Menu
-										menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-										menuExpandedIconsArray={MenuExpandedIcons(bookmarkStatus, archiveStatus)}
-										menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
-										handleMenuExpandedItemsClick={handleMenuExpandedItemsClick(
-											bookmarkStatus,
-											setBookmarkStatus,
-											archiveStatus,
-											setArchiveStatus,
-											threadExpanded.threadID
-										)}
-										closeMenuOnExpandedItemsClick={false}
-										toolTipText="More"
-										scrollLock={true}
+										menuExpandedItemsArray={[]}
+										menuIcon={
+											<Avatar src={threadExpanded.author.avatarIconLink} />
+										}
+										menuStyle={{
+											padding: 0,
+											"&:hover": {
+												filter: "brightness(0.9)",
+											},
+										}}
+										menuIconDataValue="Profile"
+										menuExpandedPosition={{
+											vertical: "top",
+											horizontal: "right",
+										}}
+										dividerPositions={[2]}
+										menuExpandedDataValuesArray={[]}
+										toolTipText="View Profile"
+										showMenuExpandedOnClick={false}
+										handleMenuIconClick={() =>
+											navigate(`../Profile/${threadExpanded.author.authorID}`)
+										}
 									/>
-								</>
-							}
-							title={threadExpanded.author.authorName}
-							titleTypographyProps={{ fontWeight: 750 }}
-							subheader={dateToTimeYear(threadExpanded.createdAt, "long")}
-						/>
-						<Divider />
-
-						<CardContent sx={{ paddingBottom: 0 }}>
-							<Typography
-								variant="h5"
-								color="text.secondary"
-								fontWeight={760}
-								marginBottom={2}
-							>
-								{threadExpanded.title}
-							</Typography>
-							<Typography
-								variant="h6"
-								color="text.secondary"
-								fontFamily="Open Sans"
-								fontSize={17}
-							>
-								{threadExpanded.topicsTagged.map((topic) => {
-									return (
-										<Button
-											key={topic.topicID}
-											disableRipple
-											handleButtonClick={() =>
-												navigate(`../Topics?topicName=${topic}`)
-											}
-											fontFamily="Open Sans"
-											buttonStyle={{ px: 1, py: 0, mx: 0.5 }}
-											color="text.secondary"
-											variant="outlined"
-											backgroundColor="primary.light"
-										>
-											{topic.name}
-										</Button>
-									);
-								})}
-							</Typography>
-
-							{threadExpanded.imageLink ? (
-								<CardMedia
-									component="img"
-									image={threadExpanded.imageLink}
-									sx={{
-										width: "100%",
-										height: "auto",
-										objectFit: "contain",
-										borderRadius: 1.3,
-										my: 3,
-										"&:hover": {
-											cursor: "pointer",
-										},
-									}}
-									onClick={() => setFullScreenImage(true)}
-								/>
-							) : (
-								<br />
-							)}
-						</CardContent>
-						<CardContent sx={{ py: 0 }}>
-							<Typography sx={{ marginBottom: 2 }} textAlign="left">
-								{threadExpanded.content}
-							</Typography>
-						</CardContent>
-
-						<CardActions
-							disableSpacing
-							sx={{
-								display: "flex",
-								justifyContent: "flex-start",
-								marginTop: 1,
-							}}
-						>
-							<Button
-								component="button"
-								role={undefined}
-								variant="outlined"
-								buttonIcon={
-									likeStatus ? (
-										<FavoriteRoundedIcon color="warning" />
-									) : (
-										<FavoriteBorderRoundedIcon />
-									)
 								}
-								color="primary.dark"
-								borderRadius="10px"
-								borderColor="primary.light"
-								buttonStyle={{
-									marginLeft: 1,
-									marginRight: 1,
-								}}
-								handleButtonClick={() => {
-									setLikeStatus(!likeStatus);
+								action={
+									<>
+										<Menu
+											menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
+											menuExpandedIconsArray={MenuExpandedIcons(
+												bookmarkStatus,
+												archiveStatus
+											)}
+											menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
+											handleMenuExpandedItemsClick={handleMenuExpandedItemsClick(
+												bookmarkStatus,
+												setBookmarkStatus,
+												archiveStatus,
+												setArchiveStatus,
+												threadExpanded.threadID
+											)}
+											closeMenuOnExpandedItemsClick={false}
+											toolTipText="More"
+											scrollLock={true}
+										/>
+									</>
+								}
+								title={threadExpanded.author.authorName}
+								titleTypographyProps={{ fontWeight: 750 }}
+								subheader={dateToTimeYear(threadExpanded.createdAt, "long")}
+							/>
+							<Divider />
 
-									if (likeStatus) {
-										setLikeCount(likeCount - 1);
-										Delete(
-											`/threads/${threadID}/likes/user`,
-											{},
-											() => {},
-											(err) => console.log(err)
+							<CardContent sx={{ paddingBottom: 0 }}>
+								<Typography
+									variant="h5"
+									color="text.secondary"
+									fontWeight={760}
+									marginBottom={2}
+								>
+									{threadExpanded.title}
+								</Typography>
+								<Typography
+									variant="h6"
+									color="text.secondary"
+									fontFamily="Open Sans"
+									fontSize={17}
+								>
+									{threadExpanded.topicsTagged.map((topic) => {
+										return (
+											<Button
+												key={topic.topicID}
+												disableRipple
+												handleButtonClick={() =>
+													navigate(`../Topics?topicName=${topic}`)
+												}
+												fontFamily="Open Sans"
+												buttonStyle={{ px: 1, py: 0, mx: 0.5 }}
+												color="text.secondary"
+												variant="outlined"
+												backgroundColor="primary.light"
+											>
+												{topic.name}
+											</Button>
 										);
-									} else {
-										player();
-										setLikeCount(likeCount + 1);
-										postJSON(
-											`/threads/${threadID}/likes/user`,
-											{},
-											() => {},
-											(err) => console.log(err)
-										);
+									})}
+								</Typography>
+
+								{threadExpanded.imageLink ? (
+									<CardMedia
+										component="img"
+										image={threadExpanded.imageLink}
+										sx={{
+											width: "100%",
+											height: "auto",
+											objectFit: "contain",
+											borderRadius: 1.3,
+											my: 3,
+											"&:hover": {
+												cursor: "pointer",
+											},
+										}}
+										onClick={() => setFullScreenImage(true)}
+									/>
+								) : (
+									<br />
+								)}
+							</CardContent>
+							<CardContent sx={{ py: 0 }}>
+								<Typography sx={{ marginBottom: 2 }} textAlign="left">
+									{threadExpanded.content}
+								</Typography>
+							</CardContent>
+
+							<CardActions
+								disableSpacing
+								sx={{
+									display: "flex",
+									justifyContent: "flex-start",
+									marginTop: 1,
+								}}
+							>
+								<Button
+									component="button"
+									role={undefined}
+									variant="outlined"
+									buttonIcon={
+										likeStatus ? (
+											<FavoriteRoundedIcon color="warning" />
+										) : (
+											<FavoriteBorderRoundedIcon />
+										)
 									}
-								}}
-							>
-								{String(likeCount)}
-							</Button>
-							<Button
-								component="button"
-								role={undefined}
-								variant="outlined"
-								buttonIcon={<CommentRoundedIcon />}
-								color="primary.dark"
-								borderRadius="10px"
-								borderColor="primary.light"
-								buttonStyle={{
-									marginRight: 1,
-								}}
-								handleButtonClick={() => {
-									setExpandTextField(true);
-								}}
-							>
-								{String(commentCount)}
-							</Button>
-
-							<Button
-								component="button"
-								role={undefined}
-								variant="outlined"
-								buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
-								color="primary.dark"
-								borderRadius="10px"
-								borderColor="primary.light"
-								buttonStyle={{
-									marginRight: 1,
-								}}
-								handleButtonClick={() => setOpenShareDialog(true)}
-							>
-								Share
-							</Button>
-							<SimpleDialog
-								openDialog={openShareDialog}
-								setOpenDialog={setOpenShareDialog}
-								title="Share"
-								backdropBlur={5}
-								borderRadius={1.3}
-							>
-								<List
-									listItemsArray={["Copy Link", "Share to WhatsApp"]}
-									listIconsArray={[
-										<LinkRoundedIcon sx={{ marginRight: 1 }} />,
-										<WhatsAppIcon sx={{ marginRight: 1 }} />,
-									]}
-									disablePadding
-									handleListItemsClick={[
-										() => {
-											setOpenSnackbar(true);
-										},
-										() => {
-											const currentPathAbsolute = window.location.href;
-											window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
-										},
-									]}
-									listItemsStyles={{ padding: 2.5 }}
-								/>
-								<Snackbar
-									openSnackbar={openSnackbar}
-									setOpenSnackbar={setOpenSnackbar}
-									message="Link copied to clipboard"
-									handleSnackbarClose={() => {
-										const currentPathAbsolute = window.location.href;
-										navigator.clipboard.writeText(currentPathAbsolute);
-										setOpenShareDialog(false);
+									color="primary.dark"
+									borderRadius="10px"
+									borderColor="primary.light"
+									buttonStyle={{
+										marginLeft: 1,
+										marginRight: 1,
 									}}
-									duration={1500}
-								/>
-							</SimpleDialog>
-						</CardActions>
+									handleButtonClick={() => {
+										setLikeStatus(!likeStatus);
 
-						{/* Comment Box */}
-						<CardContent sx={{ display: "flex", justifyContent: "center" }}>
-							{!expandTextField ? (
-								<TextFieldAutosize
-									sx={{
-										width: "100%",
-										marginBottom: 1.5,
-										fontSize: 18,
-										fontFamily: "Nunito",
-										fontWeight: "Medium",
+										if (likeStatus) {
+											setLikeCount(likeCount - 1);
+											Delete(
+												`/threads/${threadID}/likes/user`,
+												{},
+												() => {},
+												(err) => console.log(err)
+											);
+										} else {
+											player();
+											setLikeCount(likeCount + 1);
+											postJSON(
+												`/threads/${threadID}/likes/user`,
+												{},
+												() => {},
+												(err) => console.log(err)
+											);
+										}
 									}}
-									minRows={1}
-									placeholder="Add a comment"
-									onClick={() => {
+								>
+									{String(likeCount)}
+								</Button>
+								<Button
+									component="button"
+									role={undefined}
+									variant="outlined"
+									buttonIcon={<CommentRoundedIcon />}
+									color="primary.dark"
+									borderRadius="10px"
+									borderColor="primary.light"
+									buttonStyle={{
+										marginRight: 1,
+									}}
+									handleButtonClick={() => {
 										setExpandTextField(true);
 									}}
-								/>
-							) : (
-								<Box sx={{ width: "100%" }}>
-									<FormControl fullWidth>
-										<Controller
-											name="comment"
-											control={control}
-											render={() => (
-												<TextFieldAutosize
-													sx={{
-														width: "100%",
-														fontSize: 18,
-														fontFamily: "Nunito",
-														fontWeight: "Medium",
-													}}
-													placeholder="Add a comment"
-													minRows={3}
-													required
-													{...register("comment", { required: true })}
-													autoFocus
-												/>
-											)}
-										/>
-									</FormControl>
-
-									<Box sx={{ display: "flex", justifyContent: "right" }}>
-										<Button
-											buttonIcon={<CancelRoundedIcon sx={{ padding: 0 }} />}
-											color="primary.dark"
-											handleButtonClick={() => {
-												setExpandTextField(false);
-												reset();
-											}}
-										/>
-										<Button
-											buttonIcon={<SendRoundedIcon />}
-											color="primary.dark"
-											handleButtonClick={handleCommentSubmit}
-										/>
-									</Box>
-								</Box>
-							)}
-						</CardContent>
-						<Divider />
-						<CardContent>
-							<Box
-								sx={{ px: 1, py: 0 }}
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-							>
-								<Typography fontFamily="Open Sans" fontSize={18}>
-									{commentCount} Comments
-								</Typography>
-								<Menu
-									menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}
-									menuIcon={<SortRoundedIcon />}
-									variant="text"
-									handleMenuExpandedItemsClick={Array(3).fill(
-										(event: React.MouseEvent<HTMLElement>) =>
-											event.currentTarget.dataset.value &&
-											setCommentSortingOrder(event.currentTarget.dataset.value)
-									)}
-									menuStyle={{ fontFamily: "Open Sans" }}
 								>
-									{commentSortingOrder}
-								</Menu>
-							</Box>
-							<List
-								variant="text"
-								disablePadding
-								listItemsArray={threadExpanded.comments.map((comment) => {
-									return (
-										<Comment
-											id={comment.commentID}
-											key={comment.commentID}
-											author={comment.authorName}
-											likeCount={0}
-											content={comment.content}
-											date={dateToTimeYear(comment.createdAt, "short")}
-											avatarIconLink={comment.avatarIconLink}
-											handleAvatarIconClick={() =>
-												navigate(`../Profile/${comment.authorID}`)
-											}
-										/>
-									);
-								})}
-							/>
-						</CardContent>
-					</Card>
+									{String(commentCount)}
+								</Button>
+
+								<Button
+									component="button"
+									role={undefined}
+									variant="outlined"
+									buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
+									color="primary.dark"
+									borderRadius="10px"
+									borderColor="primary.light"
+									buttonStyle={{
+										marginRight: 1,
+									}}
+									handleButtonClick={() => setOpenShareDialog(true)}
+								>
+									Share
+								</Button>
+								<SimpleDialog
+									openDialog={openShareDialog}
+									setOpenDialog={setOpenShareDialog}
+									title="Share"
+									backdropBlur={5}
+									borderRadius={1.3}
+								>
+									<List
+										listItemsArray={["Copy Link", "Share to WhatsApp"]}
+										listIconsArray={[
+											<LinkRoundedIcon sx={{ marginRight: 1 }} />,
+											<WhatsAppIcon sx={{ marginRight: 1 }} />,
+										]}
+										disablePadding
+										handleListItemsClick={[
+											() => {
+												setOpenSnackbar(true);
+											},
+											() => {
+												const currentPathAbsolute = window.location.href;
+												window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
+											},
+										]}
+										listItemsStyles={{ padding: 2.5 }}
+									/>
+									<Snackbar
+										openSnackbar={openSnackbar}
+										setOpenSnackbar={setOpenSnackbar}
+										message="Link copied to clipboard"
+										handleSnackbarClose={() => {
+											const currentPathAbsolute = window.location.href;
+											navigator.clipboard.writeText(currentPathAbsolute);
+											setOpenShareDialog(false);
+										}}
+										duration={1500}
+									/>
+								</SimpleDialog>
+							</CardActions>
+
+							{/* Comment Box */}
+							<CardContent sx={{ display: "flex", justifyContent: "center" }}>
+								{!expandTextField ? (
+									<TextFieldAutosize
+										sx={{
+											width: "100%",
+											marginBottom: 1.5,
+											fontSize: 18,
+											fontFamily: "Nunito",
+											fontWeight: "Medium",
+										}}
+										minRows={1}
+										placeholder="Add a comment"
+										onClick={() => {
+											setExpandTextField(true);
+										}}
+									/>
+								) : (
+									<Box sx={{ width: "100%" }}>
+										<FormControl fullWidth>
+											<Controller
+												name="comment"
+												control={control}
+												render={() => (
+													<TextFieldAutosize
+														sx={{
+															width: "100%",
+															fontSize: 18,
+															fontFamily: "Nunito",
+															fontWeight: "Medium",
+														}}
+														placeholder="Add a comment"
+														minRows={3}
+														required
+														{...register("comment", { required: true })}
+														autoFocus
+													/>
+												)}
+											/>
+										</FormControl>
+
+										<Box sx={{ display: "flex", justifyContent: "right" }}>
+											<Button
+												buttonIcon={<CancelRoundedIcon sx={{ padding: 0 }} />}
+												color="primary.dark"
+												handleButtonClick={() => {
+													setExpandTextField(false);
+													reset();
+												}}
+											/>
+											<Button
+												buttonIcon={<SendRoundedIcon />}
+												color="primary.dark"
+												handleButtonClick={handleCommentSubmit}
+											/>
+										</Box>
+									</Box>
+								)}
+							</CardContent>
+							<Divider />
+							<CardContent>
+								<Box
+									sx={{ px: 1, py: 0 }}
+									display="flex"
+									justifyContent="space-between"
+									alignItems="center"
+								>
+									<Typography fontFamily="Open Sans" fontSize={18}>
+										{commentCount} Comments
+									</Typography>
+									<Menu
+										menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}
+										menuIcon={<SortRoundedIcon />}
+										variant="text"
+										handleMenuExpandedItemsClick={Array(3).fill(
+											(event: React.MouseEvent<HTMLElement>) =>
+												event.currentTarget.dataset.value &&
+												setCommentSortingOrder(
+													event.currentTarget.dataset.value
+												)
+										)}
+										menuStyle={{ fontFamily: "Open Sans" }}
+									>
+										{commentSortingOrder}
+									</Menu>
+								</Box>
+								<List
+									variant="text"
+									disablePadding
+									listItemsArray={threadExpanded.comments.map((comment) => {
+										return (
+											<Comment
+												id={comment.commentID}
+												key={comment.commentID}
+												author={comment.authorName}
+												likeCount={0}
+												content={comment.content}
+												date={dateToTimeYear(comment.createdAt, "short")}
+												avatarIconLink={comment.avatarIconLink}
+												handleAvatarIconClick={() =>
+													navigate(`../Profile/${comment.authorID}`)
+												}
+											/>
+										);
+									})}
+								/>
+							</CardContent>
+						</Card>
+					)}
 				</Container>
 			</Box>
 			<FullScreenImage

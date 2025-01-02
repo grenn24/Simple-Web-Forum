@@ -62,10 +62,10 @@ function App() {
 							<Route path="Following" element={<Following />} />
 							<Route path="Recommended" element={<Recommended />} />
 							<Route path="Topics" element={<Topics />} />
+							<Route path="Topics/:topicID" element={<Topics />} />
 							<Route path="Bookmarked" element={<Bookmarked />} />
 							<Route path="Liked" element={<Liked />} />
 							<Route path="Settings" element={<Settings />} />
-							<Route path="Profile/:authorID" element={<Profile />} />
 							<Route path="Profile/:authorID" element={<Profile />} />
 							<Route path="Thread/:threadID" element={<Thread />} />
 							<Route path="Create-Thread" element={<CreateThread />} />

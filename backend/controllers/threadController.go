@@ -117,29 +117,19 @@ func (threadController *ThreadController) GetThreadsByUser(context *gin.Context,
 }
 
 func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Context, db *sql.DB) {
-	topicID := context.Param("topicID")
+	topicID := utils.ConvertStringToInt(context.Param("topicID"), context)
+	userAuthorID := utils.GetUserAuthorID(context)
 
 	threadService := threadController.ThreadService
 
-	threads, err := threadService.GetThreadsByTopicID(utils.ConvertStringToInt(topicID, context))
+	threads, responseErr := threadService.GetThreadsByTopicID(topicID, userAuthorID)
 
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	// Check for no threads found
-	if len(threads) == 0 {
-		context.JSON(http.StatusNotFound, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No thread found for topic id: " + topicID,
-		})
+	if responseErr != nil {
+		if responseErr.ErrorCode=="INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusBadRequest, responseErr)
 		return
 	}
 

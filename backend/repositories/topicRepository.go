@@ -11,48 +11,14 @@ type TopicRepository struct {
 	DB *sql.DB
 }
 
-func (topicRepository *TopicRepository) GetAllTopics() ([]*models.Topic, error) {
-	rows, err := topicRepository.DB.Query("SELECT * FROM topic")
-
-	if err != nil {
-		return nil, err
-	}
-
-	//Close rows after finishing query
-	defer rows.Close()
-
-	topics := make([]*models.Topic, 0)
-
-	for rows.Next() {
-		// Declare a pointer to a new instance of a topic struct
-		topic := new(models.Topic)
-
-		// Scan the current row into the topic struct
-		err := rows.Scan(
-			&topic.TopicID,
-			&topic.Name,
-		)
-
-		// Check for any scanning errors
-		if err != nil {
-			return nil, err
-		}
-
-		// Append the scanned topic to topics slice
-		topics = append(topics, topic)
-	}
-
-	return topics, err
-}
-
-func (topicRepository *TopicRepository) GetAllTopicsWithFollowStatus(authorID int) ([]*dtos.TopicWithFollowStatus, error) {
+func (topicRepository *TopicRepository) GetAllTopics(userAuthorID int) ([]*dtos.TopicWithThreads, error) {
 	rows, err := topicRepository.DB.Query(`SELECT DISTINCT topic.topic_id, topic.name,
 	CASE 
         WHEN follow.follower_author_id = $1 THEN TRUE
         ELSE FALSE
     END AS follow_status
 	FROM topic
-	LEFT JOIN follow ON topic.topic_id = follow.followee_topic_id AND follow.follower_author_id = $1`, authorID)
+	LEFT JOIN follow ON topic.topic_id = follow.followee_topic_id AND follow.follower_author_id = $1`, userAuthorID)
 
 	if err != nil {
 		return nil, err
@@ -61,11 +27,11 @@ func (topicRepository *TopicRepository) GetAllTopicsWithFollowStatus(authorID in
 	//Close rows after finishing query
 	defer rows.Close()
 
-	topics := make([]*dtos.TopicWithFollowStatus, 0)
+	topics := make([]*dtos.TopicWithThreads, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a topic struct
-		topic := new(dtos.TopicWithFollowStatus)
+		topic := new(dtos.TopicWithThreads)
 
 		// Scan the current row into the topic struct
 		err := rows.Scan(
@@ -84,6 +50,29 @@ func (topicRepository *TopicRepository) GetAllTopicsWithFollowStatus(authorID in
 	}
 
 	return topics, err
+}
+
+func (topicRepository *TopicRepository) GetTopicByID(topicID int, userAuthorID int) (*dtos.TopicWithThreads, error) {
+	row:= topicRepository.DB.QueryRow(`
+		SELECT topic.topic_id, topic.name,
+		CASE 
+			WHEN follow.follower_author_id = $1 THEN TRUE
+			ELSE FALSE
+		END AS follow_status
+		FROM topic
+		LEFT JOIN follow ON topic.topic_id = follow.followee_topic_id AND follow.follower_author_id = $1
+		WHERE topic.topic_id = $2
+		`, userAuthorID, topicID)
+
+	topic := new(dtos.TopicWithThreads)
+
+	err := row.Scan(
+		&topic.TopicID,
+		&topic.Name,
+		&topic.FollowStatus,
+	)
+
+	return topic, err
 }
 
 func (topicRepository *TopicRepository) GetTopicsByThreadID(threadID int) ([]*models.Topic, error) {

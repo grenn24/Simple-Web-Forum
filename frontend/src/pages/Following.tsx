@@ -12,12 +12,12 @@ import sortOrder from "../features/Following/sortOrder";
 import sortIcons from "../features/Following/sortIcons";
 import { get } from "../utilities/apiClient";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
+import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 
 const Following = () => {
+	const [isLoading, setIsLoading] = useState(true)
 	const [sortIndex, setSortIndex] = useState(0);
-
 	const navigate = useNavigate();
-
 	const [followedThreads, setFollowedThreads] = useState<ThreadCardDTO[]>([]);
 
 	useEffect(
@@ -46,6 +46,7 @@ const Following = () => {
 							archiveStatus: thread.archive_status,
 						}));
 					setFollowedThreads(threads);
+					setIsLoading(false)
 				},
 				(err) => console.log(err)
 			),
@@ -126,6 +127,7 @@ const Following = () => {
 					}}
 					disableGutters
 				>
+					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{followedThreads.map((followedThread) => (
 						<Box key={followedThread.threadID}>
 							<ThreadCard

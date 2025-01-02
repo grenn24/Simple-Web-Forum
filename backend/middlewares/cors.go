@@ -12,7 +12,7 @@ func CORS(context *gin.Context) {
 	secureOrigins := []string{
 		"http://localhost:5173",
 		"https://simple-web-forum.web.app",
-		"simple-web-forum-backend-61723a55a3b5.herokuapp.com",
+		"https://nus-gossips-6a2501962208.herokuapp.com",
 	}
 	origin := context.GetHeader("Origin")
 

@@ -18,6 +18,7 @@ interface Prop {
 	disableRipple?: boolean;
 	variant?: "text" | "button";
 	divider?: boolean;
+	listStyle?: object
 }
 
 const List = ({
@@ -32,11 +33,11 @@ const List = ({
 	disableRipple = false,
 	variant = "button",
 	divider = false,
+	listStyle
 }: Prop) => {
 	return (
-		<>
 			<ListBase
-				sx={{ backgroundColor: backgroundColor }}
+				sx={{ backgroundColor: backgroundColor, ...listStyle}}
 				disablePadding={disablePadding}
 			>
 				{listItemsArray.map((item, index) => (
@@ -69,7 +70,6 @@ const List = ({
 					</Box>
 				))}
 			</ListBase>
-		</>
 	);
 };
 

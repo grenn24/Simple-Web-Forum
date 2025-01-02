@@ -12,8 +12,10 @@ import sortIcons from "../features/Bookmarked/sortIcons";
 import sortOrder from "../features/Bookmarked/sortOrder";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
 import { get } from "../utilities/apiClient";
+import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 
 const Bookmarked = () => {
+	const [isLoading, setIsLoading] = useState(true)
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
 	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadCardDTO[]>(
@@ -45,6 +47,7 @@ const Bookmarked = () => {
 						archiveStatus: thread.archive_status,
 					}));
 				setBookmarkedThreads(threads);
+				setIsLoading(false)
 			},
 			(err) => console.log(err)
 		);
@@ -123,6 +126,7 @@ const Bookmarked = () => {
 					}}
 					disableGutters
 				>
+					{isLoading && <ThreadCardLoading bodyHeight={180}/>}
 					{bookmarkedThreads.map((bookmarkedThread) => (
 						<Box key={bookmarkedThread.threadID}>
 							<ThreadCard

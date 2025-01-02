@@ -21,13 +21,13 @@ func connectToDatabase() {
 	var err error
 
 	/*
-	db connection details for local deployment:
-	connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
-	os.Getenv("simplewebforum_DB_user"),
-	os.Getenv("simplewebforum_DB_password"),
-	os.Getenv("simplewebforum_DB_host"),
-	os.Getenv("simplewebforum_DB_port"),
-	os.Getenv("simplewebforum_DB_name"))
+		db connection details for local deployment:
+		connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
+		os.Getenv("simplewebforum_DB_user"),
+		os.Getenv("simplewebforum_DB_password"),
+		os.Getenv("simplewebforum_DB_host"),
+		os.Getenv("simplewebforum_DB_port"),
+		os.Getenv("simplewebforum_DB_name"))
 	*/
 
 	connectionString := os.Getenv("DATABASE_URL")
@@ -137,12 +137,13 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 }
 
 func main() {
-	//Load the environment variables needed for local deployment
 	/*
+		Load the environment variables needed for local deployment
 		err := godotenv.Load("./environmentVariables.env")
 		if err != nil {
 			log.Fatal("Error loading environment variable file")
-		}*/
+		}
+	*/
 
 	//Create a pointer to a gin.Engine instance
 	var router *gin.Engine = gin.Default()
@@ -150,14 +151,19 @@ func main() {
 	//Connect to postgres database
 	connectToDatabase()
 
-	//Attach cors middleware to router (doesnt work with router group)
+	//Attach cors middleware to router (doesn't work with router groups)
 	router.Use(middlewares.CORS)
+
+	router.Static("/assets", "./dist/assets")
+	router.NoRoute(func(context *gin.Context) {
+		context.File("./dist/index.html")
+	})
 
 	//Set up api routes to handle http requests
 	routes.SetupApiRouter(router, db)
 
 	//Catch missed routes
-	routes.CatchMissedRoutes(router)
+	//routes.CatchMissedRoutes(router)
 
 	//Initialise the database schema
 	InitialiseDatabase(nil, db)

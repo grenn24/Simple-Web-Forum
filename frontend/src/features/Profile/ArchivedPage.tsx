@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
@@ -13,7 +13,7 @@ interface ThreadCardMiniProp {
 	title: string;
 	createdAt: string;
 	initialLikeCount?: number;
-	topicsTagged: string[];
+	topicsTagged: TopicDTO[];
 	likeCount?: number;
 	contentSummarised: string;
 	initialLikeStatus?: boolean;
@@ -78,9 +78,10 @@ const ThreadCardMini = ({
 						<>
 							<Button
 								disableRipple
-								handleButtonClick={() =>
-									navigate(`../Topics?topicName=${topic}`)
-								}
+								handleButtonClick={(event) => {
+									event.stopPropagation();
+									navigate(`../Topics/${topic.topicID}`);
+								}}
 								fontFamily="Open Sans"
 								buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
 								color="text.secondary"
@@ -88,7 +89,7 @@ const ThreadCardMini = ({
 								variant="outlined"
 								backgroundColor="primary.light"
 							>
-								{topic}
+								{topic.name}
 							</Button>
 						</>
 					);
@@ -104,6 +105,7 @@ const ThreadCardMini = ({
 const RemovedPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadCardDTO[]>([]);
+	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(
 		() =>
@@ -124,22 +126,23 @@ const RemovedPage = () => {
 						})),
 					}));
 					setThreads(threads);
+					setIsLoading(false)
 				},
 				(err) => console.log(err)
 			),
 		[]
 	);
 	return (
-		<Box width="100%">
+		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+			{isLoading && <CircularProgress size={70} />}
 			<List
+				listStyle={{ width: "100%" }}
 				listItemsArray={threads.map((thread) => (
 					<ThreadCardMini
 						threadID={thread.threadID}
 						title={thread.title}
 						createdAt={dateToTimeYear(thread.createdAt, "short")}
-						topicsTagged={thread.topicsTagged.map(
-							(topic: TopicDTO) => topic.name
-						)}
+						topicsTagged={thread.topicsTagged}
 						contentSummarised={thread.contentSummarised}
 						setThreads={setThreads}
 						threads={threads}

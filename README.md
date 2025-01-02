@@ -7,8 +7,8 @@ Back-End: GoLang, Gin
 Database: PostgreSQL
 
 **Hosting:**  
-Frontend Server: https://simple-web-forum.web.app/  
-Backend Server: https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/api
+Frontend Server: "https://nus-gossips-6a2501962208.herokuapp.com"
+Backend Server: "https://nus-gossips-6a2501962208.herokuapp.com/api"
 
 ### Backend API Endpoints  
 - /threads/:threadID  

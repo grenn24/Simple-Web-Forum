@@ -12,8 +12,10 @@ import sortIcons from "../features/Liked/sortIcons";
 import sortOrder from "../features/Liked/sortOrder";
 import { get } from "../utilities/apiClient";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
+import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 
 const Liked = () => {
+	const [isLoading, setIsLoading] = useState(true);
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
 	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
@@ -44,6 +46,7 @@ const Liked = () => {
 							archiveStatus: likedThread.archive_status,
 						}));
 					setLikedThreads(likedThreads);
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
@@ -95,9 +98,7 @@ const Liked = () => {
 					<Menu
 						menuExpandedItemsArray={sortOrder}
 						menuExpandedIconsArray={sortIcons}
-						menuExpandedDataValuesArray={sortOrder.map((_, index) =>
-							index
-						)}
+						menuExpandedDataValuesArray={sortOrder.map((_, index) => index)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -125,6 +126,7 @@ const Liked = () => {
 					}}
 					disableGutters
 				>
+					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{likedThreads.map((likedThread) => (
 						<Box key={likedThread.threadID}>
 							<ThreadCard

@@ -15,27 +15,6 @@ type TopicController struct {
 	TopicService *services.TopicService
 }
 
-func (topicController *TopicController) GetAllTopics(context *gin.Context, db *sql.DB) {
-	topicService := topicController.TopicService
-
-	topics, err := topicService.GetAllTopics()
-
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	context.JSON(http.StatusOK, dtos.Success{
-		Status: "success",
-		Data:   topics,
-	})
-}
-
 func (topicController *TopicController) GetTopicsByThreadID(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
@@ -172,10 +151,10 @@ func (topicController *TopicController) GetAllTopicsWithThreads(context *gin.Con
 	})
 }
 
-func (topicController *TopicController) GetAllTopicsWithFollowStatus(context *gin.Context, db *sql.DB) {
+func (topicController *TopicController) GetAllTopics(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
-	topicsWithFollowStatus, responseErr := topicService.GetAllTopicsWithFollowStatus(utils.GetUserAuthorID(context))
+	topicsWithFollowStatus, responseErr := topicService.GetAllTopics(utils.GetUserAuthorID(context))
 
 	if responseErr != nil {
 		// Internal server errors

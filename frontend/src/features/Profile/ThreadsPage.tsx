@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import { dateToTimeYear } from "../../utilities/dateToString";
 import { useNavigate } from "react-router-dom";
@@ -7,11 +7,12 @@ import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { ThreadCardDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
-import {removeFromArray }from "../../utilities/arrayManipulation";
+import { removeFromArray } from "../../utilities/arrayManipulation";
 
 const PostsPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadCardDTO[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
 	useEffect(
 		() =>
 			get(
@@ -31,14 +32,22 @@ const PostsPage = () => {
 						})),
 					}));
 					setThreads(threads);
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
 		[]
 	);
 	return (
-		<Box width="100%">
+		<Box
+			width="100%"
+			display="flex"
+			flexDirection="column"
+			alignItems="center"
+		>
+			{isLoading && <CircularProgress size={70} />}
 			<List
+				listStyle={{ width: "100%" }}
 				listItemsArray={threads.map((thread, index) => {
 					return (
 						<Box key={thread.threadID}>
@@ -92,23 +101,22 @@ const PostsPage = () => {
 							>
 								{thread.topicsTagged.map((topic) => {
 									return (
-							
-											<Button
-												disableRipple
-												handleButtonClick={() =>
-													navigate(`../Topics?topicName=${topic}`)
-												}
-												fontFamily="Open Sans"
-												buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
-												color="text.secondary"
-												fontSize={12}
-												variant="outlined"
-												backgroundColor="primary.light"
-												key={topic.topicID}
-											>
-												{topic.name}
-											</Button>
-										
+										<Button
+											disableRipple
+											handleButtonClick={(event) => {
+												event.stopPropagation();
+												navigate(`../Topics/${topic.topicID}`);
+											}}
+											fontFamily="Open Sans"
+											buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
+											color="text.secondary"
+											fontSize={12}
+											variant="outlined"
+											backgroundColor="primary.light"
+											key={topic.topicID}
+										>
+											{topic.name}
+										</Button>
 									);
 								})}
 							</Typography>
