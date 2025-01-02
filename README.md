@@ -7,8 +7,8 @@ Back-End: GoLang, Gin
 Database: PostgreSQL
 
 **Hosting:**  
-Frontend Server: "https://nus-gossips-6a2501962208.herokuapp.com"  
-Backend Server: "https://nus-gossips-6a2501962208.herokuapp.com/api"
+Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com  
+Backend Server: https://nus-gossips-6a2501962208.herokuapp.com/api
 
 ### Backend API Endpoints  
 - /threads/:threadID  
