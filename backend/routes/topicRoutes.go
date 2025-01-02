@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func TopicRoutes(router *gin.Engine, db *sql.DB) {
+func TopicRoutes(router *gin.RouterGroup, db *sql.DB) {
 	topicRouter := router.Group("/topics")
 	topicRouter.Use(middlewares.ValidateJwtToken)
 

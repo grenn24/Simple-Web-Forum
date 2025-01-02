@@ -4,17 +4,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/grenn24/simple-web-forum/utils"
 )
 
 func CORS(context *gin.Context) {
-	// Specify allowed cross origins, methods, headers
-	secureOriginsSlice := []string{
+	// Specify allowed cross origins
+	secureOrigins := []string{
 		"http://localhost:5173",
 		"https://simple-web-forum.web.app",
+		"simple-web-forum-backend-61723a55a3b5.herokuapp.com",
 	}
 	origin := context.GetHeader("Origin")
 
-	if origin == secureOriginsSlice[0] || origin == secureOriginsSlice[1] {
+	if utils.ArrayContains(secureOrigins, origin) {
 		context.Header("Access-Control-Allow-Origin", origin)
 	}
 

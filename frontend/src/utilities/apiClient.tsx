@@ -2,7 +2,7 @@ import axios from "axios";
 import { AxiosResponse } from "axios";
 
 const apiClient = axios.create({
-	baseURL: "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com",
+	baseURL: "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/api",
 });
 
 apiClient.interceptors.response.use(

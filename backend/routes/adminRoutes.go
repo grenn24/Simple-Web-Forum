@@ -8,7 +8,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func AdminRoutes(router *gin.Engine, db *sql.DB) {
+func AdminRoutes(router *gin.RouterGroup, db *sql.DB) {
 	// Initialise controller handlers
 	topicController := &controllers.TopicController{TopicService: &services.TopicService{
 		DB: db,

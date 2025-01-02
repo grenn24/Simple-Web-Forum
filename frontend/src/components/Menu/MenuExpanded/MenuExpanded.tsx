@@ -6,7 +6,6 @@ import Box from "@mui/material/Box";
 interface Prop {
 	itemsArray: string[];
 	iconsArray?: JSX.Element[];
-	handleCloseMenu: (event: React.MouseEvent<HTMLElement>) => void;
 	defaultSelectedItemIndex?: number;
 	dividerPositions?: number[]; //The index of the element above the dividers;
 	scrollLock?: boolean;
@@ -15,15 +14,17 @@ interface Prop {
 		horizontal: "left" | "right";
 	};
 	showMenuExpanded: HTMLElement | null;
-	dataValuesArray?: string[];
+	setShowMenuExpanded: React.Dispatch<React.SetStateAction<null | HTMLElement>>;
+	dataValuesArray?: string[] | number[];
 	handleMenuExpandedItemsClick?: ((
 		event: React.MouseEvent<HTMLElement>
 	) => void)[];
+	closeMenuOnExpandedItemsClick: boolean;
 }
 const MenuExpanded = ({
 	itemsArray,
 	iconsArray,
-	handleCloseMenu,
+	setShowMenuExpanded,
 	defaultSelectedItemIndex,
 	dividerPositions,
 	scrollLock,
@@ -34,6 +35,7 @@ const MenuExpanded = ({
 	},
 	dataValuesArray = itemsArray,
 	handleMenuExpandedItemsClick,
+	closeMenuOnExpandedItemsClick,
 }: Prop) => {
 	const mappedArray = new Array(
 		Math.max(itemsArray.length, iconsArray ? iconsArray.length : 0)
@@ -45,7 +47,7 @@ const MenuExpanded = ({
 				<Box key={itemsArray[index] ? itemsArray[index] : index}>
 					<MenuItem
 						onClick={(event) => {
-							handleCloseMenu(event);
+							closeMenuOnExpandedItemsClick && setShowMenuExpanded(null);
 							handleMenuExpandedItemsClick &&
 								handleMenuExpandedItemsClick[index](event);
 						}}
@@ -65,6 +67,12 @@ const MenuExpanded = ({
 				</Box>
 			))
 	);
+	const handleCloseMenu = (
+		event: React.MouseEvent<HTMLDivElement, MouseEvent>
+	) => {
+		event.stopPropagation();
+		setShowMenuExpanded(null);
+	};
 	return (
 		<MenuBox
 			sx={{ mt: "45px", zIndex: 2000 }}
@@ -83,7 +91,7 @@ const MenuExpanded = ({
 			keepMounted //Keep children elements in DOM
 			transformOrigin={menuExpandedPosition}
 			open={showMenuExpanded !== null}
-			onClose={handleCloseMenu}
+			onClick={handleCloseMenu}
 			disableScrollLock={!scrollLock}
 			elevation={3}
 		>

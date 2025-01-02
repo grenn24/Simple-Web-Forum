@@ -18,7 +18,7 @@ import { Delete, postJSON } from "../../utilities/apiClient";
 interface ThreadCardMiniProp {
 	threadID: number;
 	title: string;
-	date: string;
+	createdAt: string;
 	initialLikeCount: number;
 	topicsTagged: string[];
 	likeCount: number;
@@ -28,7 +28,7 @@ interface ThreadCardMiniProp {
 const ThreadCardMini = ({
 	threadID,
 	title,
-	date,
+	createdAt,
 	initialLikeStatus,
 	topicsTagged,
 	initialLikeCount,
@@ -56,7 +56,7 @@ const ThreadCardMini = ({
 					fontWeight={600}
 					fontStyle="text.secondary"
 				>
-					{date}
+					{createdAt}
 				</Typography>
 			</Box>
 			<Typography
@@ -67,8 +67,9 @@ const ThreadCardMini = ({
 			>
 				{topicsTagged.map((topic) => {
 					return (
-						<>
+					
 							<Button
+							key={topic}
 								disableRipple
 								handleButtonClick={() =>
 									navigate(`../Topics?topicName=${topic}`)
@@ -82,7 +83,7 @@ const ThreadCardMini = ({
 							>
 								{topic}
 							</Button>
-						</>
+						
 					);
 				})}
 			</Typography>
@@ -143,7 +144,7 @@ const LikesPage = () => {
 	useEffect(
 		() =>
 			get(
-				"/authors/user/likes",
+				"/authors/user/likes?sort=2",
 				(res) => {
 					const responseBody = res.data.data;
 					const likedThreads = responseBody.map((likedThread: any) => ({
@@ -175,7 +176,7 @@ const LikesPage = () => {
 				listItemsArray={likedThreads.map((likedThread, _) => (
 					<ThreadCardMini
 						title={likedThread.title}
-						date={dateToTimeYear(likedThread.createdAt, "short")}
+						createdAt={dateToTimeYear(likedThread.createdAt, "short")}
 						initialLikeStatus={likedThread.likeStatus}
 						topicsTagged={likedThread.topicsTagged.map(
 							(topic: TopicDTO) => topic.name

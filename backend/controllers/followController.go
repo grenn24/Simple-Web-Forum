@@ -33,11 +33,11 @@ func (followController *FollowController) GetAllFollows(context *gin.Context, db
 }
 
 func (followController *FollowController) GetFollowedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
-	authorID := context.Param("authorID")
-
 	followService := followController.FollowService
+	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	follows, responseErr := followService.GetFollowedThreadsByAuthorID(utils.ConvertStringToInt(authorID,context))
+	follows, responseErr := followService.GetFollowedThreadsByAuthorID(authorID, sortIndex)
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -52,10 +52,11 @@ func (followController *FollowController) GetFollowedThreadsByAuthorID(context *
 }
 
 func (followController *FollowController) GetFollowedThreadsByUser(context *gin.Context, db *sql.DB) {
-
 	followService := followController.FollowService
+	authorID := utils.GetUserAuthorID(context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	follows, responseErr := followService.GetFollowedThreadsByAuthorID(utils.GetUserAuthorID(context))
+	follows, responseErr := followService.GetFollowedThreadsByAuthorID(authorID, sortIndex)
 
 	// Check for internal server errors
 	if responseErr != nil {

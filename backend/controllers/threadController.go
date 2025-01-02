@@ -38,6 +38,7 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 
 func (threadController *ThreadController) GetThreadByID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
+	
 
 	threadService := threadController.ThreadService
 

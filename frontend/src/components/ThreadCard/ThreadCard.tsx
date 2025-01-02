@@ -33,9 +33,9 @@ import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
 import { Delete, postJSON } from "../../utilities/apiClient";
-import MenuExpandedIconsBookmarkTrue from "./TopRightMenu/MenuExpandedIconsBookmarkTrue";
-import MenuExpandedIconsBookmarkFalse from "./TopRightMenu/MenuExpandedIconsBookmarkFalse";
 import { dateToYear } from "../../utilities/dateToString";
+import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
+import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -78,6 +78,7 @@ interface Prop {
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	threadLikeStatus: boolean;
 	threadBookmarkStatus: boolean;
+	threadArchiveStatus: boolean
 }
 
 const ThreadCard = ({
@@ -92,6 +93,7 @@ const ThreadCard = ({
 	avatarIconLink,
 	handleAvatarIconClick,
 	threadLikeStatus,
+	threadArchiveStatus,
 	threadBookmarkStatus,
 }: Prop) => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -101,6 +103,7 @@ const ThreadCard = ({
 	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
 	const [likeCount, setLikeCount] = useState(threadLikeCount);
 	const [bookmarkStatus, setBookmarkStatus] = useState(threadBookmarkStatus);
+	const [archiveStatus, setArchiveStatus] = useState(threadArchiveStatus);
 
 	const navigate = useNavigate();
 
@@ -154,36 +157,19 @@ const ThreadCard = ({
 							<>
 								<Menu
 									menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-									menuExpandedIconsArray={
-										bookmarkStatus
-											? MenuExpandedIconsBookmarkTrue
-											: MenuExpandedIconsBookmarkFalse
-									}
-									menuExpandedItemsArray={MenuExpandedItems}
+									menuExpandedIconsArray={MenuExpandedIcons(bookmarkStatus, archiveStatus)}
+									menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
 									toolTipText="More"
 									scrollLock={true}
 									handleMenuIconClick={(event) => event.stopPropagation()}
-									handleMenuExpandedItemsClick={[
-										(event) => event.stopPropagation(),
-										(event) => {
-											event.stopPropagation();
-											setBookmarkStatus(!bookmarkStatus);
-											bookmarkStatus
-												? Delete(
-														`threads/${threadID}/bookmarks/user`,
-														{},
-														() => {},
-														(err) => console.log(err)
-												  )
-												: postJSON(
-														`threads/${threadID}/bookmarks/user`,
-														{},
-														() => {},
-														(err) => console.log(err)
-												  );
-										},
-										(event) => event.stopPropagation(),
-									]}
+									handleMenuExpandedItemsClick={handleMenuExpandedItemsClick(
+										bookmarkStatus,
+										setBookmarkStatus,
+										archiveStatus,
+										setArchiveStatus,
+										threadID
+									)}
+									closeMenuOnExpandedItemsClick={false}
 								/>
 							</>
 						}

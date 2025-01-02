@@ -8,13 +8,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
-import sortingMenuItems from "../features/Following/sortingMenuItems";
-import sortingMenuIcons from "../features/Following/sortingMenuIcons";
+import sortOrder from "../features/Following/sortOrder";
+import sortIcons from "../features/Following/sortIcons";
 import { get } from "../utilities/apiClient";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
 
 const Following = () => {
-	const [sortingOrder, setSortingOrder] = useState("Best");
+	const [sortIndex, setSortIndex] = useState(0);
 
 	const navigate = useNavigate();
 
@@ -23,30 +23,33 @@ const Following = () => {
 	useEffect(
 		() =>
 			get(
-				"./authors/user/follows",
+				"./authors/user/follows?sort="+sortIndex,
 				(res) => {
 					const responseBody = res.data.data;
-					const followedThreads = responseBody.map((likedThread: any) => ({
-						threadID: likedThread.thread_id,
-						title: likedThread.title,
-						contentSummarised: likedThread.content_summarised,
-						authorID: likedThread.author_id,
-						authorName: likedThread.author_name,
-						avatarIconLink: likedThread.avatar_icon_link,
-						createdAt: new Date(likedThread.created_at),
-						likes: likedThread.likes,
-						imageTitle: likedThread.imageTitle,
-						imageLink: likedThread.imageLink,
-						likeCount: likedThread.like_count,
-						commentCount: likedThread.comment_count,
-						likeStatus: likedThread.like_status,
-						bookmarkStatus: likedThread.bookmark_status,
-					}));
-					setFollowedThreads(followedThreads);
+					const threads = responseBody
+						.filter((thread: any) => thread.archive_status === false)
+						.map((thread: any) => ({
+							threadID: thread.thread_id,
+							title: thread.title,
+							contentSummarised: thread.content_summarised,
+							authorID: thread.author_id,
+							authorName: thread.author_name,
+							avatarIconLink: thread.avatar_icon_link,
+							createdAt: new Date(thread.created_at),
+							likes: thread.likes,
+							imageTitle: thread.imageTitle,
+							imageLink: thread.imageLink,
+							likeCount: thread.like_count,
+							commentCount: thread.comment_count,
+							likeStatus: thread.like_status,
+							bookmarkStatus: thread.bookmark_status,
+							archiveStatus: thread.archive_status,
+						}));
+					setFollowedThreads(threads);
 				},
 				(err) => console.log(err)
 			),
-		[]
+		[sortIndex]
 	);
 
 	return (
@@ -92,8 +95,11 @@ const Following = () => {
 						toolTipText="Back"
 					/>
 					<Menu
-						menuExpandedItemsArray={sortingMenuItems}
-						menuExpandedIconsArray={sortingMenuIcons}
+						menuExpandedItemsArray={sortOrder}
+						menuExpandedIconsArray={sortIcons}
+						menuExpandedDataValuesArray={sortOrder.map((_, index) =>
+							index
+						)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -103,14 +109,14 @@ const Following = () => {
 							fontFamily: "Open Sans",
 							color: "text.primary",
 						}}
-						handleMenuExpandedItemsClick={Array(sortingMenuItems.length).fill(
+						handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 							(event: React.MouseEvent<HTMLElement>) =>
 								event.currentTarget.dataset.value &&
-								setSortingOrder(event.currentTarget.dataset.value)
+								setSortIndex(Number(event.currentTarget.dataset.value))
 						)}
 						toolTipText="Sort Options"
 					>
-						{sortingOrder}
+						{sortOrder[sortIndex]}
 					</Menu>
 				</Box>
 				<Container
@@ -134,6 +140,7 @@ const Following = () => {
 								avatarIconLink={followedThread.avatarIconLink}
 								threadLikeStatus={followedThread.likeStatus}
 								threadBookmarkStatus={followedThread.bookmarkStatus}
+								threadArchiveStatus={followedThread.archiveStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${followedThread.authorID}`)
 								}

@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func ThreadRoutes(router *gin.Engine, db *sql.DB) {
+func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter := router.Group("/threads")
 	threadRouter.Use(middlewares.ValidateJwtToken)
 
@@ -27,6 +27,9 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 		DB: db,
 	}}
 	topicController := &controllers.TopicController{TopicService: &services.TopicService{
+		DB: db,
+	}}
+	archiveController := &controllers.ArchiveController{ArchiveService: &services.ArchiveService{
 		DB: db,
 	}}
 
@@ -92,5 +95,13 @@ func ThreadRoutes(router *gin.Engine, db *sql.DB) {
 	})
 	threadRouter.DELETE("/:threadID/bookmarks/user", func(context *gin.Context) {
 		bookmarkController.DeleteUserBookmarkByThreadID(context, db)
+	})
+
+	//Thread Specific Archives
+	threadRouter.POST("/:threadID/archives/user", func(context *gin.Context) {
+		archiveController.CreateUserArchiveByThreadID(context, db)
+	})
+	threadRouter.DELETE("/:threadID/archives/user", func(context *gin.Context) {
+		archiveController.DeleteUserArchiveByThreadID(context, db)
 	})
 }

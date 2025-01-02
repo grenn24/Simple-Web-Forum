@@ -57,19 +57,12 @@ func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort s
 	return comments, nil
 }
 
-func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int, sort string) ([]*dtos.CommentedThread, *dtos.Error) {
+func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int) ([]*dtos.CommentedThread, *dtos.Error) {
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
 	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
 
-	if sort == "newest" {
-		sort = "DESC"
-	} else if sort == "oldest" {
-		sort = "ASC"
-	} else {
-		sort = ""
-	}
 
-	commentedThreads, err := commentRepository.GetCommentedThreadsByAuthorID(authorID, sort)
+	commentedThreads, err := commentRepository.GetCommentedThreadsByAuthorID(authorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",

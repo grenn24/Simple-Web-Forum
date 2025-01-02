@@ -117,27 +117,15 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(authorID int, sort string) ([]*dtos.CommentedThread, error) {
-	var rows *sql.Rows
-	var err error
+func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(authorID int) ([]*dtos.CommentedThread, error) {
 
-	if sort == "" {
-		rows, err = commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.thread_id, thread.title, thread.content, comment.author_id, comment.created_at, comment.content, author.name, author.avatar_icon_link
-		FROM comment 
-		INNER JOIN author ON comment.author_id = author.author_id
-		INNER JOIN thread ON comment.thread_id = thread.thread_id
-		WHERE author.author_id = $1`, authorID)
-	} else {
-		rows, err = commentRepository.DB.Query(`
+	rows, err := commentRepository.DB.Query(`
 		SELECT comment.comment_id, comment.thread_id, thread.title, thread.content, comment.author_id, comment.created_at, comment.content, author.name, author.avatar_icon_link
 		FROM comment 
 		INNER JOIN author ON comment.author_id = author.author_id
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
 		WHERE author.author_id = $1
-		ORDER BY created_at
-		`+sort, authorID)
-	}
+		ORDER BY comment.created_at DESC`, authorID)
 
 	if err != nil {
 		return nil, err
@@ -209,7 +197,7 @@ func (commentRepository *CommentRepository) DeleteCommentByID(commentID int) (in
 
 }
 
-func (commentRepository *CommentRepository) DeleteAllComments() (error) {
+func (commentRepository *CommentRepository) DeleteAllComments() error {
 
 	_, err := commentRepository.DB.Exec("DELETE FROM comment")
 

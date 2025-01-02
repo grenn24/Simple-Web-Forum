@@ -7,7 +7,7 @@ import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { ThreadCardDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
-import removeFromArray from "../../utilities/removeFromArray";
+import {removeFromArray }from "../../utilities/arrayManipulation";
 
 const PostsPage = () => {
 	const navigate = useNavigate();
@@ -92,7 +92,7 @@ const PostsPage = () => {
 							>
 								{thread.topicsTagged.map((topic) => {
 									return (
-										<>
+							
 											<Button
 												disableRipple
 												handleButtonClick={() =>
@@ -108,7 +108,7 @@ const PostsPage = () => {
 											>
 												{topic.name}
 											</Button>
-										</>
+										
 									);
 								})}
 							</Typography>

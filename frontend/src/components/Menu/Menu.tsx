@@ -7,9 +7,10 @@ import { Button, IconButton } from "@mui/material";
 interface Prop {
 	menuExpandedItemsArray: string[];
 	menuExpandedIconsArray?: JSX.Element[];
-	menuExpandedDataValuesArray?: string[];
+	menuExpandedDataValuesArray?: string[] | number[];
 	handleMenuExpandedItemsClick?: ((event: React.MouseEvent<HTMLElement>) => void)[];
 	handleMenuIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
+	closeMenuOnExpandedItemsClick?: boolean;
 	menuIcon: JSX.Element;
 	menuIconDataValue?: string;
 	toolTipText?: string;
@@ -30,6 +31,7 @@ const Menu = ({
 	menuExpandedIconsArray,
 	menuExpandedItemsArray,
 	handleMenuExpandedItemsClick,
+	closeMenuOnExpandedItemsClick=true,
 	handleMenuIconClick,
 	menuIcon,
 	menuIconDataValue,
@@ -48,11 +50,6 @@ const Menu = ({
 	const [showMenuExpanded, setShowMenuExpanded] = useState<null | HTMLElement>(
 		null
 	);
-
-	const handleCloseMenu = (event: React.MouseEvent<HTMLElement>) => {
-		setShowMenuExpanded(null);
-		event.stopPropagation();
-	};
 
 	return (
 		<>
@@ -87,14 +84,15 @@ const Menu = ({
 				<MenuExpanded
 					itemsArray={menuExpandedItemsArray}
 					iconsArray={menuExpandedIconsArray}
-					handleCloseMenu={handleCloseMenu}
 					defaultSelectedItemIndex={defaultSelectedItemIndex}
 					dividerPositions={dividerPositions}
 					scrollLock={scrollLock}
 					showMenuExpanded={showMenuExpanded}
+					setShowMenuExpanded={setShowMenuExpanded}
 					menuExpandedPosition={menuExpandedPosition}
 					dataValuesArray={menuExpandedDataValuesArray}
 					handleMenuExpandedItemsClick={handleMenuExpandedItemsClick}
+					closeMenuOnExpandedItemsClick={closeMenuOnExpandedItemsClick}
 				/>
 			) : null}
 		</>

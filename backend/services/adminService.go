@@ -53,7 +53,8 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			content TEXT NOT NULL,
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
-			image_link TEXT
+			image_link TEXT,
+			like_count INTEGER DEFAULT 0
 		);
 
 		CREATE TABLE IF NOT EXISTS comment (
@@ -97,6 +98,14 @@ func (adminService *AdminService) InitialiseDatabase() error {
 		
 		CREATE TABLE IF NOT EXISTS bookmark (
 			bookmark_id SERIAL PRIMARY KEY,
+			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
+			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (thread_id, author_id),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE TABLE IF NOT EXISTS thread_archive (
+			archive_id SERIAL PRIMARY KEY,
 			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			UNIQUE (thread_id, author_id),

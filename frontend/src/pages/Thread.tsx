@@ -40,9 +40,9 @@ import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
 import { useForm, Controller } from "react-hook-form";
 import { ThreadExpandedDTO } from "../dtos/ThreadDTO.tsx";
-import MenuExpandedIconsBookmarkTrue from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkTrue.tsx";
-import MenuExpandedIconsBookmarkFalse from "../features/Thread/TopRightMenu/MenuExpandedIconsBookmarkFalse.tsx";
 import { dateToTimeYear } from "../utilities/dateToString.tsx";
+import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIcons.tsx";
+import handleMenuExpandedItemsClick from "../features/Thread/TopRightMenu/handleMenuExpandedItemsClick.tsx";
 
 const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -82,11 +82,13 @@ const Thread = () => {
 		createdAt: new Date(),
 		topicsTagged: [],
 		bookmarkStatus: false,
+		archiveStatus: false
 	});
 	const { threadID } = useParams();
 
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
+	const [archiveStatus, setArchiveStatus] = useState(false)
 	const [commentCount, setCommentCount] = useState(0);
 	const [bookmarkStatus, setBookmarkStatus] = useState(false);
 
@@ -126,12 +128,14 @@ const Thread = () => {
 							  }))
 							: [],
 						bookmarkStatus: responseBody.bookmark_status,
+						archiveStatus: responseBody.archive_status
 					};
 
 					setThreadExpanded(threadExpanded);
 					setCommentCount(threadExpanded.commentCount);
 					setLikeCount(threadExpanded.likeCount);
 					setLikeStatus(threadExpanded.likeStatus);
+					setArchiveStatus(threadExpanded.archiveStatus)
 					setBookmarkStatus(threadExpanded.bookmarkStatus);
 					setExpandTextField(location.state?.expandTextField);
 				},
@@ -214,32 +218,16 @@ const Thread = () => {
 								<>
 									<Menu
 										menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-										menuExpandedIconsArray={
-											bookmarkStatus
-												? MenuExpandedIconsBookmarkTrue
-												: MenuExpandedIconsBookmarkFalse
-										}
-										menuExpandedItemsArray={MenuExpandedItems}
-										handleMenuExpandedItemsClick={[
-											() => {},
-											() => {
-												setBookmarkStatus(!bookmarkStatus);
-												bookmarkStatus
-													? Delete(
-															`threads/${threadExpanded.threadID}/bookmarks/user`,
-															{},
-															() => {},
-															(err) => console.log(err)
-													  )
-													: postJSON(
-															`threads/${threadExpanded.threadID}/bookmarks/user`,
-															{},
-															() => {},
-															(err) => console.log(err)
-													  );
-											},
-											() => {},
-										]}
+										menuExpandedIconsArray={MenuExpandedIcons(bookmarkStatus, archiveStatus)}
+										menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
+										handleMenuExpandedItemsClick={handleMenuExpandedItemsClick(
+											bookmarkStatus,
+											setBookmarkStatus,
+											archiveStatus,
+											setArchiveStatus,
+											threadExpanded.threadID
+										)}
+										closeMenuOnExpandedItemsClick={false}
 										toolTipText="More"
 										scrollLock={true}
 									/>

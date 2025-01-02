@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func LikeRoutes(router *gin.Engine, db *sql.DB) {
+func LikeRoutes(router *gin.RouterGroup, db *sql.DB) {
 	likeRouter := router.Group("/likes")
 	likeRouter.Use(middlewares.ValidateJwtToken)
 

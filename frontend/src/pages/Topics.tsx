@@ -125,13 +125,14 @@ const Topics = () => {
 									key={thread.threadID}
 								>
 									<ThreadGridCard
-										threadId={thread.threadID}
+										threadID={thread.threadID}
 										threadAuthorName={thread.authorName}
 										threadTitle={thread.title}
 										threadCreatedAt={thread.createdAt}
 										avatarIconLink={thread.avatarIconLink}
 										threadContentSummarised={thread.contentSummarised}
 										threadinitialBookmarkStatus={thread.bookmarkStatus}
+										
 										handleAvatarIconClick={() => {
 											navigate(`../Profile/${thread.authorID}`);
 										}}
@@ -160,16 +161,18 @@ const Topics = () => {
 							topicID: topicWithThread.topic_id,
 							name: topicWithThread.name,
 							followStatus: topicWithThread.follow_status,
-							threads: topicWithThread.threads.map((thread: any) => ({
-								threadID: thread.thread_id,
-								title: thread.title,
-								authorName: thread.author_name,
-								authorID: thread.author_id,
-								createdAt: new Date(thread.created_at),
-								avatarIconLink: thread.avatar_icon_link,
-								bookmarkStatus: thread.bookmark_status,
-								contentSummarised: thread.content_summarised,
-							})),
+							threads: topicWithThread.threads
+								.filter((thread: any) => thread.archive_status === false)
+								.map((thread: any) => ({
+									threadID: thread.thread_id,
+									title: thread.title,
+									authorName: thread.author_name,
+									authorID: thread.author_id,
+									createdAt: new Date(thread.created_at),
+									avatarIconLink: thread.avatar_icon_link,
+									bookmarkStatus: thread.bookmark_status,
+									contentSummarised: thread.content_summarised,
+								})),
 						})
 					);
 					setTopicsWithThreads(topicsWithThreads);

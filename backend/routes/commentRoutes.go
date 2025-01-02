@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func CommentRoutes(router *gin.Engine, db *sql.DB) {
+func CommentRoutes(router *gin.RouterGroup, db *sql.DB) {
 	commentRouter := router.Group("/comments")
 	commentRouter.Use(middlewares.ValidateJwtToken)
 

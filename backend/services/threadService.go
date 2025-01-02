@@ -39,7 +39,6 @@ func (threadService *ThreadService) GetThreadByID(threadID int) (*models.Thread,
 			Message:   err.Error(),
 		}
 	}
-
 	return thread, nil
 }
 
@@ -50,6 +49,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	commentRepository := &repositories.CommentRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: threadService.DB}
+	archiveRepository := &repositories.ArchiveRepository{DB: threadService.DB}
 
 	// Retrieve expanded thread information
 	threadExpanded := new(dtos.ThreadExpanded)
@@ -88,17 +88,6 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 		}
 	}
 
-	// Retrieve like count
-	likeCount, err := likeRepository.CountLikesByThreadID(threadID)
-	if err != nil {
-		return nil, &dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		}
-	}
-	threadExpanded.LikeCount = likeCount
-
 	// Retrieve commentCount
 	commentCount, err := commentRepository.CountCommentsByThreadID(threadID)
 	if err != nil {
@@ -110,12 +99,12 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	}
 	threadExpanded.CommentCount = commentCount
 
-	// Retrieve like status
+	// Retrieve like, bookmark, archive status
 	threadExpanded.LikeStatus = likeRepository.GetLikeStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
-
-	// Retrieve bookmark status
 	bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
 	threadExpanded.BookmarkStatus = &bookmarkStatus
+	archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
+	threadExpanded.ArchiveStatus = &archiveStatus
 
 	// Retrieve comments
 	comments, err := commentRepository.GetCommentsByThreadID(threadID, "")

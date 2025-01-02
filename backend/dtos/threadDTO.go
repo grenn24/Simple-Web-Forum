@@ -18,6 +18,7 @@ type ThreadGridCard struct {
 	TopicsTagged      []*models.Topic `json:"topics_tagged"`
 	//Optional JSON Fields
 	BookmarkStatus *bool   `json:"bookmark_status,omitempty"`
+	ArchiveStatus  *bool   `json:"archive_status,omitempty"`
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty"`
 	ImageTitle     *string `json:"image_title,omitempty" `
 	ImageLink      *string `json:"image_link,omitempty" `
@@ -37,6 +38,7 @@ type ThreadCard struct {
 	TopicsTagged      []*models.Topic `json:"topics_tagged"`
 	//Optional JSON Fields
 	BookmarkStatus *bool   `json:"bookmark_status,omitempty"`
+	ArchiveStatus  *bool   `json:"archive_status,omitempty"`
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
 	ImageTitle     *string `json:"image_title,omitempty" `
 	ImageLink      *string `json:"image_link,omitempty" `
@@ -56,6 +58,7 @@ type ThreadExpanded struct {
 	LikeStatus   bool               `json:"like_status"`
 	//Optional JSON Fields
 	BookmarkStatus *bool   `json:"bookmark_status,omitempty"`
+	ArchiveStatus  *bool   `json:"archive_status,omitempty"`
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty" `
 	ImageTitle     *string `json:"image_title,omitempty"`
 	ImageLink      *string `json:"image_link,omitempty"`

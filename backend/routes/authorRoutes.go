@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func AuthorRoutes(router *gin.Engine, db *sql.DB) {
+func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter := router.Group("/authors")
 	authorRouter.Use(middlewares.ValidateJwtToken)
 
@@ -30,6 +30,9 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 		DB: db,
 	}}
 	bookmarkController := &controllers.BookmarkController{BookmarkService: &services.BookmarkService{
+		DB: db,
+	}}
+	archiveController := &controllers.ArchiveController{ArchiveService: &services.ArchiveService{
 		DB: db,
 	}}
 
@@ -89,7 +92,18 @@ func AuthorRoutes(router *gin.Engine, db *sql.DB) {
 	})
 
 	// Author Specific Bookmarks
+	authorRouter.GET("/:authorID/bookmarks", func(context *gin.Context) {
+		bookmarkController.GetBookmarkedThreadsByAuthorID(context, db)
+	})
 	authorRouter.GET("/user/bookmarks", func(context *gin.Context) {
 		bookmarkController.GetBookmarkedThreadsByUser(context, db)
+	})
+
+	// Author Specific Archives
+	authorRouter.GET("/:authorID/archives", func(context *gin.Context) {
+		archiveController.GetArchivedThreadsByAuthorID(context, db)
+	})
+	authorRouter.GET("/user/archives", func(context *gin.Context) {
+		archiveController.GetArchivedThreadsByUser(context, db)
 	})
 }

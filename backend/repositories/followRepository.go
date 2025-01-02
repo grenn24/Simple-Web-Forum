@@ -35,28 +35,32 @@ func (followRepository *FollowRepository) DeleteFollowByFollowerFolloweeID(follo
 	return int(rowsDeleted), err
 }
 
-func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+// Threads from followed topics and authors (duplicates removed)
+func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, error) {
+	sortOrder := []string{"", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
 	rows, err := followRepository.DB.Query(`
-		SELECT 
+		SELECT DISTINCT
 			thread.thread_id, 
 			thread.title, 
 			thread.created_at, 
 			thread.content, 
 			thread.author_id, 
-			author.name, 
+			thread_author.name, 
 			thread.image_title, 
-			thread.image_link
+			thread.image_link,
+			thread.like_count,
+		CASE 
+			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+			THEN TRUE 
+			ELSE FALSE 
+    	END AS archive_status
 		FROM follow
-		LEFT JOIN threadTopicJunction 
-			ON threadTopicJunction.topic_id = follow.followee_topic_id
-		LEFT JOIN thread 
-			ON thread.author_id = follow.followee_author_id 
-			OR thread.thread_id = threadTopicJunction.thread_id
-		LEFT JOIN author 
-			ON thread.author_id = author.author_id
-		WHERE thread.thread_id IS NOT NULL 
-			AND follow.follower_author_id = $1
-	`, authorID)
+		LEFT JOIN threadTopicJunction ON threadTopicJunction.topic_id = follow.followee_topic_id
+		LEFT JOIN thread ON thread.author_id = follow.followee_author_id OR thread.thread_id = threadTopicJunction.thread_id
+		LEFT JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = follow.follower_author_id
+		WHERE thread.thread_id IS NOT NULL AND follow.follower_author_id = $1
+	`+sortOrder[sortIndex], authorID)
 
 	if err != nil {
 		return nil, err
@@ -81,6 +85,8 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			&followedThread.AuthorName,
 			&followedThread.ImageTitle,
 			&followedThread.ImageLink,
+			&followedThread.LikeCount,
+			&followedThread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors

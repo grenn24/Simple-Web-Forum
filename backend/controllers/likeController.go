@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,13 +44,15 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 
 func (likeController *LikeController) GetLikedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	authorID := context.Param("authorID")
 
-	likes, responseErr := likeService.GetLikedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
+	likes, responseErr := likeService.GetLikedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context), sortIndex)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
+		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
@@ -62,10 +63,11 @@ func (likeController *LikeController) GetLikedThreadsByAuthorID(context *gin.Con
 
 func (likeController *LikeController) GetLikedThreadsByUser(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	likes, responseErr := likeService.GetLikedThreadsByAuthorID(userAuthorID)
+	likes, responseErr := likeService.GetLikedThreadsByAuthorID(userAuthorID, sortIndex)
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -138,17 +140,7 @@ func (likeController *LikeController) CountLikesByThreadID(context *gin.Context,
 
 	likeService := likeController.LikeService
 
-	likeCount, err := likeService.CountLikesByThreadID(utils.ConvertStringToInt(threadID, context))
-
-	// Check for internal server errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
+	likeCount := likeService.CountLikesByThreadID(utils.ConvertStringToInt(threadID, context))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
@@ -211,24 +203,14 @@ func (likeController *LikeController) CreateLikeByThreadID(context *gin.Context,
 		return
 	}
 
-	err = likeService.CreateLike(like)
+	responseErr := likeService.CreateLike(like)
 
-	if err != nil {
-		// Check for existing likes errors
-		if err.Error() == "pq: duplicate key value violates unique constraint \"like_thread_id_author_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "LIKE_ALREADY_EXISTS",
-				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
-			})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
-		// Other internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+		context.JSON(http.StatusBadRequest, responseErr)
 		return
 	}
 
@@ -243,14 +225,11 @@ func (likeController *LikeController) CreateUserLikeByThreadID(context *gin.Cont
 	authorID := utils.GetUserAuthorID(context)
 	threadID := context.Param("threadID")
 
-	
-
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)
 
 	like.ThreadID = utils.ConvertStringToInt(threadID, context)
 	like.AuthorID = authorID
-
 
 	// Check if the binded struct contains necessary fields
 	if like.AuthorID == 0 || like.ThreadID == 0 {
@@ -262,24 +241,13 @@ func (likeController *LikeController) CreateUserLikeByThreadID(context *gin.Cont
 		return
 	}
 
-	err := likeService.CreateLike(like)
-
-	if err != nil {
-		// Check for existing likes errors
-		if err.Error() == "pq: duplicate key value violates unique constraint \"like_thread_id_author_id_key\"" {
-			context.JSON(http.StatusBadRequest, dtos.Error{
-				Status:    "error",
-				ErrorCode: "LIKE_ALREADY_EXISTS",
-				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
-			})
+	responseErr := likeService.CreateLike(like)
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
-		// Other internal server errors
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
+		context.JSON(http.StatusBadRequest, responseErr)
 		return
 	}
 
@@ -293,7 +261,6 @@ func (likeController *LikeController) DeleteUserLikeByThreadID(context *gin.Cont
 	likeService := likeController.LikeService
 	authorID := utils.GetUserAuthorID(context)
 	threadID := context.Param("threadID")
-	
 
 	// Declare a pointer to a new instance of a like struct
 	like := new(models.Like)

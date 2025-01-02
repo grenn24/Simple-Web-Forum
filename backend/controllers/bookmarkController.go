@@ -63,7 +63,6 @@ func (bookmarkController *BookmarkController) CreateUserBookmarkByThreadID(conte
 
 	// Declare a pointer to a new instance of a bookmark struct
 	bookmark := new(models.Bookmark)
-
 	bookmark.ThreadID = utils.ConvertStringToInt(threadID, context)
 	bookmark.AuthorID = userAuthorID
 
@@ -133,11 +132,31 @@ func (bookmarkController *BookmarkController) DeleteUserBookmarkByThreadID(conte
 	})
 }
 
+func (bookmarkController *BookmarkController) GetBookmarkedThreadsByAuthorID(context *gin.Context, db *sql.DB)  {
+	bookmarkService := bookmarkController.BookmarkService
+	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
+
+	bookmarkedThreads, responseErr := bookmarkService.GetBookmarkedThreadsByAuthorID(authorID, sortIndex)
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   bookmarkedThreads,
+	})
+}
+
+
 func (bookmarkController *BookmarkController) GetBookmarkedThreadsByUser(context *gin.Context, db *sql.DB)  {
 	bookmarkService := bookmarkController.BookmarkService
 	userAuthorID := utils.GetUserAuthorID(context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	bookmarkedThreads, responseErr := bookmarkService.GetBookmarkedThreadsByAuthorID(userAuthorID)
+	bookmarkedThreads, responseErr := bookmarkService.GetBookmarkedThreadsByAuthorID(userAuthorID, sortIndex)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)

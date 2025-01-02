@@ -8,13 +8,13 @@ import {
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
-import sortingMenuIcons from "../features/Bookmarked/sortingMenuIcons";
-import sortingMenuItems from "../features/Bookmarked/sortingMenuItems";
+import sortIcons from "../features/Bookmarked/sortIcons";
+import sortOrder from "../features/Bookmarked/sortOrder";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
 import { get } from "../utilities/apiClient";
 
 const Bookmarked = () => {
-	const [sortingOrder, setSortingOrder] = useState("Date Added (Newest)");
+	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
 	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadCardDTO[]>(
 		[]
@@ -22,30 +22,33 @@ const Bookmarked = () => {
 
 	useEffect(() => {
 		get(
-			"/authors/user/bookmarks",
+			"/authors/user/bookmarks?sort=" + sortIndex,
 			(res) => {
 				const responseBody = res.data.data;
-				const bookmarkedThreads = responseBody.map((bookmarkedThread: any) => ({
-					threadID: bookmarkedThread.thread_id,
-					title: bookmarkedThread.title,
-					contentSummarised: bookmarkedThread.content_summarised,
-					authorID: bookmarkedThread.author_id,
-					authorName: bookmarkedThread.author_name,
-					avatarIconLink: bookmarkedThread.avatar_icon_link,
-					createdAt: new Date(bookmarkedThread.created_at),
-					likes: bookmarkedThread.likes,
-					imageTitle: bookmarkedThread.imageTitle,
-					imageLink: bookmarkedThread.imageLink,
-					likeCount: bookmarkedThread.like_count,
-					commentCount: bookmarkedThread.comment_count,
-					likeStatus: bookmarkedThread.like_status,
-					bookmarkStatus: bookmarkedThread.bookmark_status,
-				}));
-				setBookmarkedThreads(bookmarkedThreads);
+				const threads = responseBody
+					.filter((thread: any) => thread.archive_status === false)
+					.map((thread: any) => ({
+						threadID: thread.thread_id,
+						title: thread.title,
+						contentSummarised: thread.content_summarised,
+						authorID: thread.author_id,
+						authorName: thread.author_name,
+						avatarIconLink: thread.avatar_icon_link,
+						createdAt: new Date(thread.created_at),
+						likes: thread.likes,
+						imageTitle: thread.imageTitle,
+						imageLink: thread.imageLink,
+						likeCount: thread.like_count,
+						commentCount: thread.comment_count,
+						likeStatus: thread.like_status,
+						bookmarkStatus: thread.bookmark_status,
+						archiveStatus: thread.archive_status,
+					}));
+				setBookmarkedThreads(threads);
 			},
 			(err) => console.log(err)
 		);
-	}, []);
+	}, [sortIndex]);
 
 	return (
 		<>
@@ -90,8 +93,9 @@ const Bookmarked = () => {
 						toolTipText="Back"
 					/>
 					<Menu
-						menuExpandedItemsArray={sortingMenuItems}
-						menuExpandedIconsArray={sortingMenuIcons}
+						menuExpandedItemsArray={sortOrder}
+						menuExpandedIconsArray={sortIcons}
+						menuExpandedDataValuesArray={sortOrder.map((_, index) => index)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -101,15 +105,15 @@ const Bookmarked = () => {
 							fontFamily: "Open Sans",
 							color: "text.primary",
 						}}
-						handleMenuExpandedItemsClick={Array(sortingMenuItems.length).fill(
+						handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 							(event: React.MouseEvent<HTMLElement>) =>
 								event.currentTarget.dataset.value &&
-								setSortingOrder(event.currentTarget.dataset.value)
+								setSortIndex(Number(event.currentTarget.dataset.value))
 						)}
 						toolTipText="Sort Options"
 						menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 					>
-						{sortingOrder}
+						{sortOrder[sortIndex]}
 					</Menu>
 				</Box>
 				<Container
@@ -133,6 +137,7 @@ const Bookmarked = () => {
 								avatarIconLink={bookmarkedThread.avatarIconLink}
 								threadLikeStatus={bookmarkedThread.likeStatus}
 								threadBookmarkStatus={bookmarkedThread.bookmarkStatus}
+								threadArchiveStatus={bookmarkedThread.archiveStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${bookmarkedThread.authorID}`)
 								}

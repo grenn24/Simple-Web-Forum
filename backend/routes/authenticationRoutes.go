@@ -8,7 +8,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func AuthenticationRoutes(router *gin.Engine, db *sql.DB) {
+func AuthenticationRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authenticationRouter := router.Group("/authentication")
 
 	// Initialise controller handlers

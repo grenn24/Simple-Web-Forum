@@ -37,6 +37,7 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 			&thread.AuthorID,
 			&thread.ImageTitle,
 			&thread.ImageLink,
+			&thread.LikeCount,
 		)
 
 		// Check for any scanning errors
@@ -66,6 +67,7 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 		&thread.AuthorID,
 		&thread.ImageTitle,
 		&thread.ImageLink,
+		&thread.LikeCount,
 	)
 
 	return thread, err
@@ -96,6 +98,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 			&thread.AuthorID,
 			&thread.ImageTitle,
 			&thread.ImageLink,
+			&thread.LikeCount,
 		)
 
 		// Check for any scanning errors
@@ -164,6 +167,33 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 	}
 
 	return threads, err
+}
+
+func (threadRepository *ThreadRepository) IncrementLikeCountByThreadID(threadID int) error {
+	_, err := threadRepository.DB.Exec(`
+		UPDATE thread
+		SET like_count = like_count + 1
+		WHERE thread_id = $1
+	`, threadID)
+
+	return err
+}
+
+func (threadRepository *ThreadRepository) DecrementLikeCountByThreadID(threadID int) error {
+	_, err := threadRepository.DB.Exec(`
+		UPDATE thread
+		SET like_count = like_count - 1
+		WHERE thread_id = $1
+	`, threadID)
+
+	return err
+}
+
+func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) (int) {
+	var likeCount int
+	row := threadRepository.DB.QueryRow("SELECT like_count FROM thread WHERE thread_id = $1", threadID)
+	row.Scan(&likeCount)
+	return likeCount
 }
 
 func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {

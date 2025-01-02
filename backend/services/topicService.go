@@ -42,7 +42,7 @@ func (topicService *TopicService) GetTopicByName(name string) (*models.Topic, *d
 			return nil, &dtos.Error{
 				Status:    "error",
 				ErrorCode: "NOT_FOUND",
-				Message:   fmt.Sprintf("No topics found with name:", name),
+				Message:   fmt.Sprintf("No topics found with name: %v", name),
 			}
 		}
 		return nil, &dtos.Error{
@@ -59,6 +59,7 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
+	archiveRepository := &repositories.ArchiveRepository{DB: topicService.DB}
 
 	// Retrieve all topics with follow status
 	topicsWithFollowStatus, err := topicRepository.GetAllTopicsWithFollowStatus(userAuthorID)
@@ -71,10 +72,9 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 	}
 
 	topicsWithThreads := make([]*dtos.TopicWithThreads, 0)
-
 	// For each topic, retrieve the threads associated with it
 	for _, topicWithFollowStatus := range topicsWithFollowStatus {
-		
+
 		threads, err := threadRepository.GetThreadsByTopicID(topicWithFollowStatus.TopicID)
 
 		// Skip if the topic has no threads
@@ -94,9 +94,11 @@ func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*
 		for _, thread := range threads {
 			// Truncate content
 			thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
-			// Get bookmark status
+			// Get bookmark and archive status
 			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
 			thread.BookmarkStatus = &bookmarkStatus
+			archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+			thread.ArchiveStatus = &archiveStatus
 		}
 
 		topicWithThreads := new(dtos.TopicWithThreads)

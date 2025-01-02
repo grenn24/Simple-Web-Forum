@@ -8,7 +8,7 @@ Database: PostgreSQL
 
 **Hosting:**  
 Frontend Server: https://simple-web-forum.web.app/  
-Backend Server: https://simple-web-forum-backend-61723a55a3b5.herokuapp.com
+Backend Server: https://simple-web-forum-backend-61723a55a3b5.herokuapp.com/api
 
 ### Backend API Endpoints  
 - /threads/:threadID  

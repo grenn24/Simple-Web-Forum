@@ -58,15 +58,22 @@ func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, auth
 	return like, err
 }
 
-func (likeRepository *LikeRepository) GetLikedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+func (likeRepository *LikeRepository) GetLikedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, error) {
+	sortOrder := []string{"ORDER BY like_count DESC", "", "ORDER BY \"like\".created_at DESC","ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
+
 	rows, err := likeRepository.DB.Query(`
-	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, poster.author_id, poster.name, liker.avatar_icon_link, thread.image_title, thread.image_link
-	FROM "like"
-	INNER JOIN thread ON "like".thread_id = thread.thread_id
-	INNER JOIN author AS liker ON "like".author_id = liker.author_id
-	INNER JOIN author AS poster ON thread.author_id = poster.author_id
-	WHERE liker.author_id = $1
-	`, authorID)
+		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
+		CASE 
+			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+			THEN TRUE 
+			ELSE FALSE 
+		END AS archive_status
+		FROM "like"
+		INNER JOIN thread ON "like".thread_id = thread.thread_id
+		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = "like".author_id
+		WHERE "like".author_id = $1
+	` + sortOrder[sortIndex], authorID)
 
 	if err != nil {
 		return nil, err
@@ -91,6 +98,8 @@ func (likeRepository *LikeRepository) GetLikedThreadsByAuthorID(authorID int) ([
 			&likedThread.AvatarIconLink,
 			&likedThread.ImageTitle,
 			&likedThread.ImageLink,
+			&likedThread.LikeCount,
+			&likedThread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors
@@ -119,6 +128,11 @@ func (likeRepository *LikeRepository) GetLikeStatusByThreadIDAuthorID(threadID i
 	} else {
 		return true
 	}
+}
+
+func (likeRepository *LikeRepository) CreateLike(like *models.Like) (error) {
+	_, err := likeRepository.DB.Exec("INSERT INTO \"like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
+	return err
 }
 
 func (likeRepository *LikeRepository) CountLikesByThreadID(threadID int) (int, error) {

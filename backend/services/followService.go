@@ -58,12 +58,12 @@ func (followService *FollowService) GetAllFollows() ([]*models.Follow, *dtos.Err
 	return follows, nil
 }
 
-func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, *dtos.Error) {
 	followRepository := repositories.FollowRepository{DB: followService.DB}
 	likeRepository := repositories.LikeRepository{DB: followService.DB}
 	commentRepository := repositories.CommentRepository{DB: followService.DB}
 
-	followedThreads, err := followRepository.GetFollowedThreadsByAuthorID(authorID)
+	followedThreads, err := followRepository.GetFollowedThreadsByAuthorID(authorID, sortIndex)
 
 	if err != nil {
 		return nil, &dtos.Error{

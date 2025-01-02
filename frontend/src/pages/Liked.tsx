@@ -8,43 +8,46 @@ import {
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
-import sortingMenuIcons from "../features/Liked/sortingMenuIcons";
-import sortingMenuItems from "../features/Liked/sortingMenuItems";
+import sortIcons from "../features/Liked/sortIcons";
+import sortOrder from "../features/Liked/sortOrder";
 import { get } from "../utilities/apiClient";
 import { ThreadCardDTO } from "../dtos/ThreadDTO";
 
 const Liked = () => {
-	const [sortingOrder, setSortingOrder] = useState("Likes (Highest)");
+	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
 	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
 
 	useEffect(
 		() =>
 			get(
-				"/authors/user/likes",
+				"/authors/user/likes?sort=" + sortIndex,
 				(res) => {
 					const responseBody = res.data.data;
-					const likedThreads = responseBody.map((likedThread: any) => ({
-						threadID: likedThread.thread_id,
-						title: likedThread.title,
-						contentSummarised: likedThread.content_summarised,
-						authorID: likedThread.author_id,
-						authorName: likedThread.author_name,
-						avatarIconLink: likedThread.avatar_icon_link,
-						createdAt: new Date(likedThread.created_at),
-						likes: likedThread.likes,
-						imageTitle: likedThread.imageTitle,
-						imageLink: likedThread.imageLink,
-						likeCount: likedThread.like_count,
-						commentCount: likedThread.comment_count,
-						likeStatus: likedThread.like_status,
-						bookmarkStatus: likedThread.bookmark_status,
-					}));
+					const likedThreads = responseBody
+						.filter((thread: any) => thread.archive_status === false)
+						.map((likedThread: any) => ({
+							threadID: likedThread.thread_id,
+							title: likedThread.title,
+							contentSummarised: likedThread.content_summarised,
+							authorID: likedThread.author_id,
+							authorName: likedThread.author_name,
+							avatarIconLink: likedThread.avatar_icon_link,
+							createdAt: new Date(likedThread.created_at),
+							likes: likedThread.likes,
+							imageTitle: likedThread.imageTitle,
+							imageLink: likedThread.imageLink,
+							likeCount: likedThread.like_count,
+							commentCount: likedThread.comment_count,
+							likeStatus: likedThread.like_status,
+							bookmarkStatus: likedThread.bookmark_status,
+							archiveStatus: likedThread.archive_status,
+						}));
 					setLikedThreads(likedThreads);
 				},
 				(err) => console.log(err)
 			),
-		[]
+		[sortIndex]
 	);
 
 	return (
@@ -90,8 +93,11 @@ const Liked = () => {
 						toolTipText="Back"
 					/>
 					<Menu
-						menuExpandedItemsArray={sortingMenuItems}
-						menuExpandedIconsArray={sortingMenuIcons}
+						menuExpandedItemsArray={sortOrder}
+						menuExpandedIconsArray={sortIcons}
+						menuExpandedDataValuesArray={sortOrder.map((_, index) =>
+							index
+						)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -101,15 +107,15 @@ const Liked = () => {
 							fontFamily: "Open Sans",
 							color: "text.primary",
 						}}
-						handleMenuExpandedItemsClick={Array(sortingMenuItems.length).fill(
+						handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 							(event: React.MouseEvent<HTMLElement>) =>
 								event.currentTarget.dataset.value &&
-								setSortingOrder(event.currentTarget.dataset.value)
+								setSortIndex(Number(event.currentTarget.dataset.value))
 						)}
 						toolTipText="Sort Options"
 						menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 					>
-						{sortingOrder}
+						{sortOrder[sortIndex]}
 					</Menu>
 				</Box>
 				<Container
@@ -133,6 +139,7 @@ const Liked = () => {
 								avatarIconLink={likedThread.avatarIconLink}
 								threadLikeStatus={likedThread.likeStatus}
 								threadBookmarkStatus={likedThread.bookmarkStatus}
+								threadArchiveStatus={likedThread.archiveStatus}
 								handleAvatarIconClick={() =>
 									navigate(`../Profile/${likedThread.authorID}`)
 								}

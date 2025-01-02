@@ -55,7 +55,7 @@ func (commentController *CommentController) GetCommentedThreadsByAuthorID(contex
 
 	commentService := commentController.CommentService
 
-	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context), context.Query("sort"))
+	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -73,7 +73,7 @@ func (commentController *CommentController) GetCommentedThreadsByUser(context *g
 
 	commentService := commentController.CommentService
 
-	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.GetUserAuthorID(context), context.Query("sort"))
+	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.GetUserAuthorID(context))
 
 	// Check for internal server errors
 	if responseErr != nil {

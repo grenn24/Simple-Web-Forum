@@ -17,7 +17,7 @@ func (bookmarkService *BookmarkService) CreateBookmark(bookmark *models.Bookmark
 	bookmarkRepository := &repositories.BookmarkRepository{DB: bookmarkService.DB}
 	err := bookmarkRepository.CreateBookmark(bookmark)
 
-		if err != nil {
+	if err != nil {
 		// Check for existing bookmarks with same thread id and author id
 		if err.Error() == "pq: duplicate key value violates unique constraint \"bookmark_thread_id_author_id_key\"" {
 			return &dtos.Error{
@@ -39,7 +39,7 @@ func (bookmarkService *BookmarkService) CreateBookmark(bookmark *models.Bookmark
 func (bookmarkService *BookmarkService) DeleteBookmarkByID(bookmarkID int) *dtos.Error {
 	bookmarkRepository := &repositories.BookmarkRepository{DB: bookmarkService.DB}
 	rowsDeleted, err := bookmarkRepository.DeleteBookmarkByID(bookmarkID)
-		if err != nil {
+	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -55,13 +55,13 @@ func (bookmarkService *BookmarkService) DeleteBookmarkByID(bookmarkID int) *dtos
 			Message:   "No bookmarks found with bookmark id: " + utils.ConvertIntToString(bookmarkID),
 		}
 	}
-return nil
+	return nil
 }
 
 func (bookmarkService *BookmarkService) DeleteBookmarkByThreadIDAuthorID(threadID int, authorID int) *dtos.Error {
 	bookmarkRepository := &repositories.BookmarkRepository{DB: bookmarkService.DB}
-		rowsDeleted, err := bookmarkRepository.DeleteBookmarkByThreadIDAuthorID(threadID, authorID)
-		if err != nil {
+	rowsDeleted, err := bookmarkRepository.DeleteBookmarkByThreadIDAuthorID(threadID, authorID)
+	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -77,16 +77,16 @@ func (bookmarkService *BookmarkService) DeleteBookmarkByThreadIDAuthorID(threadI
 			Message:   "No bookmarks found with the thread and author ids provided",
 		}
 	}
-return nil
+	return nil
 }
 
-func (bookmarkService *BookmarkService) GetBookmarkedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (bookmarkService *BookmarkService) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, *dtos.Error) {
 	bookmarkRepository := &repositories.BookmarkRepository{DB: bookmarkService.DB}
 	commentRepository := &repositories.CommentRepository{DB: bookmarkService.DB}
 	topicRepository := &repositories.TopicRepository{DB: bookmarkService.DB}
 	likeRepository := &repositories.LikeRepository{DB: bookmarkService.DB}
 
-	bookmarkedThreads, err := bookmarkRepository.GetBookmarkedThreadsByAuthorID(authorID)
+	bookmarkedThreads, err := bookmarkRepository.GetBookmarkedThreadsByAuthorID(authorID, sortIndex)
 
 	// Check for internal server errors
 	if err != nil {

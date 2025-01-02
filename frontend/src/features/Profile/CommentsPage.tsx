@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { CommentDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
 import { dateToTimeYear } from "../../utilities/dateToString";
-import removeFromArray from "../../utilities/removeFromArray";
+import {removeFromArray} from "../../utilities/arrayManipulation";
 
 const CommentsPage = () => {
 	const navigate = useNavigate();

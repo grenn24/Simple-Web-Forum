@@ -1,0 +1,1 @@
+export default ["Best", "Popular", "New Threads", "Old Threads"]

@@ -13,7 +13,7 @@ import { dateToYear } from "../../utilities/dateToString";
 import { Delete, postJSON } from "../../utilities/apiClient";
 
 interface Prop {
-	threadId: number;
+	threadID: number;
 	threadTitle: string;
 	threadAuthorName: string;
 	threadAuthorID?: string;
@@ -25,14 +25,14 @@ interface Prop {
 }
 
 const ThreadGridCard = ({
-	threadId,
+	threadID,
 	threadTitle,
 	threadAuthorName,
 	threadCreatedAt,
 	avatarIconLink,
 	threadContentSummarised,
 	handleAvatarIconClick,
-	threadinitialBookmarkStatus,
+	threadinitialBookmarkStatus
 }: Prop) => {
 	const [bookmarkStatus, setBookmarkStatus] = useState(
 		threadinitialBookmarkStatus
@@ -44,14 +44,14 @@ const ThreadGridCard = ({
 		setBookmarkStatus(!bookmarkStatus);
 		if (bookmarkStatus) {
 			Delete(
-				`threads/${threadId}/bookmarks/user`,
+				`threads/${threadID}/bookmarks/user`,
 				{},
 				() => {},
 				(err) => console.log(err)
 			);
 		} else {
 			postJSON(
-				`threads/${threadId}/bookmarks/user`,
+				`threads/${threadID}/bookmarks/user`,
 				{},
 				() => {},
 				(err) => console.log(err)
@@ -63,7 +63,7 @@ const ThreadGridCard = ({
 			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${threadId}`)}
+					onClick={() => navigate(`../Thread/${threadID}`)}
 					disableRipple
 				>
 					<CardHeader

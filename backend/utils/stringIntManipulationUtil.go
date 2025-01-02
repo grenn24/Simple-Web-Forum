@@ -10,6 +10,9 @@ import (
 )
 
 func ConvertStringToInt(value string, context *gin.Context) int {
+	if value == "" {
+		return 0
+	}
 	valueConverted, err := strconv.Atoi(value)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{

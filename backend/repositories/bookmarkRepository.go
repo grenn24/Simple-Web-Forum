@@ -46,15 +46,21 @@ func (bookmarkRepository *BookmarkRepository) DeleteBookmarkByThreadIDAuthorID(t
 }
 
 
-func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, error) {
+	sortOrder := []string{"ORDER BY bookmark.created_at DESC", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
 	rows, err := bookmarkRepository.DB.Query(`
-	SELECT thread.thread_id, thread.title, thread.created_at, thread.content, poster.author_id, poster.name, poster.avatar_icon_link, thread.image_title, thread.image_link
-	FROM bookmark
-	INNER JOIN thread ON bookmark.thread_id = thread.thread_id
-	INNER JOIN author AS bookmarker ON bookmark.author_id = bookmarker.author_id
-	INNER JOIN author AS poster ON thread.author_id = poster.author_id
-	WHERE bookmark.author_id = $1
-	`, authorID)
+		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
+		CASE 
+			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+			THEN TRUE 
+			ELSE FALSE 
+		END AS archive_status
+		FROM bookmark
+		INNER JOIN thread ON bookmark.thread_id = thread.thread_id
+		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = bookmark.author_id
+		WHERE bookmark.author_id = $1
+	` + sortOrder[sortIndex], authorID)
 
 	if err != nil {
 		return nil, err
@@ -79,6 +85,8 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			&bookmarkedThread.AvatarIconLink,
 			&bookmarkedThread.ImageTitle,
 			&bookmarkedThread.ImageLink,
+			&bookmarkedThread.LikeCount,
+			&bookmarkedThread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors

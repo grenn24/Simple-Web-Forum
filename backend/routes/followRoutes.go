@@ -9,7 +9,7 @@ import (
 	"github.com/grenn24/simple-web-forum/services"
 )
 
-func FollowRoutes(router *gin.Engine, db *sql.DB) {
+func FollowRoutes(router *gin.RouterGroup, db *sql.DB) {
 	followRouter := router.Group("/follows")
 	followRouter.Use(middlewares.ValidateJwtToken)
 

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/grenn24/simple-web-forum/middlewares"
 	"github.com/grenn24/simple-web-forum/routes"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/joho/godotenv"
@@ -19,14 +20,15 @@ var db *sql.DB
 func connectToDatabase() {
 	var err error
 
-	//connection details for local deployment
-	/*connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
+	/*
+	db connection details for local deployment:
+	connectionString := fmt.Sprintf("user=%v password=%v host=%v port=%v dbname=%v sslmode=disable",
 	os.Getenv("simplewebforum_DB_user"),
 	os.Getenv("simplewebforum_DB_password"),
 	os.Getenv("simplewebforum_DB_host"),
 	os.Getenv("simplewebforum_DB_port"),
-	os.Getenv("simplewebforum_DB_name"))*/
-
+	os.Getenv("simplewebforum_DB_name"))
+	*/
 
 	connectionString := os.Getenv("DATABASE_URL")
 
@@ -65,7 +67,8 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			content TEXT NOT NULL,
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
-			image_link TEXT
+			image_link TEXT,
+			like_count INTEGER DEFAULT 0
 		);
 
 		CREATE TABLE IF NOT EXISTS comment (
@@ -106,6 +109,22 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			UNIQUE (follower_author_id, followee_author_id), 
 			UNIQUE (follower_author_id, followee_topic_id)
 		);
+
+		CREATE TABLE IF NOT EXISTS bookmark (
+			bookmark_id SERIAL PRIMARY KEY,
+			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
+			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (thread_id, author_id),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE TABLE IF NOT EXISTS thread_archive (
+			archive_id SERIAL PRIMARY KEY,
+			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
+			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (thread_id, author_id),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
 	`)
 
 	// Check for any sql query errors
@@ -118,21 +137,27 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 }
 
 func main() {
-	//Load environment variables for local deployment
+	//Load the environment variables needed for local deployment
 	/*
 		err := godotenv.Load("./environmentVariables.env")
 		if err != nil {
 			log.Fatal("Error loading environment variable file")
 		}*/
 
-	//Create a pointer to gin.Engine instance
+	//Create a pointer to a gin.Engine instance
 	var router *gin.Engine = gin.Default()
 
 	//Connect to postgres database
 	connectToDatabase()
 
-	//Set up routes to handle http requests
-	routes.SetupRouter(router, db)
+	//Attach cors middleware to router (doesnt work with router group)
+	router.Use(middlewares.CORS)
+
+	//Set up api routes to handle http requests
+	routes.SetupApiRouter(router, db)
+
+	//Catch missed routes
+	routes.CatchMissedRoutes(router)
 
 	//Initialise the database schema
 	InitialiseDatabase(nil, db)

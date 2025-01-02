@@ -2,7 +2,7 @@ package services
 
 import (
 	"database/sql"
-
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -26,13 +26,13 @@ func (likeService *LikeService) GetAllLikes() ([]*models.Like, *dtos.Error) {
 	return likes, nil
 }
 
-func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, *dtos.Error) {
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	commentRepository := &repositories.CommentRepository{DB: likeService.DB}
 	topicRepository := &repositories.TopicRepository{DB: likeService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: likeService.DB}
 
-	likedThreads, err := likeRepository.GetLikedThreadsByAuthorID(authorID)
+	likedThreads, err := likeRepository.GetLikedThreadsByAuthorID(authorID, sortIndex)
 
 	// Check for internal server errors
 	if err != nil {
@@ -44,17 +44,6 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos
 	}
 
 	for _, likedThread := range likedThreads {
-		// Retrieve like count
-		likeCount, err := likeRepository.CountLikesByThreadID(likedThread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		likedThread.LikeCount = likeCount
-
 		// Retrieve comment count
 		commentCount, err := commentRepository.CountCommentsByThreadID(likedThread.ThreadID)
 		if err != nil {
@@ -82,7 +71,6 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int) ([]*dtos
 			}
 		}
 	}
-
 	return likedThreads, nil
 }
 
@@ -150,9 +138,9 @@ func (likeService *LikeService) CountAllLikes() (int, error) {
 	return likeRepository.CountAllLikes()
 }
 
-func (likeService *LikeService) CountLikesByThreadID(threadID int) (int, error) {
-	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
-	return likeRepository.CountLikesByThreadID(threadID)
+func (likeService *LikeService) CountLikesByThreadID(threadID int) int {
+	threadRepository := &repositories.ThreadRepository{DB: likeService.DB}
+	return threadRepository.GetLikeCountByThreadID(threadID)
 }
 
 func (likeService *LikeService) CountLikesByAuthorID(authorID string) (int, error) {
@@ -171,15 +159,54 @@ func (likeService *LikeService) CountLikesByAuthorID(authorID string) (int, erro
 	return likeCount, err
 }
 
-func (likeService *LikeService) CreateLike(like *models.Like) error {
+func (likeService *LikeService) CreateLike(like *models.Like) *dtos.Error {
+	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: likeService.DB}
+	err := threadRepository.IncrementLikeCountByThreadID(like.ThreadID)
+	// Check for internal server errors
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
 
-	_, err := likeService.DB.Exec("INSERT INTO \"like\" (thread_id, author_id) VALUES ($1, $2)", like.ThreadID, like.AuthorID)
+	}
+	err = likeRepository.CreateLike(like)
 
-	return err
+	if err != nil {
+		// Check for existing likes errors
+		if err.Error() == "pq: duplicate key value violates unique constraint \"like_thread_id_author_id_key\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "LIKE_ALREADY_EXISTS",
+				Message:   fmt.Sprintf("Thread has already been liked for author id %v", like.AuthorID),
+			}
+		}
+		// Internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	return nil
 }
 
 func (likeService *LikeService) DeleteLikeByThreadAuthorID(threadID int, authorID int) *dtos.Error {
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: likeService.DB}
+	err := threadRepository.DecrementLikeCountByThreadID(threadID)
+	// Check for internal server errors
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+
+	}
 	rowsDeleted, err := likeRepository.DeleteLikeByThreadAuthorID(threadID, authorID)
 
 	// Check for internal server errors
