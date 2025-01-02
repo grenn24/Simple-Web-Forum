@@ -1,6 +1,4 @@
-import ButtonBase from "@mui/material/Button";
-import IconButtonBase from "@mui/material/IconButton";
-import { Tooltip } from "@mui/material";
+import { IconButton, Tooltip, Button as ButtonBase } from "@mui/material";
 
 interface Prop {
 	children?: React.ReactNode;
@@ -86,7 +84,7 @@ const Button = ({
 					{children}
 				</ButtonBase>
 			) : (
-				<IconButtonBase
+				<IconButton
 					type={type}
 					component={component as React.ElementType}
 					role={role}
@@ -107,7 +105,7 @@ const Button = ({
 					onClick={handleButtonClick}
 				>
 					{buttonIcon}
-				</IconButtonBase>
+				</IconButton>
 			)}
 		</>
 	);

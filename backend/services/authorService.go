@@ -98,6 +98,35 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	return nil
 }
 
+func (authorService *AuthorService) UpdateAuthor(author *models.Author, authorID int) *dtos.Error {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+
+	err := authorRepository.UpdateAuthor(author, authorID)
+
+	if err != nil {
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NAME_ALREADY_EXISTS",
+				Message:   "Name already exists (duplicate)",
+			}
+		}
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "USERNAME_ALREADY_EXISTS",
+				Message:   "Username already exists (duplicate)",
+			}
+		}
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
+}
+
 func (authorService *AuthorService) DeleteAllAuthors() *dtos.Error {
 
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}

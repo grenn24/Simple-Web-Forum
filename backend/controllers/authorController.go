@@ -100,19 +100,91 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 
 	responseErr := authorService.CreateAuthor(author)
 
-	// Check for existing authors with same credentials
 	if responseErr != nil {
 		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
-			context.JSON(http.StatusBadRequest, responseErr)
-		} else {
 			context.JSON(http.StatusInternalServerError, responseErr)
+			return
 		}
+		// Check for duplicate fields
+		context.JSON(http.StatusBadRequest, responseErr)
 		return
 	}
 
 	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Author created successfully!",
+	})
+}
+
+func (authorController *AuthorController) UpdateUser(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+	userAuthorID := utils.GetUserAuthorID(context)
+
+	// Declare a pointer to a new instance of an author struct
+	author := new(models.Author)
+
+	err := context.ShouldBind(author)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	responseErr := authorService.UpdateAuthor(author, userAuthorID)
+
+	if responseErr != nil {
+		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		// Check for duplicate fields
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+	
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Updated author info successfully!",
+	})
+}
+
+func (authorController *AuthorController) UpdateAuthor(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
+
+	// Declare a pointer to a new instance of an author struct
+	author := new(models.Author)
+
+	err := context.ShouldBind(author)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	responseErr := authorService.UpdateAuthor(author, authorID)
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusBadRequest, responseErr)
+		return
+	}
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Updated author info successfully!",
 	})
 }
 

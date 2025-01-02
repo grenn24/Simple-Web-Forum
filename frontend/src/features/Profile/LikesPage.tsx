@@ -1,7 +1,7 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import profileDataSample from "./profileDataSample";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
 import {
 	FavoriteRounded as FavoriteRoundedIcon,
@@ -140,11 +140,12 @@ const LikesPage = () => {
 	const navigate = useNavigate();
 	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const { authorID } = useParams();
 
 	useEffect(
 		() =>
 			get(
-				"/authors/user/likes?sort=2",
+				`/authors/${authorID === "User" ? "user" : authorID}/likes?sort=2`,
 				(res) => {
 					const responseBody = res.data.data;
 					const likedThreads = responseBody.map((likedThread: any) => ({
@@ -161,7 +162,10 @@ const LikesPage = () => {
 						likeCount: likedThread.like_count,
 						commentCount: likedThread.comment_count,
 						likeStatus: likedThread.like_status,
-						topicsTagged: likedThread.topics_tagged.map((topic:any)=>({topicID: topic.topic_id, name: topic.name})),
+						topicsTagged: likedThread.topics_tagged.map((topic: any) => ({
+							topicID: topic.topic_id,
+							name: topic.name,
+						})),
 					}));
 					setLikedThreads(likedThreads);
 					setIsLoading(false);

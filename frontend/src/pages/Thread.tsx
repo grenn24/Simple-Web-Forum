@@ -189,7 +189,7 @@ const Thread = () => {
 					}}
 				>
 					{isLoading ? (
-						<ThreadCardLoading bodyHeight={350}/>
+						<ThreadCardLoading bodyHeight={350} />
 					) : (
 						<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 2 } }}>
 							<CardHeader
@@ -268,7 +268,7 @@ const Thread = () => {
 												key={topic.topicID}
 												disableRipple
 												handleButtonClick={() =>
-													navigate(`../Topics?topicName=${topic}`)
+													navigate(`../Topics/${topic.topicID}`)
 												}
 												fontFamily="Open Sans"
 												buttonStyle={{ px: 1, py: 0, mx: 0.5 }}

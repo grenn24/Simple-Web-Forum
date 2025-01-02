@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/middlewares"
 	"github.com/grenn24/simple-web-forum/routes"
 	_ "github.com/heroku/x/hmetrics/onload"
@@ -136,6 +138,24 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 	fmt.Println("Database initialised successfully!")
 }
 
+func HandleMissedRoutes(router *gin.Engine) {
+	router.NoRoute(func(context *gin.Context) {
+		path := context.Request.URL.Path
+		// Handle missed calls to the backend api
+		if len(path) > 4 && path == "/api" {
+			context.JSON(http.StatusNoContent, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INVALID_API_ROUTE",
+				Message:   "This route does not exist on the api",
+			})
+			// Serve html file by default on non-api calls
+		} else {
+			context.File("./dist/index.html")
+		}
+	})
+
+}
+
 func main() {
 	/*
 		Load the environment variables needed for local deployment
@@ -154,16 +174,12 @@ func main() {
 	//Attach cors middleware to router (doesn't work with router groups)
 	router.Use(middlewares.CORS)
 
+	//Set up routes for serving static html files
 	router.Static("/assets", "./dist/assets")
-	router.NoRoute(func(context *gin.Context) {
-		context.File("./dist/index.html")
-	})
+	HandleMissedRoutes(router)
 
 	//Set up api routes to handle http requests
 	routes.SetupApiRouter(router, db)
-
-	//Catch missed routes
-	//routes.CatchMissedRoutes(router)
 
 	//Initialise the database schema
 	InitialiseDatabase(nil, db)

@@ -43,8 +43,14 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter.GET("/:authorID", func(context *gin.Context) {
 		authorController.GetAuthorByID(context, db)
 	})
+		authorRouter.PUT("/:authorID", func(context *gin.Context) {
+		authorController.UpdateAuthor(context, db)
+	})
 	authorRouter.GET("/user", func(context *gin.Context) {
 		authorController.GetUser(context, db)
+	})
+	authorRouter.PUT("/user", func(context *gin.Context) {
+		authorController.UpdateUser(context, db)
 	})
 	authorRouter.POST("", func(context *gin.Context) {
 		authorController.CreateAuthor(context, db)

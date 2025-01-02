@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
 import UnarchiveRoundedIcon from "@mui/icons-material/UnarchiveRounded";
 import { useState, useEffect } from "react";
@@ -75,23 +75,22 @@ const ThreadCardMini = ({
 			>
 				{topicsTagged.map((topic) => {
 					return (
-						<>
-							<Button
-								disableRipple
-								handleButtonClick={(event) => {
-									event.stopPropagation();
-									navigate(`../Topics/${topic.topicID}`);
-								}}
-								fontFamily="Open Sans"
-								buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
-								color="text.secondary"
-								fontSize={12}
-								variant="outlined"
-								backgroundColor="primary.light"
-							>
-								{topic.name}
-							</Button>
-						</>
+						<Button
+							key={topic.topicID}
+							disableRipple
+							handleButtonClick={(event) => {
+								event.stopPropagation();
+								navigate(`../Topics/${topic.topicID}`);
+							}}
+							fontFamily="Open Sans"
+							buttonStyle={{ px: 1, py: 0, marginRight: 1 }}
+							color="text.secondary"
+							fontSize={12}
+							variant="outlined"
+							backgroundColor="primary.light"
+						>
+							{topic.name}
+						</Button>
 					);
 				})}
 			</Typography>
@@ -105,12 +104,13 @@ const ThreadCardMini = ({
 const RemovedPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadCardDTO[]>([]);
-	const [isLoading, setIsLoading] = useState(true)
+	const [isLoading, setIsLoading] = useState(true);
+	const { authorID } = useParams();
 
 	useEffect(
 		() =>
 			get(
-				"/authors/user/archives",
+				`/authors/${authorID === "User" ? "user" : authorID}/archives`,
 				(res) => {
 					const responseBody = res.data.data;
 					const threads: ThreadCardDTO[] = responseBody.map((thread: any) => ({
@@ -126,7 +126,7 @@ const RemovedPage = () => {
 						})),
 					}));
 					setThreads(threads);
-					setIsLoading(false)
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),

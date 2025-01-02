@@ -60,7 +60,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 					variant="outlined"
 					{...register("email", { required: "The email field is required" })}
 					error={!!errors.email}
-					helperText={errors.email ? (errors.email.message as String) : null}
+					helperText={errors.email?.message as string}
 					fullWidth
 				/>
 				<br />
@@ -73,9 +73,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 						required: "The password field is required",
 					})}
 					error={!!errors.password}
-					helperText={
-						errors.password ? (errors.password.message as String) : null
-					}
+					helperText={errors.password?.message as string}
 					fullWidth
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>

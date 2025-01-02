@@ -1,21 +1,22 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
 import { CommentDTO } from "../../dtos/ThreadDTO";
 import { Delete, get } from "../../utilities/apiClient";
 import { dateToTimeYear } from "../../utilities/dateToString";
-import {removeFromArray} from "../../utilities/arrayManipulation";
+import { removeFromArray } from "../../utilities/arrayManipulation";
 
 const CommentsPage = () => {
 	const navigate = useNavigate();
 	const [comments, setComments] = useState<CommentDTO[]>([]);
-	const [isLoading, setIsLoading] = useState(true)
+	const [isLoading, setIsLoading] = useState(true);
+	const { authorID } = useParams();
 	useEffect(() => {
 		get(
-			"/authors/user/comments",
+			`/authors/${authorID === "User" ? "user" : authorID}/comments`,
 			(res) => {
 				const responseBody = res.data.data;
 
@@ -112,7 +113,7 @@ const CommentsPage = () => {
 									})}
 								</Typography>
 								<Typography marginTop={2} fontSize={17}>
-									{comment.content}
+									{comment.threadContentSummarised}
 								</Typography>
 								<Box display="flex">
 									<Typography

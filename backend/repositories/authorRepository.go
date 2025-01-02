@@ -49,7 +49,7 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, err
 
 }
 
-func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) (*models.Author) {
+func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) *models.Author {
 	author := new(models.Author)
 	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(username) = LOWER($1)", username)
 	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
@@ -62,7 +62,7 @@ func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) (
 	return author
 }
 
-func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) (*models.Author) {
+func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) *models.Author {
 	author := new(models.Author)
 	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(email) = LOWER($1)", email)
 	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
@@ -75,7 +75,7 @@ func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) (*model
 	return author
 }
 
-func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash string) (*models.Author) {
+func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash string) *models.Author {
 	author := new(models.Author)
 	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE password_hash = $1", passwordHash)
 	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
@@ -101,8 +101,7 @@ func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*models.A
 	return author, err
 }
 
-
-func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int) (string) {
+func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int) string {
 	var password string
 	row := authorRepository.DB.QueryRow("SELECT password_hash FROM author WHERE author_id = $1", authorID)
 	err := row.Scan(&password)
@@ -115,7 +114,7 @@ func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int
 	return password
 }
 
-func (authorRepository *AuthorRepository) GetAuthorNameByAuthorID(authorID int) (string) {
+func (authorRepository *AuthorRepository) GetAuthorNameByAuthorID(authorID int) string {
 	var name string
 	row := authorRepository.DB.QueryRow("SELECT name FROM author WHERE author_id = $1", authorID)
 	err := row.Scan(&name)
@@ -132,13 +131,34 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 	var authorID int64
 
 	row := authorRepository.DB.QueryRow("INSERT INTO author (name, username, email, password_hash, avatar_icon_link) VALUES ($1, $2, $3, $4, $5) RETURNING author_id", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
-	
 	// Check for errors while returning author id
 	err := row.Scan(&authorID)
 
 	return int(authorID), err
 }
 
+func (authorRepository *AuthorRepository) UpdateAuthor(author *models.Author, authorID int) error {
+	if author.Name != "" {
+		_, err := authorRepository.DB.Exec("UPDATE author SET name = $1 WHERE author_id = $2", author.Name, authorID)
+		if err != nil {
+			return err
+		}
+	}
+	if author.Username != "" {
+		_, err := authorRepository.DB.Exec("UPDATE author SET username = $1 WHERE author_id = $2", author.Username, authorID)
+		if err != nil {
+			return err
+		}
+	}
+	if author.AvatarIconLink != nil {
+		_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = $1 WHERE author_id = $2", author.AvatarIconLink, authorID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+
+}
 
 func (authorRepository *AuthorRepository) DeleteAuthorByID(authorID int) (int, error) {
 	result, err := authorRepository.DB.Exec("DELETE FROM author WHERE author_id = $1", authorID)
@@ -153,7 +173,7 @@ func (authorRepository *AuthorRepository) DeleteAuthorByID(authorID int) (int, e
 	return int(rowsDeleted), err
 }
 
-func (authorRepository *AuthorRepository) DeleteAllAuthors() (error) {
+func (authorRepository *AuthorRepository) DeleteAllAuthors() error {
 
 	_, err := authorRepository.DB.Exec("DELETE FROM author")
 
@@ -165,5 +185,3 @@ func (authorRepository *AuthorRepository) DeleteAllAuthors() (error) {
 	return err
 
 }
-
-

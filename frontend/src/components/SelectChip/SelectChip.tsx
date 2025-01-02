@@ -11,7 +11,10 @@ import {
 	SelectChangeEvent,
 } from "@mui/material";
 import { useState } from "react";
-import {removeFromArray} from "../../utilities/arrayManipulation";
+import {
+	removeElementFromArray,
+	removeFromArray,
+} from "../../utilities/arrayManipulation";
 import checkAnagrams from "../../utilities/checkAnagrams";
 
 const ITEM_HEIGHT = 48;
@@ -67,7 +70,7 @@ export default function SelectChip({
 			let customTopics = customTopicField.split(",");
 			//check if custom topics are already inside topics selected
 			customTopics.forEach((customTopic, index) => {
-				if (checkAnagrams(topicsSelected, customTopic)) {
+				if (customTopic == "" || checkAnagrams(topicsSelected, customTopic)) {
 					customTopics = removeFromArray(customTopics, index);
 				}
 			});
@@ -81,8 +84,8 @@ export default function SelectChip({
 			<FormControl fullWidth style={{ userSelect: "none" }}>
 				<InputLabel id="demo-multiple-chip-label">Topics</InputLabel>
 				<Select
+
 					labelId="demo-multiple-chip-label"
-					id="demo-multiple-chip"
 					multiple
 					value={topicsSelected} //multiple values
 					onChange={handleTopicSelect}
@@ -92,7 +95,15 @@ export default function SelectChip({
 							? (selected) => (
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
 										{selected.map((value) => (
-											<Chip key={value} label={value} />
+											<Chip
+												key={value}
+												label={value}
+												onDelete={() => {
+													setTopicsSelected(
+														removeElementFromArray(topicsSelected, value)
+													);
+												}}
+											/>
 										))}
 									</Box>
 							  )

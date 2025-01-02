@@ -1,7 +1,7 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import { dateToTimeYear } from "../../utilities/dateToString";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../components/Button";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import { useState, useEffect } from "react";
@@ -13,10 +13,11 @@ const PostsPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadCardDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const { authorID } = useParams();
 	useEffect(
 		() =>
 			get(
-				"/authors/user/threads",
+				`/authors/${authorID === "User" ? "user" : authorID}/threads`,
 				(res) => {
 					const responseBody = res.data.data;
 					const threads: ThreadCardDTO[] = responseBody.map((thread: any) => ({

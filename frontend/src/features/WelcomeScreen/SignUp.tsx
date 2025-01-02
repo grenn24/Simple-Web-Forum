@@ -30,30 +30,29 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 			},
 			(err) => {
 				console.log(err);
-				const responseBody = err.data;
-				if (responseBody.error_code === "EMAIL_ALREADY_EXISTS") {
+				const errBody = err.data;
+				if (errBody.error_code === "EMAIL_ALREADY_EXISTS") {
 					setError("email", {
 						type: "custom",
-						message: responseBody.message,
+						message: errBody.message,
 					});
 				}
-				if (responseBody.error_code === "NAME_ALREADY_EXISTS") {
+				if (errBody.error_code === "NAME_ALREADY_EXISTS") {
 					setError("name", {
 						type: "custom",
-						message: responseBody.message,
+						message: errBody.message,
 					});
 				}
-				if (responseBody.error_code === "USERNAME_ALREADY_EXISTS") {
+				if (errBody.error_code === "USERNAME_ALREADY_EXISTS") {
 					setError("username", {
 						type: "custom",
-						message: responseBody.message,
+						message: errBody.message,
 					});
 				}
 			}
 		);
 	});
-	
-	
+
 	return (
 		<Box
 			position="absolute"
@@ -75,7 +74,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 						required: "The name field is required",
 					})}
 					error={!!errors.name}
-					helperText={errors.name ? (errors.name.message as String) : null}
+					helperText={errors.name?.message as string}
 					fullWidth
 				/>
 				<br />
@@ -94,9 +93,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 						required: "The username field is required",
 					})}
 					error={!!errors.username}
-					helperText={
-						errors.username ? (errors.username.message as String) : null
-					}
+					helperText={errors.username?.message as string}
 					fullWidth
 				/>
 				<br />
@@ -113,7 +110,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 						},
 					})}
 					error={!!errors.email}
-					helperText={errors.email ? (errors.email.message as String) : null}
+					helperText={errors.email?.message as string}
 					fullWidth
 				/>
 				<br />
@@ -131,9 +128,7 @@ const SignUp = ({ opacity, visibility }: Prop) => {
 						},
 					})}
 					error={!!errors.password}
-					helperText={
-						errors.password ? (errors.password.message as String) : null
-					}
+					helperText={errors.password?.message as string}
 					fullWidth
 				/>
 				<Button type="submit" buttonStyle={{ display: "none" }}>
