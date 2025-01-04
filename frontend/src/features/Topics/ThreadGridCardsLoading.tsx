@@ -17,9 +17,9 @@ const ThreadGridCardsLoading = () => {
 					rowSpacing={2}
 					sx={{ marginTop: 2 }}
 				>
-					{new Array(3).fill(
+					{new Array(3).map((_, index) => (
 						<Grid
-						key={Math.random()}
+							key={index}
 							size={
 								screenWidth > theme.breakpoints.values.md
 									? 4
@@ -35,7 +35,7 @@ const ThreadGridCardsLoading = () => {
 								width="100%"
 							/>
 						</Grid>
-					)}
+					))}
 				</Grid>
 			</Box>
 			<Box width="100%">
@@ -49,9 +49,9 @@ const ThreadGridCardsLoading = () => {
 					rowSpacing={2}
 					sx={{ marginTop: 2 }}
 				>
-					{new Array(3).fill(
+					{new Array(3).map((_, index) => (
 						<Grid
-						key={Math.random()}
+							key={index}
 							size={
 								screenWidth > theme.breakpoints.values.md
 									? 4
@@ -67,7 +67,7 @@ const ThreadGridCardsLoading = () => {
 								width="100%"
 							/>
 						</Grid>
-					)}
+					))}
 				</Grid>
 			</Box>
 		</>

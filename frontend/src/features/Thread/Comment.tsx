@@ -1,13 +1,5 @@
 import { Box, Typography, Avatar } from "@mui/material";
-import Button from "../../components/Button";
 import Menu from "../../components/Menu";
-import {
-	ThumbUpOutlined as ThumbUpOutlinedIcon,
-	ThumbUpRounded as ThumbUpRoundedIcon,
-} from "@mui/icons-material";
-import { useState } from "react";
-import playerGenerator from "../../utilities/playerGenerator";
-import likeSound from "../../assets/audio/like-sound.mp3";
 import { CommentDTO } from "../../dtos/CommentDTO";
 import { dateToTimeYear } from "../../utilities/dateToString";
 import { useNavigate } from "react-router-dom";
@@ -18,13 +10,6 @@ interface Prop {
 const Comment = ({
 	comment
 }: Prop) => {
-	const [likeStatus, setLikeStatus] = useState(false);
-	const player = playerGenerator(
-		likeSound,
-		0.9,
-		{ default: [90, 3000] },
-		"default"
-	);
 	const navigate = useNavigate();
 	return (
 		<Box display="flex" justifyContent="space-between" alignItems="center">

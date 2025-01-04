@@ -1,122 +1,21 @@
 import {
 	Box,
-	Grid2 as Grid,
 	Typography,
 	Divider,
-	useTheme,
 	Container,
 } from "@mui/material";
-import ThreadGridCard from "../components/ThreadGridCard/ThreadGridCard";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWindowSize } from "@uidotdev/usehooks";
 import Button from "../components/Button";
 import {
-	ArrowBackRounded as ArrowBackRoundedIcon,
-	NotificationsNoneRounded as NotificationsNoneRoundedIcon,
-	NotificationsActiveRounded as NotificationsActiveRoundedIcon,
+	ArrowBackRounded as ArrowBackRoundedIcon
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
-import { get, postJSON, Delete } from "../utilities/apiClient";
-import { ThreadDTO } from "../dtos/ThreadDTO";
+import { get } from "../utilities/apiClient";
 import ThreadGridCardsLoading from "../features/Topics/ThreadGridCardsLoading";
 import { TopicDTO } from "../dtos/TopicDTO";
 import { parseTopic, parseTopics } from "../utilities/parseApiResponse";
+import Topic from "../features/Topics/Topic.tsx";
 
-interface TopicProp {
-	name: string;
-	initialFollowStatus: boolean;
-	threads: ThreadDTO[];
-	topicID: number;
-}
-
-const Topic = ({ topicID, name, initialFollowStatus, threads }: TopicProp) => {
-	const navigate = useNavigate();
-	const screenWidth = useWindowSize().width as number;
-	const theme = useTheme();
-	const [followStatus, setFollowStatus] = useState(initialFollowStatus);
-
-	return (
-		<>
-			<Box key={name} marginBottom={8} marginTop={5}>
-				<Box display="flex" alignItems="center" justifyContent="space-between">
-					<Typography
-						variant="h5"
-						fontFamily="Open Sans"
-						color="primary.dark"
-						fontWeight={700}
-						onClick={() => navigate(`../Topics/${topicID}`)}
-						sx={{ cursor: "pointer" }}
-					>
-						{name}
-					</Typography>
-					<Button
-						buttonStyle={{ py: 0 }}
-						borderRadius={40}
-						fontSize={20}
-						buttonIcon={
-							followStatus ? (
-								<NotificationsActiveRoundedIcon />
-							) : (
-								<NotificationsNoneRoundedIcon />
-							)
-						}
-						handleButtonClick={() => {
-							if (followStatus) {
-								Delete("/follows/user", { followee_topic_id: topicID }, (err) =>
-									console.log(err)
-								);
-							} else {
-								postJSON(
-									"/follows/user",
-									{ followee_topic_id: topicID },
-									(err) => console.log(err)
-								);
-							}
-							setFollowStatus(!followStatus);
-						}}
-					>
-						Follow
-					</Button>
-				</Box>
-
-				<Box>
-					<Grid
-						container
-						columnSpacing={2.5}
-						rowSpacing={2}
-						sx={{ marginTop: 2 }}
-					>
-						{threads.map((thread) => (
-							<Grid
-								size={
-									screenWidth > theme.breakpoints.values.md
-										? 4
-										: screenWidth > theme.breakpoints.values.sm
-										? 6
-										: 12
-								}
-								key={thread.threadID}
-							>
-								<ThreadGridCard
-									threadID={thread.threadID}
-									threadAuthorName={thread.author.name}
-									threadTitle={thread.title}
-									threadCreatedAt={thread.createdAt}
-									avatarIconLink={thread.author.avatarIconLink}
-									threadContentSummarised={thread.content}
-									threadinitialBookmarkStatus={thread.bookmarkStatus}
-									handleAvatarIconClick={() => {
-										navigate(`../Profile/${thread.author.authorID}`);
-									}}
-								/>
-							</Grid>
-						))}
-					</Grid>
-				</Box>
-			</Box>
-		</>
-	);
-};
 
 const Topics = () => {
 	const navigate = useNavigate();
@@ -126,6 +25,7 @@ const Topics = () => {
 	const [topicsWithThreads, setTopicsWithThreads] = useState<TopicDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
+	// Fetch topics with threads tagged to it from api (re-fetch again when topicID path variable in url is added or changed)
 	useEffect(
 		() =>
 			get(
@@ -190,14 +90,11 @@ const Topics = () => {
 					}}
 					disableGutters
 				>
+					{/*If website is still fetching data from api, display loading skeleton grid cards instead*/}
 					{isLoading && <ThreadGridCardsLoading />}
 					{topicsWithThreads.map((topic) => (
-						<Topic
-							name={topic.name}
-							initialFollowStatus={topic.followStatus}
-							threads={topic.threads}
-							topicID={topic.topicID}
-							key={topic.topicID}
+						<Topic key={topic.topicID}
+							topic={topic}
 						/>
 					))}
 				</Container>

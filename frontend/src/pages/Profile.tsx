@@ -9,7 +9,7 @@ import {
 	Skeleton,
 	Badge,
 	TextField,
-	InputAdornment
+	InputAdornment,
 } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,10 +25,9 @@ import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
 import { get, putJSON } from "../utilities/apiClient";
-import { Controller, set, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { parseAuthor } from "../utilities/parseApiResponse";
 import { AuthorDTO } from "../dtos/AuthorDTO";
-
 
 const Profile = () => {
 	const {
@@ -37,7 +36,7 @@ const Profile = () => {
 		reset,
 		control,
 		formState: { errors },
-		setError
+		setError,
 	} = useForm();
 	const navigate = useNavigate();
 	const theme = useTheme();
@@ -46,8 +45,9 @@ const Profile = () => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isUploading, setIsUploading] = useState(false);
-	const [author, setAuthor] = useState<AuthorDTO>({
-	} as AuthorDTO);
+	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
+
+	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
 	useEffect(
 		() =>
 			get(
@@ -92,9 +92,8 @@ const Profile = () => {
 				}
 			);
 		} else {
-			 setIsEditing(true);
+			setIsEditing(true);
 		}
-
 	});
 
 	return (
@@ -155,7 +154,7 @@ const Profile = () => {
 								backgroundColor="rgba(60, 60, 60, 0.95)"
 								color="white"
 								toolTipText="Change Avatar"
-								buttonStyle={{display: authorID !== "User" && "none"}}
+								buttonStyle={{ display: authorID !== "User" && "none" }}
 							>
 								<EditRoundedIcon style={{ fontSize: 22 }} />
 							</Button>
@@ -174,8 +173,8 @@ const Profile = () => {
 						alignItems="center"
 						sx={{ flexGrow: 1 }}
 					>
+						{/*Display skeleton objects if author data is still loading*/}
 						<Box
-							
 							height={130}
 							display="flex"
 							flexDirection="column"
@@ -208,11 +207,11 @@ const Profile = () => {
 											/>
 										)}
 									/>
-									
 								) : (
 									author.name
 								)}
 							</Typography>
+
 							<Typography fontSize={18} fontWeight={300}>
 								{isLoading ? (
 									<Skeleton
@@ -255,51 +254,49 @@ const Profile = () => {
 							</Typography>
 						</Box>
 
-						<Box>
-							{!isLoading ? (
-								!author.isUser ? (
-									<Button
-										buttonStyle={{ py: 0 }}
-										borderRadius={40}
-										fontSize={20}
-										buttonIcon={
-											followStatus ? (
-												<NotificationsActiveRoundedIcon />
-											) : (
-												<NotificationsNoneRoundedIcon />
-											)
-										}
-										handleButtonClick={() => setFollowStatus(!followStatus)}
-									>
-										Follow
-									</Button>
-								) : (
-									// Button for editing basic profile info
-									<Button
-										loadingStatus={isUploading}
-										variant="contained"
-										backgroundColor="rgba(69, 69, 69, 0.68)"
-										buttonStyle={{ py: 0 }}
-										borderRadius={40}
-										fontSize={20}
-										buttonIcon={
-											isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
-										}
-										type="submit"
-										handleButtonClick={handleEditProfileClick}
-									>
-										{isEditing ? "Confirm" : "Edit"}
-									</Button>
-								)
+						{!isLoading ? (
+							!author.isUser ? (
+								<Button
+									buttonStyle={{ py: 0 }}
+									borderRadius={40}
+									fontSize={20}
+									buttonIcon={
+										followStatus ? (
+											<NotificationsActiveRoundedIcon />
+										) : (
+											<NotificationsNoneRoundedIcon />
+										)
+									}
+									handleButtonClick={() => setFollowStatus(!followStatus)}
+								>
+									Follow
+								</Button>
 							) : (
-								<Skeleton
-									variant="rounded"
-									width={130}
-									animation="pulse"
-									height={20}
-								/>
-							)}
-						</Box>
+								// Button for editing basic profile info
+								<Button
+									loadingStatus={isUploading}
+									variant="contained"
+									backgroundColor="rgba(69, 69, 69, 0.68)"
+									buttonStyle={{ py: 0 }}
+									borderRadius={40}
+									fontSize={20}
+									buttonIcon={
+										isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
+									}
+									type="submit"
+									handleButtonClick={handleEditProfileClick}
+								>
+									{isEditing ? "Confirm" : "Edit"}
+								</Button>
+							)
+						) : (
+							<Skeleton
+								variant="rounded"
+								width={130}
+								animation="pulse"
+								height={20}
+							/>
+						)}
 					</Box>
 				</Box>
 				<TabMenu

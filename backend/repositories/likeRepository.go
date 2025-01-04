@@ -62,8 +62,8 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 	sortOrder := []string{"\"like\".created_at DESC", "", "thread.like_count DESC", "thread.created_at DESC", "thread.created_at ASC"}
 
 	rows, err := likeRepository.DB.Query(`
-		SELECT "like".like_id, "like".created_at, like_author.author_id, like_author.name, like_author.avatar_icon_link, thread.thread_id, thread.title, thread.content, thread.created_at,
-		thread.image_title, thread.image_link, thread.like_count, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link,
+		SELECT "like".like_id, "like".created_at, like_author.author_id, like_author.name, like_author.username, like_author.avatar_icon_link, thread.thread_id, thread.title, thread.content, thread.created_at,
+		thread.image_title, thread.image_link, thread.like_count, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -99,6 +99,7 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			&like.CreatedAt,
 			&like.Author.AuthorID,
 			&like.Author.Name,
+			&like.Author.Username,
 			&like.Author.AvatarIconLink,
 			&like.Thread.ThreadID,
 			&like.Thread.Title,
@@ -109,6 +110,7 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			&like.Thread.LikeCount,
 			&like.Thread.Author.AuthorID,
 			&like.Thread.Author.Name,
+			&like.Thread.Author.Username,
 			&like.Thread.Author.AvatarIconLink,
 			&like.Thread.ArchiveStatus,
 		)

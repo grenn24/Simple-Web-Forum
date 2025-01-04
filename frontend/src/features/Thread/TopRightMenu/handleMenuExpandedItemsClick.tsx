@@ -1,7 +1,6 @@
 import React from "react";
 import { Delete, postJSON } from "../../../utilities/apiClient";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
-import { useNavigate } from "react-router-dom";
 
 const handleMenuExpandedItemsClick = (
 	bookmarkStatus: boolean,
@@ -12,8 +11,7 @@ const handleMenuExpandedItemsClick = (
 	setIsEditing: (status: boolean) => void,
 	thread: ThreadDTO,
 	navigate: (x: any) => void
-) => {
-	return [
+) =>  [
 	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
 		event.stopPropagation();
 		setIsEditing(!isEditing);
@@ -62,6 +60,6 @@ const handleMenuExpandedItemsClick = (
 		);
 	},
 	(event: React.MouseEvent<HTMLElement, MouseEvent>) => event.stopPropagation(),
-];}
+]
 
 export default handleMenuExpandedItemsClick;

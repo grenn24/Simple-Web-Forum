@@ -11,31 +11,17 @@ import { CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { dateToYear } from "../../utilities/dateToString";
 import { Delete, postJSON } from "../../utilities/apiClient";
+import { ThreadDTO } from "../../dtos/ThreadDTO";
 
 interface Prop {
-	threadID: number;
-	threadTitle: string;
-	threadAuthorName: string;
-	threadAuthorID?: string;
-	threadCreatedAt: Date;
-	avatarIconLink: string;
-	threadContentSummarised: string;
-	handleAvatarIconClick?: () => void;
-	threadinitialBookmarkStatus: boolean;
+	thread: ThreadDTO
 }
 
 const ThreadGridCard = ({
-	threadID,
-	threadTitle,
-	threadAuthorName,
-	threadCreatedAt,
-	avatarIconLink,
-	threadContentSummarised,
-	handleAvatarIconClick,
-	threadinitialBookmarkStatus
+	thread
 }: Prop) => {
 	const [bookmarkStatus, setBookmarkStatus] = useState(
-		threadinitialBookmarkStatus
+		thread.bookmarkStatus
 	);
 	const navigate = useNavigate();
 
@@ -44,14 +30,14 @@ const ThreadGridCard = ({
 		setBookmarkStatus(!bookmarkStatus);
 		if (bookmarkStatus) {
 			Delete(
-				`threads/${threadID}/bookmarks/user`,
+				`threads/${thread.threadID}/bookmarks/user`,
 				{},
 				() => {},
 				(err) => console.log(err)
 			);
 		} else {
 			postJSON(
-				`threads/${threadID}/bookmarks/user`,
+				`threads/${thread.threadID}/bookmarks/user`,
 				{},
 				() => {},
 				(err) => console.log(err)
@@ -63,14 +49,14 @@ const ThreadGridCard = ({
 			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${threadID}`)}
+					onClick={() => navigate(`../Thread/${thread.threadID}`)}
 					disableRipple
 				>
 					<CardHeader
 						avatar={
 							<Menu
 								menuExpandedItemsArray={[]}
-								menuIcon={<Avatar src={avatarIconLink} />}
+								menuIcon={<Avatar src={thread.author.avatarIconLink} />}
 								menuStyle={{
 									padding: 0,
 									"&:hover": {
@@ -85,8 +71,8 @@ const ThreadGridCard = ({
 								menuExpandedDataValuesArray={[]}
 								toolTipText="View Profile"
 								handleMenuIconClick={(event) => {
-									handleAvatarIconClick && handleAvatarIconClick();
 									event.stopPropagation();
+									navigate(`../Profile/${thread.author.authorID}`);
 								}}
 								showMenuExpandedOnClick={false}
 							/>
@@ -109,8 +95,8 @@ const ThreadGridCard = ({
 								handleMenuIconClick={handleBookmarkIconClick}
 							/>
 						}
-						title={threadAuthorName}
-						subheader={dateToYear(threadCreatedAt, "short")}
+						title={thread.author.name}
+						subheader={dateToYear(thread.createdAt, "short")}
 						titleTypographyProps={{ fontWeight: 750 }}
 						sx={{ paddingBottom: 0.5 }}
 					/>
@@ -122,12 +108,12 @@ const ThreadGridCard = ({
 							fontFamily="Open Sans"
 							fontWeight={600}
 						>
-							{threadTitle}
+							{thread.title}
 						</Typography>
 					</CardContent>
 
 					<CardContent sx={{ py: 0, marginBottom: 1 }}>
-						<Typography fontSize={14}>{threadContentSummarised}</Typography>
+						<Typography fontSize={14}>{thread.content}</Typography>
 					</CardContent>
 				</CardActionArea>
 			</Card>

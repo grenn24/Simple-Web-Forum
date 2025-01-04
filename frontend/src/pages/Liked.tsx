@@ -21,6 +21,7 @@ const Liked = () => {
 	const navigate = useNavigate();
 	const [likes, setLikes] = useState<LikeDTO[]>([]);
 
+	// Retrieve liked threads from api (re-fetch whenever sorting order is changed)
 	useEffect(
 		() =>
 			get(
@@ -108,26 +109,11 @@ const Liked = () => {
 					}}
 					disableGutters
 				>
+					{/*If website is still fetching data from api, display loading skeleton cards instead*/}
 					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{likes.map((like) => (
 						<Box key={like.likeID}>
-							<ThreadCard
-								threadID={like.thread.threadID}
-								threadTitle={like.thread.title}
-								threadAuthor={like.thread.author.name}
-								threadCreatedAt={like.thread.createdAt}
-								threadLikeCount={like.thread.likeCount}
-								threadCommentCount={like.thread.commentCount}
-								threadContentSummarised={like.thread.content}
-								threadImageLink={like.thread.imageLink}
-								avatarIconLink={like.thread.author.avatarIconLink}
-								threadLikeStatus={like.thread.likeStatus}
-								threadBookmarkStatus={like.thread.bookmarkStatus}
-								threadArchiveStatus={like.thread.archiveStatus}
-								handleAvatarIconClick={() =>
-									navigate(`../Profile/${like.thread.author.authorID}`)
-								}
-							/>
+							<ThreadCard thread={like.thread} />
 							<Divider />
 						</Box>
 					))}

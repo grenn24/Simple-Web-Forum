@@ -63,8 +63,7 @@ const Thread = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { threadID } = useParams();
-	// Check if an expand text field state was passed in during navigation as state
-	const [expandTextField, setExpandTextField] = useState(false);
+
 	const [commentSortIndex, setCommentSortIndex] = useState(0);
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
@@ -73,11 +72,15 @@ const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
-	const [isUploadingComment, setIsUploadingComment] = useState(false);
-	const [isUploadingThread, setIsUploadingThread] = useState(false);
-	const [isEditing, setIsEditing] = useState(false);
+
 	const [thread, setThread] = useState<ThreadDTO>({} as ThreadDTO);
+
+	// State variables used to track edit or loading status
+	const [isLoading, setIsLoading] = useState(true);
+	const [isUploadingThread, setIsUploadingThread] = useState(false);
+	const [isUploadingComment, setIsUploadingComment] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [isCommenting, setIsCommenting] = useState(false);
 
 	useEffect(
 		() =>
@@ -91,8 +94,10 @@ const Thread = () => {
 					setLikeStatus(thread.likeStatus);
 					setArchiveStatus(thread.archiveStatus);
 					setBookmarkStatus(thread.bookmarkStatus);
-					setExpandTextField(location.state?.expandTextField);
 					setIsLoading(false);
+					// Check if isEditing or isCommenting was passed in during navigation
+					setIsCommenting(location.state?.isCommenting);
+					setIsEditing(location.state?.isEditing);
 				},
 				(err) => console.log(err)
 			),
@@ -105,7 +110,6 @@ const Thread = () => {
 		reset,
 		control,
 		formState: { errors },
-		setError,
 	} = useForm();
 
 	const handleCommentSubmit = handleSubmit((data) => {
@@ -116,7 +120,7 @@ const Thread = () => {
 				content: data.comment,
 			},
 			() => {
-				setExpandTextField(false);
+				setIsCommenting(false);
 				reset();
 				setIsUploadingComment(false);
 			},
@@ -324,9 +328,7 @@ const Thread = () => {
 												marginLeft: 1,
 												marginRight: 1,
 											}}
-											handleButtonClick={(
-												event: React.MouseEvent<HTMLElement>
-											) => {
+											handleButtonClick={() => {
 												setIsEditing(false);
 											}}
 										>
@@ -471,7 +473,7 @@ const Thread = () => {
 												marginRight: 1,
 											}}
 											handleButtonClick={() => {
-												setExpandTextField(true);
+												setIsCommenting(true);
 											}}
 										>
 											{String(thread.commentCount)}
@@ -542,7 +544,7 @@ const Thread = () => {
 											marginBottom: 1.5,
 										}}
 									>
-										{!expandTextField ? (
+										{!isCommenting ? (
 											<TextFieldAutosize
 												sx={{
 													width: "100%",
@@ -554,7 +556,7 @@ const Thread = () => {
 												minRows={1}
 												placeholder="Add a comment"
 												onClick={() => {
-													setExpandTextField(true);
+													setIsCommenting(true);
 												}}
 											/>
 										) : (
@@ -588,7 +590,7 @@ const Thread = () => {
 														}
 														color="primary.dark"
 														handleButtonClick={() => {
-															setExpandTextField(false);
+															setIsCommenting(false);
 															reset();
 														}}
 													/>
@@ -638,11 +640,7 @@ const Thread = () => {
 									variant="text"
 									disablePadding
 									listItemsArray={thread.comments.map((comment: CommentDTO) => {
-										return (
-											<Comment
-												comment={comment}
-											/>
-										);
+										return <Comment comment={comment} />;
 									})}
 								/>
 							</CardContent>

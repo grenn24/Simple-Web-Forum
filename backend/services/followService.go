@@ -109,9 +109,12 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, s
 		}
 		followedThread.CommentCount = &commentCount
 
-		// Retrieve like status
+		// Retrieve like status and isUser Status
 		likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(followedThread.ThreadID, followedThread.Author.AuthorID)
 		followedThread.LikeStatus = &likeStatus
+		threadAuthorIsUser := followedThread.Author.AuthorID == authorID
+		followedThread.Author.IsUser = &threadAuthorIsUser
+		
 	}
 
 	return followedThreads, nil

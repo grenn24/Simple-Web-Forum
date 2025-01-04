@@ -3,7 +3,6 @@ import {
 	CircularProgress
 } from "@mui/material";
 import List from "../../../components/List";
-import profileDataSample from "../profileDataSample";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { get } from "../../../utilities/apiClient";
@@ -42,7 +41,7 @@ const LikesPage = () => {
 					<ThreadCardMini like={like}  />
 				))}
 				listItemsDataValues={likes.map((like) => String(like.thread.threadID))}
-				handleListItemsClick={new Array(profileDataSample.likes.length).fill(
+				handleListItemsClick={new Array(likes.length).fill(
 					(event: React.MouseEvent<HTMLElement>) =>
 						navigate(`../Thread/${event.currentTarget.dataset?.value}`)
 				)}

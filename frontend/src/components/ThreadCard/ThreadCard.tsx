@@ -36,6 +36,7 @@ import { Delete, postJSON } from "../../utilities/apiClient";
 import { dateToYear } from "../../utilities/dateToString";
 import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
 import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
+import { ThreadDTO } from "../../dtos/ThreadDTO";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -66,44 +67,19 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 interface Prop {
-	threadID: number;
-	threadTitle: string;
-	threadAuthor: string;
-	threadCreatedAt: Date;
-	threadLikeCount: number;
-	threadCommentCount: number;
-	threadContentSummarised: string;
-	threadImageLink?: string;
-	avatarIconLink: string;
-	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
-	threadLikeStatus: boolean;
-	threadBookmarkStatus: boolean;
-	threadArchiveStatus: boolean;
+	thread: ThreadDTO
 }
 
 const ThreadCard = ({
-	threadID,
-	threadTitle,
-	threadAuthor,
-	threadCreatedAt,
-	threadLikeCount,
-	threadCommentCount,
-	threadContentSummarised,
-	threadImageLink,
-	avatarIconLink,
-	handleAvatarIconClick,
-	threadLikeStatus,
-	threadArchiveStatus,
-	threadBookmarkStatus,
+	thread,
 }: Prop) => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [expandCardContent, setExpandCardContent] = useState(false);
-
-	const [likeStatus, setLikeStatus] = useState(threadLikeStatus);
-	const [likeCount, setLikeCount] = useState(threadLikeCount);
-	const [bookmarkStatus, setBookmarkStatus] = useState(threadBookmarkStatus);
-	const [archiveStatus, setArchiveStatus] = useState(threadArchiveStatus);
+	const [likeStatus, setLikeStatus] = useState(thread.likeStatus);
+	const [likeCount, setLikeCount] = useState(thread.likeCount);
+	const [bookmarkStatus, setBookmarkStatus] = useState(thread.bookmarkStatus);
+	const [archiveStatus, setArchiveStatus] = useState(thread.archiveStatus);
 
 	const navigate = useNavigate();
 
@@ -124,14 +100,14 @@ const ThreadCard = ({
 			>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${threadID}`)}
+					onClick={() => navigate(`../Thread/${thread.threadID}`)}
 					disableRipple
 				>
 					<CardHeader
 						avatar={
 							<Menu
 								menuExpandedItemsArray={[]}
-								menuIcon={<Avatar src={avatarIconLink} />}
+								menuIcon={<Avatar src={thread.author.avatarIconLink} />}
 								menuStyle={{
 									padding: 0,
 									"&:hover": {
@@ -147,8 +123,9 @@ const ThreadCard = ({
 								menuExpandedDataValuesArray={[]}
 								toolTipText="View Profile"
 								handleMenuIconClick={(event) => {
-									handleAvatarIconClick && handleAvatarIconClick(event);
 									event.stopPropagation();
+									navigate(`../Profile/${thread.author.authorID}`);
+									
 								}}
 								showMenuExpandedOnClick={false}
 							/>
@@ -159,9 +136,10 @@ const ThreadCard = ({
 									menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
 									menuExpandedIconsArray={MenuExpandedIcons(
 										bookmarkStatus,
-										archiveStatus
+										archiveStatus,
+										thread
 									)}
-									menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
+									menuExpandedItemsArray={MenuExpandedItems(thread, archiveStatus)}
 									toolTipText="More"
 									scrollLock={true}
 									handleMenuIconClick={(event) => event.stopPropagation()}
@@ -170,27 +148,28 @@ const ThreadCard = ({
 										setBookmarkStatus,
 										archiveStatus,
 										setArchiveStatus,
-										threadID
+										thread,
+										navigate
 									)}
 									closeMenuOnExpandedItemsClick={false}
 								/>
 							</>
 						}
-						title={threadAuthor}
+						title={thread.author.username}
 						titleTypographyProps={{ fontWeight: 750 }}
-						subheader={dateToYear(threadCreatedAt, "long")}
+						subheader={dateToYear(thread.createdAt, "long")}
 					/>
 
 					<CardContent>
 						<Typography variant="h5" color="primary.dark" fontWeight={760}>
-							{threadTitle}
+							{thread.title}
 						</Typography>
 					</CardContent>
 
 					<CardMedia
 						component="img"
 						height="194"
-						image={threadImageLink}
+						image={thread.imageLink}
 						sx={{ height: "auto", objectFit: "contain", pointerEvents: "none" }}
 					/>
 
@@ -225,7 +204,7 @@ const ThreadCard = ({
 								if (likeStatus) {
 									setLikeCount(likeCount - 1);
 									Delete(
-										`/threads/${threadID}/likes/user`,
+										`/threads/${thread.threadID}/likes/user`,
 										{},
 										() => {},
 										(err) => console.log(err)
@@ -234,7 +213,7 @@ const ThreadCard = ({
 									player();
 									setLikeCount(likeCount + 1);
 									postJSON(
-										`/threads/${threadID}/likes/user`,
+										`/threads/${thread.threadID}/likes/user`,
 										{},
 										() => {},
 										(err) => console.log(err)
@@ -257,13 +236,13 @@ const ThreadCard = ({
 								marginRight: 1,
 							}}
 							handleButtonClick={(event) => {
-								navigate(`../Thread/${threadID}`, {
-									state: { expandTextField: true },
-								}); //Pass in state during navigation
+								navigate(`../Thread/${thread.threadID}`, {
+									state: { isCommenting: true },
+								}); 
 								event.stopPropagation();
 							}}
 						>
-							{String(threadCommentCount)}
+							{String(thread.commentCount)}
 						</Button>
 						<Button
 							component="button"
@@ -312,7 +291,7 @@ const ThreadCard = ({
 												currentPathObject.pathname.lastIndexOf("/")
 											);
 										const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${threadID}`;
+										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
 										event.stopPropagation();
 									},
 								]}
@@ -331,7 +310,7 @@ const ThreadCard = ({
 								);
 								const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
 								navigator.clipboard.writeText(
-									`${parentPathAbsolute}/Thread/${threadID}`
+									`${parentPathAbsolute}/Thread/${thread.threadID}`
 								);
 							}}
 							duration={1500}
@@ -350,7 +329,7 @@ const ThreadCard = ({
 					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
 						<CardContent>
 							<Typography sx={{ marginBottom: 2 }}>
-								{threadContentSummarised}
+								{thread.content}
 							</Typography>
 						</CardContent>
 					</Collapse>

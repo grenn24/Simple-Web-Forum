@@ -21,6 +21,7 @@ const Bookmarked = () => {
 	const navigate = useNavigate();
 	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadDTO[]>([]);
 
+	// Retrieve bookmarked threads from api (re-fetch whenever sorting order is changed)
 	useEffect(() => {
 		get<ThreadDTO[]>(
 			"/authors/user/bookmarks?sort=" + sortIndex,
@@ -107,26 +108,11 @@ const Bookmarked = () => {
 					}}
 					disableGutters
 				>
+					{/*If website is still fetching data from api, display loading skeleton cards instead*/}
 					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{bookmarkedThreads.map((bookmarkedThread) => (
 						<Box key={bookmarkedThread.threadID}>
-							<ThreadCard
-								threadID={bookmarkedThread.threadID}
-								threadTitle={bookmarkedThread.title}
-								threadAuthor={bookmarkedThread.author.name}
-								threadCreatedAt={bookmarkedThread.createdAt}
-								threadLikeCount={bookmarkedThread.likeCount}
-								threadCommentCount={bookmarkedThread.commentCount}
-								threadContentSummarised={bookmarkedThread.content}
-								threadImageLink={bookmarkedThread.imageLink}
-								avatarIconLink={bookmarkedThread.author.avatarIconLink}
-								threadLikeStatus={bookmarkedThread.likeStatus}
-								threadBookmarkStatus={bookmarkedThread.bookmarkStatus}
-								threadArchiveStatus={bookmarkedThread.archiveStatus}
-								handleAvatarIconClick={() =>
-									navigate(`../Profile/${bookmarkedThread.author.authorID}`)
-								}
-							/>
+							<ThreadCard thread={bookmarkedThread} />
 							<Divider />
 						</Box>
 					))}

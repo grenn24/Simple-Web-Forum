@@ -1,25 +1,35 @@
 import React from "react";
 import { Delete, postJSON } from "../../../utilities/apiClient";
+import { ThreadDTO } from "../../../dtos/ThreadDTO";
+import { NavigateOptions, To } from "react-router-dom";
 
 const handleMenuExpandedItemsClick = (
 	bookmarkStatus: boolean,
 	setBookmarkStatus: (status: boolean) => void,
 	archiveStatus: boolean,
 	setArchiveStatus: (status: boolean) => void,
-	threadID: number
+	thread: ThreadDTO,
+	navigate: (to: To, options?: NavigateOptions) => void | Promise<void>
 ) => [
+	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+		event.stopPropagation();
+		// Pass in a isEditing boolean value during navigation
+		navigate(`../Thread/${thread.threadID}`, {
+			state: { isEditing: true },
+		});
+	},
 	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
 		event.stopPropagation();
 		setArchiveStatus(!archiveStatus);
 		archiveStatus
 			? Delete(
-					`threads/${threadID}/archives/user`,
+					`threads/${thread.threadID}/archives/user`,
 					{},
 					() => {},
 					(err) => console.log(err)
 			  )
 			: postJSON(
-					`threads/${threadID}/archives/user`,
+					`threads/${thread.threadID}/archives/user`,
 					{},
 					() => {},
 					(err) => console.log(err)
@@ -30,17 +40,26 @@ const handleMenuExpandedItemsClick = (
 		setBookmarkStatus(!bookmarkStatus);
 		bookmarkStatus
 			? Delete(
-					`threads/${threadID}/bookmarks/user`,
+					`threads/${thread.threadID}/bookmarks/user`,
 					{},
 					() => {},
 					(err) => console.log(err)
 			  )
 			: postJSON(
-					`threads/${threadID}/bookmarks/user`,
+					`threads/${thread.threadID}/bookmarks/user`,
 					{},
 					() => {},
 					(err) => console.log(err)
 			  );
+	},
+	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+		event.stopPropagation();
+		Delete(
+			`threads/${thread.threadID}`,
+			{},
+			() => {},
+			(err) => console.log(err)
+		);
 	},
 	(event: React.MouseEvent<HTMLElement, MouseEvent>) => event.stopPropagation(),
 ];

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthorDTO } from "../../../dtos/AuthorDTO";
 import { parseAuthor } from "../../../utilities/parseApiResponse";
 import { useParams } from "react-router-dom";

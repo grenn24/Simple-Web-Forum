@@ -55,11 +55,13 @@ func (likeService *LikeService) GetLikesByAuthorID(authorID int, sortIndex int) 
 		}
 		likedThread.Thread.CommentCount = &commentCount
 
-		// Retrieve like and bookmark status
+		// Retrieve like, bookmark and isUser status
 		likeStatus := true
 		likedThread.Thread.LikeStatus = &likeStatus
 		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(likedThread.Thread.ThreadID, likedThread.Author.AuthorID)
 		likedThread.Thread.BookmarkStatus = &bookmarkStatus
+		threadAuthorIsUser := likedThread.Thread.Author.AuthorID == authorID
+		likedThread.Thread.Author.IsUser = &threadAuthorIsUser
 
 		// Retrieve topics tagged
 		topics, err := topicRepository.GetTopicsByThreadID(likedThread.Thread.ThreadID)

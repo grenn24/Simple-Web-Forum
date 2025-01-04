@@ -49,7 +49,7 @@ func (bookmarkRepository *BookmarkRepository) DeleteBookmarkByThreadIDAuthorID(t
 func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
 	sortOrder := []string{"ORDER BY bookmark.created_at DESC", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
 	rows, err := bookmarkRepository.DB.Query(`
-		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
+		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -83,7 +83,8 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			&bookmarkedThread.Content,
 			&bookmarkedThread.Author.AuthorID,
 			&bookmarkedThread.Author.Name,
-			&bookmarkedThread.AvatarIconLink,
+			&bookmarkedThread.Author.Username,
+			&bookmarkedThread.Author.AvatarIconLink,
 			&bookmarkedThread.ImageTitle,
 			&bookmarkedThread.ImageLink,
 			&bookmarkedThread.LikeCount,

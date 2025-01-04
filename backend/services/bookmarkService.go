@@ -110,11 +110,13 @@ func (bookmarkService *BookmarkService) GetBookmarkedThreadsByAuthorID(authorID 
 		}
 		bookmarkedThread.CommentCount = &commentCount
 
-		// Retrieve like and bookmark status
+		// Retrieve like, bookmark and isUser status
 		likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(bookmarkedThread.ThreadID, bookmarkedThread.Author.AuthorID)
 		bookmarkedThread.LikeStatus = &likeStatus
 		bookmarkStatus := true
 		bookmarkedThread.BookmarkStatus = &bookmarkStatus
+		threadAuthorIsUser := bookmarkedThread.Author.AuthorID == authorID
+		bookmarkedThread.Author.IsUser = &threadAuthorIsUser
 
 		// Retrieve topics tagged
 		topics, err := topicRepository.GetTopicsByThreadID(bookmarkedThread.ThreadID)

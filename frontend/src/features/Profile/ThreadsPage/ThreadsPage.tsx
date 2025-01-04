@@ -3,8 +3,7 @@ import List from "../../../components/List";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
-import { Delete, get } from "../../../utilities/apiClient";
-import { removeFromArray } from "../../../utilities/arrayManipulation";
+import { get } from "../../../utilities/apiClient";
 import { parseThreads } from "../../../utilities/parseApiResponse";
 import ThreadCardMini from "./ThreadCardMini";
 

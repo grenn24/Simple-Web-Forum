@@ -1,7 +1,6 @@
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
 
-const MenuExpandedItems = (thread: ThreadDTO, archiveStatus: boolean) => {
-	return thread.author.isUser
+const MenuExpandedItems = (thread: ThreadDTO, archiveStatus: boolean) =>  thread.author.isUser
 		? [
 				"Edit",
 				archiveStatus ? "Unarchive" : "Archive",
@@ -10,6 +9,6 @@ const MenuExpandedItems = (thread: ThreadDTO, archiveStatus: boolean) => {
 				"Report",
 		  ]
 		: ["Archive", "Bookmark", "Report"];
-};
+
 
 export default MenuExpandedItems;

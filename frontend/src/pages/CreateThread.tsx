@@ -21,7 +21,7 @@ const CreateThread = () => {
 		formState: { errors },
 		reset,
 		control,
-	} = useForm({ mode: "onChange" });
+	} = useForm();
 
 	const submitForm = handleSubmit((data) => {
 		setIsUploading(true);

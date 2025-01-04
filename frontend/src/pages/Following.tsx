@@ -21,6 +21,7 @@ const Following = () => {
 	const navigate = useNavigate();
 	const [followedThreads, setFollowedThreads] = useState<ThreadDTO[]>([]);
 
+	// Retrieve followed threads from api (re-fetch whenever sorting order is changed)
 	useEffect(
 		() =>
 			get<ThreadDTO[]>(
@@ -108,25 +109,13 @@ const Following = () => {
 					}}
 					disableGutters
 				>
+					{/*If website is still fetching data from api, display loading skeleton cards instead*/}
 					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{followedThreads.map((followedThread) => (
 						<Box key={followedThread.threadID}>
 							<ThreadCard
-								threadID={followedThread.threadID}
-								threadTitle={followedThread.title}
-								threadAuthor={followedThread.author.name}
-								threadCreatedAt={followedThread.createdAt}
-								threadLikeCount={followedThread.likeCount}
-								threadCommentCount={followedThread.commentCount}
-								threadContentSummarised={followedThread.content}
-								threadImageLink={followedThread.imageLink}
-								avatarIconLink={followedThread.author.avatarIconLink}
-								threadLikeStatus={followedThread.likeStatus}
-								threadBookmarkStatus={followedThread.bookmarkStatus}
-								threadArchiveStatus={followedThread.archiveStatus}
-								handleAvatarIconClick={() =>
-									navigate(`../Profile/${followedThread.author.authorID}`)
-								}
+								
+								thread={followedThread}
 							/>
 							<Divider />
 						</Box>

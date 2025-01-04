@@ -1,6 +1,5 @@
 import { Box, Divider, Typography } from "@mui/material";
 import { dateToTimeYear, dateToYear } from "../../../utilities/dateToString";
-import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import LikeDTO from "../../../dtos/LikeDTO";
 import { useState } from "react";
 import playerGenerator from "../../../utilities/playerGenerator";
