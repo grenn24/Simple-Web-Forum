@@ -19,12 +19,13 @@ func (archiveRepository *ArchiveRepository) CreateArchive(archive *models.Archiv
 	return err
 }
 
-func (archiveRepository *ArchiveRepository) GetArchivedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) ([]*dtos.ArchiveDTO, error) {
 	rows, err := archiveRepository.DB.Query(`
-		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.image_title, thread.image_link, TRUE AS archive_status
+		SELECT thread_archive.archive_id, thread_archive.created_at , archive_author.author_id, archive_author.name, archive_author.avatar_icon_link, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.thread_id, thread.title, thread.created_at, thread.content, thread.image_title, thread.image_link, TRUE AS archive_status
 		FROM thread_archive
 		INNER JOIN thread ON thread_archive.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		INNER JOIN author AS archive_author ON thread_archive.author_id = archive_author.author_id
 		WHERE thread_archive.author_id = $1
 	`, authorID)
 
@@ -34,24 +35,32 @@ func (archiveRepository *ArchiveRepository) GetArchivedThreadsByAuthorID(authorI
 
 	//Close rows after finishing query
 	defer rows.Close()
-	archivedThreads := make([]*dtos.ThreadCard, 0)
+	archivedThreads := make([]*dtos.ArchiveDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a archived thread struct
-		archivedThread := new(dtos.ThreadCard)
+		archivedThread := new(dtos.ArchiveDTO)
+		archivedThread.Author = new(dtos.AuthorDTO)
+		archivedThread.Thread = new(dtos.ThreadDTO)
+		archivedThread.Thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the archive struct
 		err := rows.Scan(
-			&archivedThread.ThreadID,
-			&archivedThread.Title,
+			&archivedThread.ArchiveID,
 			&archivedThread.CreatedAt,
-			&archivedThread.ContentSummarised,
-			&archivedThread.AuthorID,
-			&archivedThread.AuthorName,
-			&archivedThread.AvatarIconLink,
-			&archivedThread.ImageTitle,
-			&archivedThread.ImageLink,
-			&archivedThread.ArchiveStatus,
+			&archivedThread.Author.AuthorID,
+			&archivedThread.Author.Name,
+			&archivedThread.Author.AvatarIconLink,
+			&archivedThread.Thread.Author.AuthorID,
+			&archivedThread.Thread.Author.Name,
+			&archivedThread.Thread.Author.AvatarIconLink,
+			&archivedThread.Thread.ThreadID,
+			&archivedThread.Thread.Title,
+			&archivedThread.Thread.CreatedAt,
+			&archivedThread.Thread.Content,
+			&archivedThread.Thread.ImageTitle,
+			&archivedThread.Thread.ImageLink,
+			&archivedThread.Thread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors
@@ -59,7 +68,7 @@ func (archiveRepository *ArchiveRepository) GetArchivedThreadsByAuthorID(authorI
 			return nil, err
 		}
 
-		archivedThread.ContentSummarised = utils.TruncateString(archivedThread.ContentSummarised, 30)
+		archivedThread.Thread.Content = utils.TruncateString(archivedThread.Thread.Content, 30)
 
 		// Append the scanned archive to archives slice
 		archivedThreads = append(archivedThreads, archivedThread)

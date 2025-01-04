@@ -31,7 +31,7 @@ func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, *dtos.Err
 	return authors, nil
 }
 
-func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*models.Author, *dtos.Error) {
+func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*dtos.AuthorDTO, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
 	author, err := authorRepository.GetAuthorByID(authorID)
@@ -51,10 +51,9 @@ func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int
 			Message:   err.Error(),
 		}
 	}
-	if userAuthorID == author.AuthorID {
-		bool := true
-		author.IsUser = &bool
-	}
+	// Check if the author being requested is the current user
+	isUser := userAuthorID == author.AuthorID
+	author.IsUser = &isUser
 	return author, nil
 }
 

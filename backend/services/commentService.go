@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -37,16 +36,10 @@ func (commentService *CommentService) GetAllComments(sort string) ([]*models.Com
 	return comments, nil
 }
 
-func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentExpanded, *dtos.Error) {
+func (commentService *CommentService) GetCommentsByThreadID(threadID int, sortIndex int) ([]*dtos.CommentDTO, *dtos.Error) {
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
-	if sort == "newest" {
-		sort = "DESC"
-	} else if sort == "oldest" {
-		sort = "ASC"
-	} else {
-		sort = ""
-	}
-	comments, err := commentRepository.GetCommentsByThreadID(threadID, sort)
+
+	comments, err := commentRepository.GetCommentsByThreadID(threadID, sortIndex)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -57,12 +50,12 @@ func (commentService *CommentService) GetCommentsByThreadID(threadID int, sort s
 	return comments, nil
 }
 
-func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int) ([]*dtos.CommentExpanded, *dtos.Error) {
+func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dtos.CommentDTO, *dtos.Error) {
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
 	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
 
-
-	commentedThreads, err := commentRepository.GetCommentedThreadsByAuthorID(authorID)
+	comments, err := commentRepository.GetCommentsByAuthorID(authorID)
+	
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -70,15 +63,14 @@ func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int
 			Message:   err.Error(),
 		}
 	}
-
-	for _, commentedThread := range commentedThreads {
+	
+	for _, comment := range comments {
 		// Truncate thread content
-		truncatedContent := utils.TruncateString(*commentedThread.ThreadContentSummarised, 20)
-		commentedThread.ThreadContentSummarised = &truncatedContent
+		truncatedContent := utils.TruncateString(comment.Thread.Content, 20)
+		comment.Thread.Content = truncatedContent
 
 		// Retrieve topics tagged
-		topics, err := topicRepository.GetTopicsByThreadID(commentedThread.ThreadID)
-		commentedThread.TopicsTagged = topics
+		topics, err := topicRepository.GetTopicsByThreadID(comment.Thread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",
@@ -86,9 +78,12 @@ func (commentService *CommentService) GetCommentedThreadsByAuthorID(authorID int
 				Message:   err.Error(),
 			}
 		}
-	}
+		comment.Thread.TopicsTagged = topics
 
-	return commentedThreads, nil
+	}
+		
+
+	return comments, nil
 }
 
 func (commentService *CommentService) CountAllComments() (int, error) {
@@ -132,7 +127,7 @@ func (commentService *CommentService) DeleteAllComments() *dtos.Error {
 
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
 	err := commentRepository.DeleteAllComments()
-		if err != nil {
+	if err != nil {
 		// Check for internal server errors
 		return &dtos.Error{
 			Status:    "error",
@@ -142,7 +137,6 @@ func (commentService *CommentService) DeleteAllComments() *dtos.Error {
 	}
 	return nil
 }
-
 
 func (commentService *CommentService) DeleteCommentByID(commentID int) *dtos.Error {
 

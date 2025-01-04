@@ -8,23 +8,15 @@ import {
 import { useState } from "react";
 import playerGenerator from "../../utilities/playerGenerator";
 import likeSound from "../../assets/audio/like-sound.mp3";
+import { CommentDTO } from "../../dtos/CommentDTO";
+import { dateToTimeYear } from "../../utilities/dateToString";
+import { useNavigate } from "react-router-dom";
 
 interface Prop {
-	id?: number;
-	author: string;
-	likeCount: number;
-	content: string;
-	date: string;
-	avatarIconLink: string;
-	handleAvatarIconClick: () => void;
+	comment: CommentDTO
 }
 const Comment = ({
-	author,
-	likeCount,
-	content,
-	date,
-	avatarIconLink,
-	handleAvatarIconClick,
+	comment
 }: Prop) => {
 	const [likeStatus, setLikeStatus] = useState(false);
 	const player = playerGenerator(
@@ -33,13 +25,13 @@ const Comment = ({
 		{ default: [90, 3000] },
 		"default"
 	);
-
+	const navigate = useNavigate();
 	return (
 		<Box display="flex" justifyContent="space-between" alignItems="center">
 			<Box display="flex">
 				<Menu
 					menuExpandedItemsArray={[]}
-					menuIcon={<Avatar src={avatarIconLink} />}
+					menuIcon={<Avatar src={comment.author.avatarIconLink} />}
 					menuStyle={{
 						padding: 0,
 						"&:hover": {
@@ -55,25 +47,25 @@ const Comment = ({
 					menuExpandedDataValuesArray={[]}
 					toolTipText="View Profile"
 					showMenuExpandedOnClick={false}
-					handleMenuIconClick={handleAvatarIconClick}
+					handleMenuIconClick={()=>navigate(`../Profile/${comment.author.authorID}`)}
 				/>
 				<Box>
 					<Typography fontSize={14} fontWeight={700}>
-						{author}
+						{comment.author.username}
 					</Typography>
 					<Typography color="primary.dark" fontSize={14}>
-						{date}
+						{dateToTimeYear(comment.createdAt, "short")}
 					</Typography>
 				</Box>
 			</Box>
 			<Typography
 				color="text.primary"
-				fontSize={14}
-				paddingLeft={3}
+				fontSize={16}
 				lineHeight={1.3}
 			>
-				{content}
+				{comment.content}
 			</Typography>
+			{/* Upcoming feature to be added
 			<Box display="flex" flexDirection="column">
 				<Button
 					buttonIcon={
@@ -86,9 +78,10 @@ const Comment = ({
 					}}
 				/>
 				<Typography color="text.dark" fontSize={14} textAlign="center">
-					{likeCount}
+					{0}
 				</Typography>
 			</Box>
+			*/}
 		</Box>
 	);
 };

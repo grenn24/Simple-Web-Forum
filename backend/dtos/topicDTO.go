@@ -3,10 +3,10 @@ package dtos
 import (
 )
 
-type TopicWithThreads struct {
+type TopicDTO struct {
 	TopicID      int       `json:"topic_id"`
 	Name         string    `json:"name"`
 	FollowStatus bool      `json:"follow_status"`
-	Threads      []*ThreadGridCard `json:"threads"`
+	Threads      []*ThreadDTO `json:"threads"`
 }
 

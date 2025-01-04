@@ -46,7 +46,7 @@ func (bookmarkRepository *BookmarkRepository) DeleteBookmarkByThreadIDAuthorID(t
 }
 
 
-func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, error) {
+func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
 	sortOrder := []string{"ORDER BY bookmark.created_at DESC", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
 	rows, err := bookmarkRepository.DB.Query(`
 		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
@@ -68,20 +68,21 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 
 	//Close rows after finishing query
 	defer rows.Close()
-	bookmarkedThreads := make([]*dtos.ThreadCard, 0)
+	bookmarkedThreads := make([]*dtos.ThreadDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a liked thread struct
-		bookmarkedThread := new(dtos.ThreadCard)
+		bookmarkedThread := new(dtos.ThreadDTO)
+		bookmarkedThread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the like struct
 		err := rows.Scan(
 			&bookmarkedThread.ThreadID,
 			&bookmarkedThread.Title,
 			&bookmarkedThread.CreatedAt,
-			&bookmarkedThread.ContentSummarised,
-			&bookmarkedThread.AuthorID,
-			&bookmarkedThread.AuthorName,
+			&bookmarkedThread.Content,
+			&bookmarkedThread.Author.AuthorID,
+			&bookmarkedThread.Author.Name,
 			&bookmarkedThread.AvatarIconLink,
 			&bookmarkedThread.ImageTitle,
 			&bookmarkedThread.ImageLink,
@@ -94,7 +95,7 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			return nil, err
 		}
 
-		bookmarkedThread.ContentSummarised = utils.TruncateString(bookmarkedThread.ContentSummarised, 30)
+		bookmarkedThread.Content = utils.TruncateString(bookmarkedThread.Content, 30)
 
 		// Append the scanned like to likes slice
 		bookmarkedThreads = append(bookmarkedThreads, bookmarkedThread)

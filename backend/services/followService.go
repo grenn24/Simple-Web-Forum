@@ -58,12 +58,14 @@ func (followService *FollowService) GetAllFollows() ([]*models.Follow, *dtos.Err
 	return follows, nil
 }
 
-func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, *dtos.Error) {
 	followRepository := repositories.FollowRepository{DB: followService.DB}
 	likeRepository := repositories.LikeRepository{DB: followService.DB}
 	commentRepository := repositories.CommentRepository{DB: followService.DB}
+	topicRepository := repositories.TopicRepository{DB: followService.DB}
 
 	followedThreads, err := followRepository.GetFollowedThreadsByAuthorID(authorID, sortIndex)
+
 
 	if err != nil {
 		return nil, &dtos.Error{
@@ -74,6 +76,17 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, s
 	}
 
 	for _, followedThread := range followedThreads {
+		// Retrieve topics tagged
+		topicsTagged, err := topicRepository.GetTopicsByThreadID(followedThread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		followedThread.TopicsTagged = topicsTagged
+
 		// Retrieve like count
 		likeCount, err := likeRepository.CountLikesByThreadID(followedThread.ThreadID)
 		if err != nil {
@@ -83,7 +96,7 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, s
 				Message:   err.Error(),
 			}
 		}
-		followedThread.LikeCount = likeCount
+		followedThread.LikeCount = &likeCount
 
 		// Retrieve comment count
 		commentCount, err := commentRepository.CountCommentsByThreadID(followedThread.ThreadID)
@@ -94,10 +107,11 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, s
 				Message:   err.Error(),
 			}
 		}
-		followedThread.CommentCount = commentCount
+		followedThread.CommentCount = &commentCount
 
 		// Retrieve like status
-		followedThread.LikeStatus = likeRepository.GetLikeStatusByThreadIDAuthorID(followedThread.ThreadID, followedThread.AuthorID)
+		likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(followedThread.ThreadID, followedThread.Author.AuthorID)
+		followedThread.LikeStatus = &likeStatus
 	}
 
 	return followedThreads, nil

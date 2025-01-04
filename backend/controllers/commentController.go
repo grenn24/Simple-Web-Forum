@@ -32,11 +32,12 @@ func (commentController *CommentController) GetAllComments(context *gin.Context,
 }
 
 func (commentController *CommentController) GetCommentsByThreadID(context *gin.Context, db *sql.DB) {
-	threadID := context.Param("threadID")
+	threadID :=  utils.ConvertStringToInt(context.Param("threadID"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	commentService := commentController.CommentService
 
-	comments, responseErr := commentService.GetCommentsByThreadID(utils.ConvertStringToInt(threadID, context), context.Query("sort"))
+	comments, responseErr := commentService.GetCommentsByThreadID(threadID, sortIndex)
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -50,18 +51,20 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 	})
 }
 
-func (commentController *CommentController) GetCommentedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
-	authorID := context.Param("authorID")
+func (commentController *CommentController) GetCommentsByAuthorID(context *gin.Context, db *sql.DB) {
+	
+	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
 
 	commentService := commentController.CommentService
 
-	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
+	comments, responseErr := commentService.GetCommentsByAuthorID(authorID)
 
 	// Check for internal server errors
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
+		
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
@@ -69,11 +72,11 @@ func (commentController *CommentController) GetCommentedThreadsByAuthorID(contex
 	})
 }
 
-func (commentController *CommentController) GetCommentedThreadsByUser(context *gin.Context, db *sql.DB) {
-
+func (commentController *CommentController) GetCommentsByUser(context *gin.Context, db *sql.DB) {
+	userAuthorID := utils.GetUserAuthorID(context)
 	commentService := commentController.CommentService
 
-	comments, responseErr := commentService.GetCommentedThreadsByAuthorID(utils.GetUserAuthorID(context))
+	comments, responseErr := commentService.GetCommentsByAuthorID(userAuthorID)
 
 	// Check for internal server errors
 	if responseErr != nil {

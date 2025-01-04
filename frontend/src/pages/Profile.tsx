@@ -25,7 +25,10 @@ import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
 import { get, putJSON } from "../utilities/apiClient";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, set, useForm } from "react-hook-form";
+import { parseAuthor } from "../utilities/parseApiResponse";
+import { AuthorDTO } from "../dtos/AuthorDTO";
+
 
 const Profile = () => {
 	const {
@@ -40,55 +43,39 @@ const Profile = () => {
 	const theme = useTheme();
 	const [followStatus, setFollowStatus] = useState(false);
 	const { authorID } = useParams();
-	const [isUser, setIsUser] = useState(false);
-	const [editMode, setEditMode] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
-	const [author, setAuthor] = useState({
-		authorID: 0,
-		name: "",
-		username: "",
-		email: "",
-		passwordHash: "",
-		avatarIconLink: "",
-		createdAt: new Date(),
-		isUser: false,
-	});
+	const [isUploading, setIsUploading] = useState(false);
+	const [author, setAuthor] = useState<AuthorDTO>({
+	} as AuthorDTO);
 	useEffect(
 		() =>
 			get(
 				`/authors/${authorID === "User" ? "user" : authorID}`,
 				(res) => {
 					const responseBody = res.data.data;
-					const author = {
-						authorID: responseBody.author_id,
-						name: responseBody.name,
-						username: responseBody.username,
-						email: responseBody.email,
-						passwordHash: responseBody.password_hash,
-						avatarIconLink: responseBody.avatar_icon_link,
-						createdAt: new Date(responseBody.created_at),
-						isUser: responseBody.is_user,
-					};
-					setAuthor(author);
-					setIsUser(author.isUser);
+					setAuthor(parseAuthor(responseBody));
 					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
-		[authorID, editMode]
+		[authorID, isEditing]
 	);
 
 	const handleEditProfileClick = handleSubmit((data) => {
-		if (editMode) {
+		if (isEditing) {
+			setIsUploading(true);
 			putJSON(
 				"/authors/user",
 				{ name: data.name, username: data.username },
 				() => {
-					setEditMode(false);
+					setIsEditing(false);
+					setIsUploading(false);
 					reset();
 				},
 				(err) => {
 					console.log(err);
+					setIsUploading(false);
 					const errBody = err.data;
 					if (errBody.error_code === "NAME_ALREADY_EXISTS") {
 						setError("name", {
@@ -105,7 +92,7 @@ const Profile = () => {
 				}
 			);
 		} else {
-			 setEditMode(true);
+			 setIsEditing(true);
 		}
 
 	});
@@ -151,14 +138,14 @@ const Profile = () => {
 			<Container
 				sx={{
 					width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
-					
+
 					display: "flex",
 					alignItems: "center",
 					flexDirection: "column",
 				}}
 				disableGutters
 			>
-				<Box display="flex" width="100%" alignItems="center" marginBottom={2}>
+				<Box display="flex" width="100%" alignItems="center">
 					<Badge
 						overlap="circular"
 						anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
@@ -168,6 +155,7 @@ const Profile = () => {
 								backgroundColor="rgba(60, 60, 60, 0.95)"
 								color="white"
 								toolTipText="Change Avatar"
+								buttonStyle={{display: authorID !== "User" && "none"}}
 							>
 								<EditRoundedIcon style={{ fontSize: 22 }} />
 							</Button>
@@ -187,8 +175,8 @@ const Profile = () => {
 						sx={{ flexGrow: 1 }}
 					>
 						<Box
-							width="60%"
-							height={160}
+							
+							height={130}
 							display="flex"
 							flexDirection="column"
 							justifyContent="space-evenly"
@@ -202,7 +190,7 @@ const Profile = () => {
 										height={20}
 										sx={{ my: 1 }}
 									/>
-								) : editMode ? (
+								) : isEditing ? (
 									<Controller
 										name="name"
 										control={control}
@@ -220,6 +208,7 @@ const Profile = () => {
 											/>
 										)}
 									/>
+									
 								) : (
 									author.name
 								)}
@@ -233,7 +222,7 @@ const Profile = () => {
 										height={20}
 										sx={{ my: 1 }}
 									/>
-								) : editMode ? (
+								) : isEditing ? (
 									<Controller
 										name="username"
 										control={control}
@@ -268,7 +257,7 @@ const Profile = () => {
 
 						<Box>
 							{!isLoading ? (
-								!isUser ? (
+								!author.isUser ? (
 									<Button
 										buttonStyle={{ py: 0 }}
 										borderRadius={40}
@@ -285,19 +274,21 @@ const Profile = () => {
 										Follow
 									</Button>
 								) : (
+									// Button for editing basic profile info
 									<Button
+										loadingStatus={isUploading}
 										variant="contained"
 										backgroundColor="rgba(69, 69, 69, 0.68)"
 										buttonStyle={{ py: 0 }}
 										borderRadius={40}
 										fontSize={20}
 										buttonIcon={
-											editMode ? <CheckRoundedIcon /> : <EditRoundedIcon />
+											isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
 										}
 										type="submit"
 										handleButtonClick={handleEditProfileClick}
 									>
-										{editMode ? "Confirm" : "Edit"}
+										{isEditing ? "Confirm" : "Edit"}
 									</Button>
 								)
 							) : (
@@ -311,7 +302,6 @@ const Profile = () => {
 						</Box>
 					</Box>
 				</Box>
-
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}

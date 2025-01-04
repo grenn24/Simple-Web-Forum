@@ -19,6 +19,7 @@ const ThreadGridCardsLoading = () => {
 				>
 					{new Array(3).fill(
 						<Grid
+						key={Math.random()}
 							size={
 								screenWidth > theme.breakpoints.values.md
 									? 4
@@ -50,6 +51,7 @@ const ThreadGridCardsLoading = () => {
 				>
 					{new Array(3).fill(
 						<Grid
+						key={Math.random()}
 							size={
 								screenWidth > theme.breakpoints.values.md
 									? 4

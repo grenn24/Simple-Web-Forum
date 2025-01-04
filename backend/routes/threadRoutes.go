@@ -40,7 +40,7 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter.GET("/:threadID", func(context *gin.Context) {
 		threadController.GetThreadByID(context, db)
 	})
-	threadRouter.GET("/expanded/:threadID", func(context *gin.Context) {
+	threadRouter.GET("/:threadID/expanded", func(context *gin.Context) {
 		threadController.GetThreadExpandedByID(context, db)
 	})
 	threadRouter.POST("/user", func(context *gin.Context) {
@@ -51,6 +51,9 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	})
 	threadRouter.DELETE("/:threadID", func(context *gin.Context) {
 		threadController.DeleteThreadByID(context, db)
+	})
+	threadRouter.PUT("/:threadID", func(context *gin.Context) {
+		threadController.UpdateThread(context, db)
 	})
 
 	// Thread Specific Comments

@@ -42,13 +42,13 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 	})
 }
 
-func (likeController *LikeController) GetLikedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	authorID := context.Param("authorID")
 
-	likes, responseErr := likeService.GetLikedThreadsByAuthorID(utils.ConvertStringToInt(authorID, context), sortIndex)
+	likes, responseErr := likeService.GetLikesByAuthorID(utils.ConvertStringToInt(authorID, context), sortIndex)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
@@ -61,13 +61,13 @@ func (likeController *LikeController) GetLikedThreadsByAuthorID(context *gin.Con
 	})
 }
 
-func (likeController *LikeController) GetLikedThreadsByUser(context *gin.Context, db *sql.DB) {
+func (likeController *LikeController) GetLikesByUser(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	likes, responseErr := likeService.GetLikedThreadsByAuthorID(userAuthorID, sortIndex)
+	likes, responseErr := likeService.GetLikesByAuthorID(userAuthorID, sortIndex)
 
 	// Check for internal server errors
 	if responseErr != nil {

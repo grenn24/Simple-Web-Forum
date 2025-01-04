@@ -1,7 +1,7 @@
 export default [
-	"Most Liked",
-	"Popular",
 	"Date Liked",
+	"Popular",
+	"Most Liked",
 	"New Threads",
 	"Old Threads",
 ];

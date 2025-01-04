@@ -25,13 +25,13 @@ apiClient.interceptors.response.use(
 	}
 );
 
-export function get(
+export function get<T>(
 	url: string,
 	handleSuccessResponse: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
 	apiClient
-		.get(url, {
+		.get<T>(url, {
 			headers: {
 				Accept: "application/json",
 			},
@@ -53,14 +53,14 @@ export function get(
 	return;
 }
 
-export function postJSON(
+export function postJSON<T>(
 	url: string,
 	requestBody: object,
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
 	apiClient
-		.post(url, requestBody, {
+		.post<T>(url, requestBody, {
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -82,14 +82,14 @@ export function postJSON(
 	return;
 }
 
-export function putJSON(
+export function putJSON<T>(
 	url: string,
 	requestBody: object,
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {
 	apiClient
-		.put(url, requestBody, {
+		.put<T>(url, requestBody, {
 			headers: {
 				"Content-Type": "application/json",
 			},

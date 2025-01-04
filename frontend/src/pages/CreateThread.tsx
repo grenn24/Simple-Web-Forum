@@ -12,6 +12,7 @@ import { useState } from "react";
 const CreateThread = () => {
 	const navigate = useNavigate();
 	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
+	const [isUploading, setIsUploading] = useState(false);
 
 	const {
 		register,
@@ -23,6 +24,7 @@ const CreateThread = () => {
 	} = useForm({ mode: "onChange" });
 
 	const submitForm = handleSubmit((data) => {
+		setIsUploading(true);
 		postJSON(
 			"/threads/user",
 			{
@@ -32,11 +34,13 @@ const CreateThread = () => {
 				image_link: data.imageLink,
 				topics_tagged: topicsSelected,
 			},
-			() => {},
+			() => {reset();
+				setIsUploading(false);
+			},
 			(err) => console.log(err)
 		);
 		setTopicsSelected([]);
-		reset();
+		
 	});
 	return (
 		<Box
@@ -84,7 +88,7 @@ const CreateThread = () => {
 				disableGutters
 			>
 				<TabMenu
-					tabLabelArray={["Text", "Image"]}
+					tabLabelArray={["Text", "Image", "Video"]}
 					tabPageArray={[
 						<TextPage
 							register={register}
@@ -93,6 +97,7 @@ const CreateThread = () => {
 							control={control}
 							topicsSelected={topicsSelected}
 							setTopicsSelected={setTopicsSelected}
+							isUploading={isUploading}
 						/>,
 						<ImagePage
 							register={register}

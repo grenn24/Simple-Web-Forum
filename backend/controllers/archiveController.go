@@ -48,12 +48,12 @@ func (archiveController *ArchiveController) CreateUserArchiveByThreadID(context 
 	})
 }
 
-func (archiveController *ArchiveController) GetArchivedThreadsByUser(context *gin.Context, db *sql.DB) {
+func (archiveController *ArchiveController) GetArchivesByUser(context *gin.Context, db *sql.DB) {
 	archiveService := archiveController.ArchiveService
 
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	archivedThreads, responseErr := archiveService.GetArchivedThreadsByAuthorID(userAuthorID)
+	archivedThreads, responseErr := archiveService.GetArchivesByAuthorID(userAuthorID)
 
 	// Check for internal server errors
 	if responseErr != nil {
@@ -67,12 +67,12 @@ func (archiveController *ArchiveController) GetArchivedThreadsByUser(context *gi
 	})
 }
 
-func (archiveController *ArchiveController) GetArchivedThreadsByAuthorID(context *gin.Context, db *sql.DB) {
+func (archiveController *ArchiveController) GetArchivesByAuthorID(context *gin.Context, db *sql.DB) {
 	archiveService := archiveController.ArchiveService
 
 	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
 
-	archivedThreads, responseErr := archiveService.GetArchivedThreadsByAuthorID(authorID)
+	archivedThreads, responseErr := archiveService.GetArchivesByAuthorID(authorID)
 
 	// Check for internal server errors
 	if responseErr != nil {

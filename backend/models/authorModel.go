@@ -14,5 +14,4 @@ type Author struct {
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	// Optional JSON Fields
 	AvatarIconLink *string `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
-	IsUser         *bool   `json:"is_user,omitempty"`
 }

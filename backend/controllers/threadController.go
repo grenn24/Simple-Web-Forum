@@ -38,7 +38,6 @@ func (threadController *ThreadController) GetAllThreads(context *gin.Context, db
 
 func (threadController *ThreadController) GetThreadByID(context *gin.Context, db *sql.DB) {
 	threadID := context.Param("threadID")
-	
 
 	threadService := threadController.ThreadService
 
@@ -60,11 +59,12 @@ func (threadController *ThreadController) GetThreadByID(context *gin.Context, db
 }
 
 func (threadController *ThreadController) GetThreadExpandedByID(context *gin.Context, db *sql.DB) {
-	threadID := context.Param("threadID")
-
 	threadService := threadController.ThreadService
+	threadID := utils.ConvertStringToInt(context.Param("threadID"), context)
+	userAuthorID := utils.GetUserAuthorID(context)
+	commentSortIndex := utils.ConvertStringToInt(context.Query("comment-sort"), context)
 
-	thread, responseErr := threadService.GetThreadExpandedByID(utils.ConvertStringToInt(threadID, context), utils.GetUserAuthorID(context))
+	thread, responseErr := threadService.GetThreadExpandedByID(threadID, userAuthorID, commentSortIndex)
 
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
@@ -125,7 +125,7 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 	threads, responseErr := threadService.GetThreadsByTopicID(topicID, userAuthorID)
 
 	if responseErr != nil {
-		if responseErr.ErrorCode=="INTERNAL_SERVER_ERROR" {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
@@ -182,6 +182,39 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 		Status:  "success",
 		Message: "Thread created successfully!",
 	})
+}
+
+func (threadController *ThreadController) UpdateThread(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
+	threadID := utils.ConvertStringToInt(context.Param("threadID"),context)
+
+	// Declare a pointer to a new instance of a thread struct
+	thread := new(models.Thread)	
+	thread.ThreadID = threadID
+	err := context.ShouldBind(thread)
+
+	// Check for JSON binding errors
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		})
+		return
+	}
+
+	responseErr := threadService.UpdateThread(thread, threadID)
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Thread updated successfully!",
+	})
+
 }
 
 func (threadController *ThreadController) DeleteAllThreads(context *gin.Context, db *sql.DB) {

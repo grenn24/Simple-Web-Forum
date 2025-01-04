@@ -28,10 +28,12 @@ const SimpleDialog = ({
 			open={openDialog}
 			BackdropProps={{
 				sx: {
-					backdropFilter: `blur(${backdropBlur}px)`, // Inline style using the `sx` prop
+					backdropFilter: `blur(${backdropBlur}px)`
 				},
 			}}
 			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius } }}
+			onClick={(event)=>event.stopPropagation()}
+
 		>
 			<DialogTitle sx={{ paddingBottom: 0, textAlign: "center" }}>
 				{title}

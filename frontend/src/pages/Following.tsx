@@ -11,40 +11,23 @@ import Menu from "../components/Menu";
 import sortOrder from "../features/Following/sortOrder";
 import sortIcons from "../features/Following/sortIcons";
 import { get } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTO";
+import { ThreadDTO } from "../dtos/ThreadDTO";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
+import { parseThreads } from "../utilities/parseApiResponse";
 
 const Following = () => {
 	const [isLoading, setIsLoading] = useState(true)
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
-	const [followedThreads, setFollowedThreads] = useState<ThreadCardDTO[]>([]);
+	const [followedThreads, setFollowedThreads] = useState<ThreadDTO[]>([]);
 
 	useEffect(
 		() =>
-			get(
+			get<ThreadDTO[]>(
 				"./authors/user/follows?sort="+sortIndex,
 				(res) => {
 					const responseBody = res.data.data;
-					const threads = responseBody
-						.filter((thread: any) => thread.archive_status === false)
-						.map((thread: any) => ({
-							threadID: thread.thread_id,
-							title: thread.title,
-							contentSummarised: thread.content_summarised,
-							authorID: thread.author_id,
-							authorName: thread.author_name,
-							avatarIconLink: thread.avatar_icon_link,
-							createdAt: new Date(thread.created_at),
-							likes: thread.likes,
-							imageTitle: thread.imageTitle,
-							imageLink: thread.imageLink,
-							likeCount: thread.like_count,
-							commentCount: thread.comment_count,
-							likeStatus: thread.like_status,
-							bookmarkStatus: thread.bookmark_status,
-							archiveStatus: thread.archive_status,
-						}));
+					const threads = parseThreads(responseBody);
 					setFollowedThreads(threads);
 					setIsLoading(false)
 				},
@@ -98,9 +81,7 @@ const Following = () => {
 					<Menu
 						menuExpandedItemsArray={sortOrder}
 						menuExpandedIconsArray={sortIcons}
-						menuExpandedDataValuesArray={sortOrder.map((_, index) =>
-							index
-						)}
+						menuExpandedDataValuesArray={sortOrder.map((_, index) => index)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -133,18 +114,18 @@ const Following = () => {
 							<ThreadCard
 								threadID={followedThread.threadID}
 								threadTitle={followedThread.title}
-								threadAuthor={followedThread.authorName}
+								threadAuthor={followedThread.author.name}
 								threadCreatedAt={followedThread.createdAt}
 								threadLikeCount={followedThread.likeCount}
 								threadCommentCount={followedThread.commentCount}
-								threadContentSummarised={followedThread.contentSummarised}
+								threadContentSummarised={followedThread.content}
 								threadImageLink={followedThread.imageLink}
-								avatarIconLink={followedThread.avatarIconLink}
+								avatarIconLink={followedThread.author.avatarIconLink}
 								threadLikeStatus={followedThread.likeStatus}
 								threadBookmarkStatus={followedThread.bookmarkStatus}
 								threadArchiveStatus={followedThread.archiveStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${followedThread.authorID}`)
+									navigate(`../Profile/${followedThread.author.authorID}`)
 								}
 							/>
 							<Divider />

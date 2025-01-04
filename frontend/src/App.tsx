@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import WelcomeScreen from "./pages/WelcomeScreen";
 import Following from "./pages/Following";
 import MainLayout from "./pages/MainLayout";
-import Error from "./pages/Error";
+//import Error from "./pages/Error";
 import Home from "./pages/Home";
 import Topics from "./pages/Topics";
 import Recommended from "./pages/Recommended";
@@ -73,7 +73,7 @@ function App() {
 						{/*Pages without Layout*/}
 						<Route path="Welcome" element={<WelcomeScreen />} />
 						{/*Missed Routes*/}
-						<Route path="*" element={<Error />} />
+						<Route path="*" element={<WelcomeScreen />} />
 					</Routes>
 					<AutoScrollToTop />
 				</BrowserRouter>

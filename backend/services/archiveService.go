@@ -37,14 +37,14 @@ func (archiveService *ArchiveService) CreateArchive(archive *models.Archive) *dt
 	return nil
 }
 
-func (archiveService *ArchiveService) GetArchivedThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (archiveService *ArchiveService) GetArchivesByAuthorID(authorID int) ([]*dtos.ArchiveDTO, *dtos.Error) {
 	archiveRepository := &repositories.ArchiveRepository{DB: archiveService.DB}
 	likeRepository := &repositories.LikeRepository{DB: archiveService.DB}
 	commentRepository := &repositories.CommentRepository{DB: archiveService.DB}
 	topicRepository := &repositories.TopicRepository{DB: archiveService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: archiveService.DB}
 
-	archivedThreads, err := archiveRepository.GetArchivedThreadsByAuthorID(authorID)
+	archivedThreads, err := archiveRepository.GetArchivesByAuthorID(authorID)
 
 	// Check for internal server errors
 	if err != nil {
@@ -57,7 +57,7 @@ func (archiveService *ArchiveService) GetArchivedThreadsByAuthorID(authorID int)
 
 	for _, archivedThread := range archivedThreads {
 		// Retrieve like count
-		likeCount, err := likeRepository.CountLikesByThreadID(archivedThread.ThreadID)
+		likeCount, err := likeRepository.CountLikesByThreadID(archivedThread.Thread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",
@@ -65,10 +65,10 @@ func (archiveService *ArchiveService) GetArchivedThreadsByAuthorID(authorID int)
 				Message:   err.Error(),
 			}
 		}
-		archivedThread.LikeCount = likeCount
+		archivedThread.Thread.LikeCount = &likeCount
 
 		// Retrieve comment count
-		commentCount, err := commentRepository.CountCommentsByThreadID(archivedThread.ThreadID)
+		commentCount, err := commentRepository.CountCommentsByThreadID(archivedThread.Thread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",
@@ -76,17 +76,17 @@ func (archiveService *ArchiveService) GetArchivedThreadsByAuthorID(authorID int)
 				Message:   err.Error(),
 			}
 		}
-		archivedThread.CommentCount = commentCount
+		archivedThread.Thread.CommentCount = &commentCount
 
 		// Retrieve archive and bookmark status
 		archiveStatus := true
-		archivedThread.ArchiveStatus = &archiveStatus
-		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(archivedThread.ThreadID, archivedThread.AuthorID)
-		archivedThread.BookmarkStatus = &bookmarkStatus
+		archivedThread.Thread.ArchiveStatus = &archiveStatus
+		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(archivedThread.Thread.ThreadID, archivedThread.Author.AuthorID)
+		archivedThread.Thread.BookmarkStatus = &bookmarkStatus
 
 		// Retrieve topics tagged
-		topics, err := topicRepository.GetTopicsByThreadID(archivedThread.ThreadID)
-		archivedThread.TopicsTagged = topics
+		topics, err := topicRepository.GetTopicsByThreadID(archivedThread.Thread.ThreadID)
+		archivedThread.Thread.TopicsTagged = topics
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",

@@ -17,20 +17,15 @@ import {
 } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { get, postJSON, Delete } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTO";
+import { ThreadDTO } from "../dtos/ThreadDTO";
 import ThreadGridCardsLoading from "../features/Topics/ThreadGridCardsLoading";
-
-interface TopicWithThreads {
-	topicID: number;
-	name: string;
-	followStatus: boolean;
-	threads: ThreadCardDTO[];
-}
+import { TopicDTO } from "../dtos/TopicDTO";
+import { parseTopic, parseTopics } from "../utilities/parseApiResponse";
 
 interface TopicProp {
 	name: string;
 	initialFollowStatus: boolean;
-	threads: ThreadCardDTO[];
+	threads: ThreadDTO[];
 	topicID: number;
 }
 
@@ -104,14 +99,14 @@ const Topic = ({ topicID, name, initialFollowStatus, threads }: TopicProp) => {
 							>
 								<ThreadGridCard
 									threadID={thread.threadID}
-									threadAuthorName={thread.authorName}
+									threadAuthorName={thread.author.name}
 									threadTitle={thread.title}
 									threadCreatedAt={thread.createdAt}
-									avatarIconLink={thread.avatarIconLink}
-									threadContentSummarised={thread.contentSummarised}
+									avatarIconLink={thread.author.avatarIconLink}
+									threadContentSummarised={thread.content}
 									threadinitialBookmarkStatus={thread.bookmarkStatus}
 									handleAvatarIconClick={() => {
-										navigate(`../Profile/${thread.authorID}`);
+										navigate(`../Profile/${thread.author.authorID}`);
 									}}
 								/>
 							</Grid>
@@ -128,9 +123,7 @@ const Topics = () => {
 
 	const { topicID } = useParams();
 
-	const [topicsWithThreads, setTopicsWithThreads] = useState<
-		TopicWithThreads[]
-	>([]);
+	const [topicsWithThreads, setTopicsWithThreads] = useState<TopicDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(
@@ -139,53 +132,11 @@ const Topics = () => {
 				`/topics${topicID ? `/${topicID}` : ""}/threads`,
 				(res) => {
 					const responseBody = res.data.data;
-					let topicsWithThreads: TopicWithThreads[];
 					if (topicID) {
-						topicsWithThreads = [
-							{
-								topicID: responseBody.topic_id,
-								name: responseBody.name,
-								followStatus: responseBody.follow_status,
-								threads: responseBody.threads
-									.filter((thread: any) => thread.archive_status === false)
-									.map((thread: any) => ({
-										threadID: thread.thread_id,
-										title: thread.title,
-										authorName: thread.author_name,
-										authorID: thread.author_id,
-										createdAt: new Date(thread.created_at),
-										avatarIconLink: thread.avatar_icon_link,
-										bookmarkStatus: thread.bookmark_status,
-										contentSummarised: thread.content_summarised,
-									})),
-							}
-						]
+						setTopicsWithThreads([parseTopic(responseBody)]);
 					} else {
-						topicsWithThreads = responseBody
-							.filter(
-								(topicWithThread: TopicWithThreads) =>
-									topicWithThread.threads.length != 0
-							)
-							.map((topicWithThread: any) => ({
-								topicID: topicWithThread.topic_id,
-								name: topicWithThread.name,
-								followStatus: topicWithThread.follow_status,
-								threads: topicWithThread.threads
-									.filter((thread: any) => thread.archive_status === false)
-									.map((thread: any) => ({
-										threadID: thread.thread_id,
-										title: thread.title,
-										authorName: thread.author_name,
-										authorID: thread.author_id,
-										createdAt: new Date(thread.created_at),
-										avatarIconLink: thread.avatar_icon_link,
-										bookmarkStatus: thread.bookmark_status,
-										contentSummarised: thread.content_summarised,
-									})),
-							}));
+						setTopicsWithThreads(parseTopics(responseBody));
 					}
-
-					setTopicsWithThreads(topicsWithThreads);
 					setIsLoading(false);
 				},
 				(err) => console.log(err)

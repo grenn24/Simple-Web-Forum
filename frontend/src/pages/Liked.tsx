@@ -11,14 +11,15 @@ import Menu from "../components/Menu";
 import sortIcons from "../features/Liked/sortIcons";
 import sortOrder from "../features/Liked/sortOrder";
 import { get } from "../utilities/apiClient";
-import { ThreadCardDTO } from "../dtos/ThreadDTO";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
+import LikeDTO from "../dtos/LikeDTO";
+import { parseLikes } from "../utilities/parseApiResponse";
 
 const Liked = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
-	const [likedThreads, setLikedThreads] = useState<ThreadCardDTO[]>([]);
+	const [likes, setLikes] = useState<LikeDTO[]>([]);
 
 	useEffect(
 		() =>
@@ -26,26 +27,8 @@ const Liked = () => {
 				"/authors/user/likes?sort=" + sortIndex,
 				(res) => {
 					const responseBody = res.data.data;
-					const likedThreads = responseBody
-						.filter((thread: any) => thread.archive_status === false)
-						.map((likedThread: any) => ({
-							threadID: likedThread.thread_id,
-							title: likedThread.title,
-							contentSummarised: likedThread.content_summarised,
-							authorID: likedThread.author_id,
-							authorName: likedThread.author_name,
-							avatarIconLink: likedThread.avatar_icon_link,
-							createdAt: new Date(likedThread.created_at),
-							likes: likedThread.likes,
-							imageTitle: likedThread.imageTitle,
-							imageLink: likedThread.imageLink,
-							likeCount: likedThread.like_count,
-							commentCount: likedThread.comment_count,
-							likeStatus: likedThread.like_status,
-							bookmarkStatus: likedThread.bookmark_status,
-							archiveStatus: likedThread.archive_status,
-						}));
-					setLikedThreads(likedThreads);
+					const likes = parseLikes(responseBody, true);
+					setLikes(likes);
 					setIsLoading(false);
 				},
 				(err) => console.log(err)
@@ -110,8 +93,7 @@ const Liked = () => {
 						}}
 						handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 							(event: React.MouseEvent<HTMLElement>) =>
-								event.currentTarget.dataset.value &&
-								setSortIndex(Number(event.currentTarget.dataset.value))
+								setSortIndex(Number(event.currentTarget.dataset?.value))
 						)}
 						toolTipText="Sort Options"
 						menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
@@ -127,23 +109,23 @@ const Liked = () => {
 					disableGutters
 				>
 					{isLoading && <ThreadCardLoading bodyHeight={180} />}
-					{likedThreads.map((likedThread) => (
-						<Box key={likedThread.threadID}>
+					{likes.map((like) => (
+						<Box key={like.likeID}>
 							<ThreadCard
-								threadID={likedThread.threadID}
-								threadTitle={likedThread.title}
-								threadAuthor={likedThread.authorName}
-								threadCreatedAt={likedThread.createdAt}
-								threadLikeCount={likedThread.likeCount}
-								threadCommentCount={likedThread.commentCount}
-								threadContentSummarised={likedThread.contentSummarised}
-								threadImageLink={likedThread.imageLink}
-								avatarIconLink={likedThread.avatarIconLink}
-								threadLikeStatus={likedThread.likeStatus}
-								threadBookmarkStatus={likedThread.bookmarkStatus}
-								threadArchiveStatus={likedThread.archiveStatus}
+								threadID={like.thread.threadID}
+								threadTitle={like.thread.title}
+								threadAuthor={like.thread.author.name}
+								threadCreatedAt={like.thread.createdAt}
+								threadLikeCount={like.thread.likeCount}
+								threadCommentCount={like.thread.commentCount}
+								threadContentSummarised={like.thread.content}
+								threadImageLink={like.thread.imageLink}
+								avatarIconLink={like.thread.author.avatarIconLink}
+								threadLikeStatus={like.thread.likeStatus}
+								threadBookmarkStatus={like.thread.bookmarkStatus}
+								threadArchiveStatus={like.thread.archiveStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${likedThread.authorID}`)
+									navigate(`../Profile/${like.thread.author.authorID}`)
 								}
 							/>
 							<Divider />

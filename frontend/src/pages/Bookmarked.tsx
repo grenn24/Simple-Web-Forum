@@ -10,44 +10,25 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortIcons from "../features/Bookmarked/sortIcons";
 import sortOrder from "../features/Bookmarked/sortOrder";
-import { ThreadCardDTO } from "../dtos/ThreadDTO";
+import { ThreadDTO } from "../dtos/ThreadDTO";
 import { get } from "../utilities/apiClient";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
+import { parseThreads } from "../utilities/parseApiResponse";
 
 const Bookmarked = () => {
-	const [isLoading, setIsLoading] = useState(true)
+	const [isLoading, setIsLoading] = useState(true);
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
-	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadCardDTO[]>(
-		[]
-	);
+	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadDTO[]>([]);
 
 	useEffect(() => {
-		get(
+		get<ThreadDTO[]>(
 			"/authors/user/bookmarks?sort=" + sortIndex,
 			(res) => {
 				const responseBody = res.data.data;
-				const threads = responseBody
-					.filter((thread: any) => thread.archive_status === false)
-					.map((thread: any) => ({
-						threadID: thread.thread_id,
-						title: thread.title,
-						contentSummarised: thread.content_summarised,
-						authorID: thread.author_id,
-						authorName: thread.author_name,
-						avatarIconLink: thread.avatar_icon_link,
-						createdAt: new Date(thread.created_at),
-						likes: thread.likes,
-						imageTitle: thread.imageTitle,
-						imageLink: thread.imageLink,
-						likeCount: thread.like_count,
-						commentCount: thread.comment_count,
-						likeStatus: thread.like_status,
-						bookmarkStatus: thread.bookmark_status,
-						archiveStatus: thread.archive_status,
-					}));
+				const threads = parseThreads(responseBody, true);
 				setBookmarkedThreads(threads);
-				setIsLoading(false)
+				setIsLoading(false);
 			},
 			(err) => console.log(err)
 		);
@@ -126,24 +107,24 @@ const Bookmarked = () => {
 					}}
 					disableGutters
 				>
-					{isLoading && <ThreadCardLoading bodyHeight={180}/>}
+					{isLoading && <ThreadCardLoading bodyHeight={180} />}
 					{bookmarkedThreads.map((bookmarkedThread) => (
 						<Box key={bookmarkedThread.threadID}>
 							<ThreadCard
 								threadID={bookmarkedThread.threadID}
 								threadTitle={bookmarkedThread.title}
-								threadAuthor={bookmarkedThread.authorName}
-								threadCreatedAt={new Date(bookmarkedThread.createdAt)}
+								threadAuthor={bookmarkedThread.author.name}
+								threadCreatedAt={bookmarkedThread.createdAt}
 								threadLikeCount={bookmarkedThread.likeCount}
 								threadCommentCount={bookmarkedThread.commentCount}
-								threadContentSummarised={bookmarkedThread.contentSummarised}
+								threadContentSummarised={bookmarkedThread.content}
 								threadImageLink={bookmarkedThread.imageLink}
-								avatarIconLink={bookmarkedThread.avatarIconLink}
+								avatarIconLink={bookmarkedThread.author.avatarIconLink}
 								threadLikeStatus={bookmarkedThread.likeStatus}
 								threadBookmarkStatus={bookmarkedThread.bookmarkStatus}
 								threadArchiveStatus={bookmarkedThread.archiveStatus}
 								handleAvatarIconClick={() =>
-									navigate(`../Profile/${bookmarkedThread.authorID}`)
+									navigate(`../Profile/${bookmarkedThread.author.authorID}`)
 								}
 							/>
 							<Divider />

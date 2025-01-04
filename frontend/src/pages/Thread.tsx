@@ -10,6 +10,7 @@ import {
 	Divider,
 	Container,
 	FormControl,
+	TextField,
 } from "@mui/material";
 import {
 	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
@@ -23,6 +24,8 @@ import {
 	CancelRounded as CancelRoundedIcon,
 	SortRounded as SortRoundedIcon,
 	ArrowBackRounded as ArrowBackRoundedIcon,
+	CheckRounded as CheckRoundedIcon,
+	CloseRounded as CloseRoundedIcon,
 } from "@mui/icons-material";
 import Menu from "../components/Menu/index.ts";
 import Button from "../components/Button/index.ts";
@@ -37,21 +40,19 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import FullScreenImage from "../components/FullScreenImage/index.ts";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
-import { Delete, get, postJSON } from "../utilities/apiClient.tsx";
+import { Delete, get, postJSON, putJSON } from "../utilities/apiClient.tsx";
 import { useForm, Controller } from "react-hook-form";
-import { ThreadExpandedDTO } from "../dtos/ThreadDTO.tsx";
+import { ThreadDTO } from "../dtos/ThreadDTO.tsx";
 import { dateToTimeYear } from "../utilities/dateToString.tsx";
 import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIcons.tsx";
 import handleMenuExpandedItemsClick from "../features/Thread/TopRightMenu/handleMenuExpandedItemsClick.tsx";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading.tsx";
+import { TopicDTO } from "../dtos/TopicDTO.tsx";
+import { CommentDTO } from "../dtos/CommentDTO.tsx";
+import commentSortOrder from "../features/Thread/commentSortOrder.tsx";
+import { parseThread } from "../utilities/parseApiResponse.tsx";
 
 const Thread = () => {
-	const [openShareDialog, setOpenShareDialog] = useState(false);
-	const [openSnackbar, setOpenSnackbar] = useState(false);
-	const [fullScreenImage, setFullScreenImage] = useState(false);
-	const [commentSortingOrder, setCommentSortingOrder] = useState("Newest");
-	const [isLoading, setIsLoading] = useState(true);
-
 	const player = playerGenerator(
 		likeSound,
 		0.9,
@@ -60,104 +61,86 @@ const Thread = () => {
 	);
 
 	const navigate = useNavigate();
-
-	// Check if an expand text field state was passed in during navigation as state
 	const location = useLocation();
-	const [expandTextField, setExpandTextField] = useState(false);
-
-	const [threadExpanded, setThreadExpanded] = useState<ThreadExpandedDTO>({
-		threadID: 0,
-		comments: [],
-		title: "",
-		content: "",
-		author: {
-			authorName: "",
-			authorID: 0,
-			avatarIconLink: "",
-		},
-		likeCount: 0,
-		likeStatus: false,
-		commentCount: 0,
-		imageTitle: "",
-		imageLink: "",
-		createdAt: new Date(),
-		topicsTagged: [],
-		bookmarkStatus: false,
-		archiveStatus: false,
-	});
 	const { threadID } = useParams();
-
+	// Check if an expand text field state was passed in during navigation as state
+	const [expandTextField, setExpandTextField] = useState(false);
+	const [commentSortIndex, setCommentSortIndex] = useState(0);
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
 	const [archiveStatus, setArchiveStatus] = useState(false);
-	const [commentCount, setCommentCount] = useState(0);
 	const [bookmarkStatus, setBookmarkStatus] = useState(false);
+	const [openShareDialog, setOpenShareDialog] = useState(false);
+	const [openSnackbar, setOpenSnackbar] = useState(false);
+	const [fullScreenImage, setFullScreenImage] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [isUploadingComment, setIsUploadingComment] = useState(false);
+	const [isUploadingThread, setIsUploadingThread] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [thread, setThread] = useState<ThreadDTO>({} as ThreadDTO);
 
 	useEffect(
 		() =>
-			get(
-				"/threads/expanded/" + threadID,
+			get<ThreadDTO>(
+				`/threads/${threadID}/expanded?comment-sort=` + commentSortIndex,
 				(res) => {
 					const responseBody = res.data.data;
-					const threadExpanded = {
-						threadID: responseBody.thread_id,
-						title: responseBody.title,
-						content: responseBody.content,
-						author: {
-							authorName: responseBody.author.author_name,
-							authorID: responseBody.author.author_id,
-							avatarIconLink: responseBody.author.avatar_icon_link,
-						},
-						comments: responseBody.comments.map((comment: any) => ({
-							commentID: comment.comment_id,
-							threadID: comment.thread_id,
-							authorID: comment.author_id,
-							authorName: comment.author_name,
-							content: comment.content,
-							createdAt: new Date(comment.created_at),
-						})),
-						likeCount: responseBody.like_count,
-						likeStatus: responseBody.like_status,
-						commentCount: responseBody.comment_count,
-						imageTitle: responseBody.image_title,
-						imageLink: responseBody.image_link,
-						createdAt: new Date(responseBody.created_at),
-						topicsTagged: responseBody.topics_tagged
-							? responseBody.topics_tagged.map((topic: any) => ({
-									topicID: topic.topic_id,
-									name: topic.name,
-							  }))
-							: [],
-						bookmarkStatus: responseBody.bookmark_status,
-						archiveStatus: responseBody.archive_status,
-					};
-
-					setThreadExpanded(threadExpanded);
-					setCommentCount(threadExpanded.commentCount);
-					setLikeCount(threadExpanded.likeCount);
-					setLikeStatus(threadExpanded.likeStatus);
-					setArchiveStatus(threadExpanded.archiveStatus);
-					setBookmarkStatus(threadExpanded.bookmarkStatus);
+					const thread = parseThread(responseBody);
+					setThread(thread);
+					setLikeCount(thread.likeCount);
+					setLikeStatus(thread.likeStatus);
+					setArchiveStatus(thread.archiveStatus);
+					setBookmarkStatus(thread.bookmarkStatus);
 					setExpandTextField(location.state?.expandTextField);
 					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
-		[commentCount]
+		[isUploadingThread, isUploadingComment, commentSortIndex]
 	);
 
-	const { register, handleSubmit, reset, control } = useForm();
+	const {
+		register,
+		handleSubmit,
+		reset,
+		control,
+		formState: { errors },
+		setError,
+	} = useForm();
 
 	const handleCommentSubmit = handleSubmit((data) => {
-		reset();
-		setExpandTextField(false);
+		setIsUploadingComment(true);
 		postJSON(
-			`/threads/${threadExpanded.threadID}/comments/user`,
+			`/threads/${thread.threadID}/comments/user`,
 			{
 				content: data.comment,
 			},
-			() => setCommentCount(commentCount + 1),
+			() => {
+				setExpandTextField(false);
+				reset();
+				setIsUploadingComment(false);
+			},
 			(err) => console.log(err)
+		);
+	});
+
+	const handleEditThread = handleSubmit((data) => {
+		setIsUploadingThread(true);
+		putJSON(
+			`/threads/${thread.threadID}`,
+			{
+				title: data.title,
+				content: data.content,
+			},
+			() => {
+				setIsUploadingThread(false);
+				setIsEditing(false);
+				reset();
+			},
+			(err) => {
+				console.log(err);
+				setIsUploadingThread(false);
+			}
 		);
 	});
 
@@ -196,9 +179,7 @@ const Thread = () => {
 								avatar={
 									<Menu
 										menuExpandedItemsArray={[]}
-										menuIcon={
-											<Avatar src={threadExpanded.author.avatarIconLink} />
-										}
+										menuIcon={<Avatar src={thread.author.avatarIconLink} />}
 										menuStyle={{
 											padding: 0,
 											"&:hover": {
@@ -215,7 +196,7 @@ const Thread = () => {
 										toolTipText="View Profile"
 										showMenuExpandedOnClick={false}
 										handleMenuIconClick={() =>
-											navigate(`../Profile/${threadExpanded.author.authorID}`)
+											navigate(`../Profile/${thread.author.authorID}`)
 										}
 									/>
 								}
@@ -224,16 +205,23 @@ const Thread = () => {
 										<Menu
 											menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
 											menuExpandedIconsArray={MenuExpandedIcons(
+												thread,
 												bookmarkStatus,
 												archiveStatus
 											)}
-											menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
+											menuExpandedItemsArray={MenuExpandedItems(
+												thread,
+												archiveStatus
+											)}
 											handleMenuExpandedItemsClick={handleMenuExpandedItemsClick(
 												bookmarkStatus,
 												setBookmarkStatus,
 												archiveStatus,
 												setArchiveStatus,
-												threadExpanded.threadID
+												isEditing,
+												setIsEditing,
+												thread,
+												navigate
 											)}
 											closeMenuOnExpandedItemsClick={false}
 											toolTipText="More"
@@ -241,255 +229,382 @@ const Thread = () => {
 										/>
 									</>
 								}
-								title={threadExpanded.author.authorName}
+								title={thread.author.username}
 								titleTypographyProps={{ fontWeight: 750 }}
-								subheader={dateToTimeYear(threadExpanded.createdAt, "long")}
+								subheader={dateToTimeYear(thread.createdAt, "long")}
 							/>
 							<Divider />
+							{isEditing ? (
+								<>
+									{/*Edit Mode*/}
+									<CardContent sx={{ paddingBottom: 0 }}>
+										<Controller
+											name="title"
+											control={control}
+											defaultValue={thread.title}
+											render={() => (
+												<TextField
+													label="Thread Title"
+													fullWidth
+													{...register("title", {
+														required: "Thread title is required",
+													})}
+													helperText={errors.title?.message as string}
+													error={!!errors.title}
+												/>
+											)}
+										/>
+										<Typography
+											variant="h6"
+											color="text.secondary"
+											fontFamily="Open Sans"
+											fontSize={17}
+											marginTop={2}
+											marginBottom={3}
+										>
+											{thread.topicsTagged.map((topic: TopicDTO) => (
+												<Button
+													key={topic.topicID}
+													disableRipple
+													handleButtonClick={() =>
+														navigate(`../Topics/${topic.topicID}`)
+													}
+													fontFamily="Open Sans"
+													buttonStyle={{
+														px: 1,
+														py: 0,
+														marginLeft: 0,
+														marginRight: 1.5,
+													}}
+													color="text.secondary"
+													variant="outlined"
+													backgroundColor="primary.light"
+												>
+													{topic.name}
+												</Button>
+											))}
+										</Typography>
+										<Controller
+											name="content"
+											control={control}
+											defaultValue={thread.content}
+											render={() => (
+												<TextField
+													label="Thread Content"
+													fullWidth
+													{...register("content", {
+														required: "Thread content is required",
+													})}
+													helperText={errors.content?.message as string}
+													error={!!errors.content}
+													multiline
+													minRows={10}
+												/>
+											)}
+										/>
+									</CardContent>
 
-							<CardContent sx={{ paddingBottom: 0 }}>
-								<Typography
-									variant="h5"
-									color="text.secondary"
-									fontWeight={760}
-									marginBottom={2}
-								>
-									{threadExpanded.title}
-								</Typography>
-								<Typography
-									variant="h6"
-									color="text.secondary"
-									fontFamily="Open Sans"
-									fontSize={17}
-								>
-									{threadExpanded.topicsTagged.map((topic) => {
-										return (
-											<Button
-												key={topic.topicID}
-												disableRipple
-												handleButtonClick={() =>
-													navigate(`../Topics/${topic.topicID}`)
-												}
-												fontFamily="Open Sans"
-												buttonStyle={{ px: 1, py: 0, mx: 0.5 }}
-												color="text.secondary"
-												variant="outlined"
-												backgroundColor="primary.light"
-											>
-												{topic.name}
-											</Button>
-										);
-									})}
-								</Typography>
-
-								{threadExpanded.imageLink ? (
-									<CardMedia
-										component="img"
-										image={threadExpanded.imageLink}
+									<CardActions
 										sx={{
-											width: "100%",
-											height: "auto",
-											objectFit: "contain",
-											borderRadius: 1.3,
-											my: 3,
-											"&:hover": {
-												cursor: "pointer",
-											},
-										}}
-										onClick={() => setFullScreenImage(true)}
-									/>
-								) : (
-									<br />
-								)}
-							</CardContent>
-							<CardContent sx={{ py: 0 }}>
-								<Typography sx={{ marginBottom: 2 }} textAlign="left">
-									{threadExpanded.content}
-								</Typography>
-							</CardContent>
-
-							<CardActions
-								disableSpacing
-								sx={{
-									display: "flex",
-									justifyContent: "flex-start",
-									marginTop: 1,
-								}}
-							>
-								<Button
-									component="button"
-									role={undefined}
-									variant="outlined"
-									buttonIcon={
-										likeStatus ? (
-											<FavoriteRoundedIcon color="warning" />
-										) : (
-											<FavoriteBorderRoundedIcon />
-										)
-									}
-									color="primary.dark"
-									borderRadius="10px"
-									borderColor="primary.light"
-									buttonStyle={{
-										marginLeft: 1,
-										marginRight: 1,
-									}}
-									handleButtonClick={() => {
-										setLikeStatus(!likeStatus);
-
-										if (likeStatus) {
-											setLikeCount(likeCount - 1);
-											Delete(
-												`/threads/${threadID}/likes/user`,
-												{},
-												() => {},
-												(err) => console.log(err)
-											);
-										} else {
-											player();
-											setLikeCount(likeCount + 1);
-											postJSON(
-												`/threads/${threadID}/likes/user`,
-												{},
-												() => {},
-												(err) => console.log(err)
-											);
-										}
-									}}
-								>
-									{String(likeCount)}
-								</Button>
-								<Button
-									component="button"
-									role={undefined}
-									variant="outlined"
-									buttonIcon={<CommentRoundedIcon />}
-									color="primary.dark"
-									borderRadius="10px"
-									borderColor="primary.light"
-									buttonStyle={{
-										marginRight: 1,
-									}}
-									handleButtonClick={() => {
-										setExpandTextField(true);
-									}}
-								>
-									{String(commentCount)}
-								</Button>
-
-								<Button
-									component="button"
-									role={undefined}
-									variant="outlined"
-									buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
-									color="primary.dark"
-									borderRadius="10px"
-									borderColor="primary.light"
-									buttonStyle={{
-										marginRight: 1,
-									}}
-									handleButtonClick={() => setOpenShareDialog(true)}
-								>
-									Share
-								</Button>
-								<SimpleDialog
-									openDialog={openShareDialog}
-									setOpenDialog={setOpenShareDialog}
-									title="Share"
-									backdropBlur={5}
-									borderRadius={1.3}
-								>
-									<List
-										listItemsArray={["Copy Link", "Share to WhatsApp"]}
-										listIconsArray={[
-											<LinkRoundedIcon sx={{ marginRight: 1 }} />,
-											<WhatsAppIcon sx={{ marginRight: 1 }} />,
-										]}
-										disablePadding
-										handleListItemsClick={[
-											() => {
-												setOpenSnackbar(true);
-											},
-											() => {
-												const currentPathAbsolute = window.location.href;
-												window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
-											},
-										]}
-										listItemsStyles={{ padding: 2.5 }}
-									/>
-									<Snackbar
-										openSnackbar={openSnackbar}
-										setOpenSnackbar={setOpenSnackbar}
-										message="Link copied to clipboard"
-										handleSnackbarClose={() => {
-											const currentPathAbsolute = window.location.href;
-											navigator.clipboard.writeText(currentPathAbsolute);
-											setOpenShareDialog(false);
-										}}
-										duration={1500}
-									/>
-								</SimpleDialog>
-							</CardActions>
-
-							{/* Comment Box */}
-							<CardContent sx={{ display: "flex", justifyContent: "center" }}>
-								{!expandTextField ? (
-									<TextFieldAutosize
-										sx={{
-											width: "100%",
+											display: "flex",
+											justifyContent: "flex-start",
+											marginTop: 1,
 											marginBottom: 1.5,
-											fontSize: 18,
-											fontFamily: "Nunito",
-											fontWeight: "Medium",
 										}}
-										minRows={1}
-										placeholder="Add a comment"
-										onClick={() => {
-											setExpandTextField(true);
-										}}
-									/>
-								) : (
-									<Box sx={{ width: "100%" }}>
-										<FormControl fullWidth>
-											<Controller
-												name="comment"
-												control={control}
-												render={() => (
-													<TextFieldAutosize
-														sx={{
-															width: "100%",
-															fontSize: 18,
-															fontFamily: "Nunito",
-															fontWeight: "Medium",
-														}}
-														placeholder="Add a comment"
-														minRows={3}
-														required
-														{...register("comment", { required: true })}
-														autoFocus
-													/>
-												)}
-											/>
-										</FormControl>
+									>
+										<Button
+											component="button"
+											role={undefined}
+											variant="outlined"
+											buttonIcon={<CloseRoundedIcon sx={{ fontSize: 25 }} />}
+											color="primary.dark"
+											borderRadius="10px"
+											borderColor="primary.light"
+											buttonStyle={{
+												marginLeft: 1,
+												marginRight: 1,
+											}}
+											handleButtonClick={(
+												event: React.MouseEvent<HTMLElement>
+											) => {
+												setIsEditing(false);
+											}}
+										>
+											Discard
+										</Button>
+										<Button
+											component="button"
+											role={undefined}
+											variant="outlined"
+											buttonIcon={<CheckRoundedIcon sx={{ fontSize: 25 }} />}
+											color="primary.dark"
+											borderRadius="10px"
+											borderColor="primary.light"
+											buttonStyle={{
+												marginRight: 1,
+											}}
+											handleButtonClick={handleEditThread}
+											loadingStatus={isUploadingThread}
+										>
+											Confirm
+										</Button>
+									</CardActions>
+								</>
+							) : (
+								<>
+									{/*Display Mode*/}
+									<CardContent sx={{ paddingBottom: 0 }}>
+										<Typography
+											variant="h5"
+											color="text.secondary"
+											fontWeight={760}
+										>
+											{thread.title}
+										</Typography>
+										<Typography
+											variant="h6"
+											color="text.secondary"
+											fontFamily="Open Sans"
+											fontSize={17}
+											marginTop={2}
+											marginBottom={2}
+										>
+											{thread.topicsTagged.map((topic: TopicDTO) => (
+												<Button
+													key={topic.topicID}
+													disableRipple
+													handleButtonClick={() =>
+														navigate(`../Topics/${topic.topicID}`)
+													}
+													fontFamily="Open Sans"
+													buttonStyle={{
+														px: 1,
+														py: 0,
+														marginLeft: 0,
+														marginRight: 1.5,
+													}}
+													color="text.secondary"
+													variant="outlined"
+													backgroundColor="primary.light"
+												>
+													{topic.name}
+												</Button>
+											))}
+										</Typography>
+										<Typography textAlign="left">{thread.content}</Typography>
 
-										<Box sx={{ display: "flex", justifyContent: "right" }}>
-											<Button
-												buttonIcon={<CancelRoundedIcon sx={{ padding: 0 }} />}
-												color="primary.dark"
-												handleButtonClick={() => {
-													setExpandTextField(false);
-													reset();
+										<CardMedia
+											component="img"
+											image={thread.imageLink}
+											sx={{
+												width: "100%",
+												height: "auto",
+												objectFit: "contain",
+												borderRadius: 1.3,
+												my: 3,
+												"&:hover": {
+													cursor: "pointer",
+												},
+											}}
+											onClick={() => setFullScreenImage(true)}
+										/>
+									</CardContent>
+									<CardActions
+										disableSpacing
+										sx={{
+											display: "flex",
+											justifyContent: "flex-start",
+										}}
+									>
+										<Button
+											component="button"
+											role={undefined}
+											variant="outlined"
+											buttonIcon={
+												likeStatus ? (
+													<FavoriteRoundedIcon color="warning" />
+												) : (
+													<FavoriteBorderRoundedIcon />
+												)
+											}
+											color="primary.dark"
+											borderRadius="10px"
+											borderColor="primary.light"
+											buttonStyle={{
+												marginLeft: 1,
+												marginRight: 1,
+											}}
+											handleButtonClick={() => {
+												setLikeStatus(!likeStatus);
+
+												if (likeStatus) {
+													setLikeCount(likeCount - 1);
+													Delete(
+														`/threads/${threadID}/likes/user`,
+														{},
+														() => {},
+														(err) => console.log(err)
+													);
+												} else {
+													player();
+													setLikeCount(likeCount + 1);
+													postJSON(
+														`/threads/${threadID}/likes/user`,
+														{},
+														() => {},
+														(err) => console.log(err)
+													);
+												}
+											}}
+										>
+											{String(likeCount)}
+										</Button>
+										<Button
+											component="button"
+											role={undefined}
+											variant="outlined"
+											buttonIcon={<CommentRoundedIcon />}
+											color="primary.dark"
+											borderRadius="10px"
+											borderColor="primary.light"
+											buttonStyle={{
+												marginRight: 1,
+											}}
+											handleButtonClick={() => {
+												setExpandTextField(true);
+											}}
+										>
+											{String(thread.commentCount)}
+										</Button>
+
+										<Button
+											component="button"
+											role={undefined}
+											variant="outlined"
+											buttonIcon={<ShareRoundedIcon sx={{ fontSize: 25 }} />}
+											color="primary.dark"
+											borderRadius="10px"
+											borderColor="primary.light"
+											buttonStyle={{
+												marginRight: 1,
+											}}
+											handleButtonClick={() => setOpenShareDialog(true)}
+										>
+											Share
+										</Button>
+										<SimpleDialog
+											openDialog={openShareDialog}
+											setOpenDialog={setOpenShareDialog}
+											title="Share"
+											backdropBlur={5}
+											borderRadius={1.3}
+										>
+											<List
+												listItemsArray={["Copy Link", "Share to WhatsApp"]}
+												listIconsArray={[
+													<LinkRoundedIcon sx={{ marginRight: 1 }} />,
+													<WhatsAppIcon sx={{ marginRight: 1 }} />,
+												]}
+												disablePadding
+												handleListItemsClick={[
+													(event) => {
+														setOpenSnackbar(true);
+														setOpenShareDialog(false);
+														event.stopPropagation();
+													},
+													() => {
+														setOpenShareDialog(false);
+														const currentPathAbsolute = window.location.href;
+														window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
+													},
+												]}
+												listItemsStyles={{ padding: 2.5 }}
+											/>
+										</SimpleDialog>
+										<Snackbar
+											openSnackbar={openSnackbar}
+											setOpenSnackbar={setOpenSnackbar}
+											message="Link copied to clipboard"
+											handleSnackbarClose={() => {
+												const currentPathAbsolute = window.location.href;
+												navigator.clipboard.writeText(currentPathAbsolute);
+												setOpenShareDialog(false);
+											}}
+											duration={1500}
+										/>
+									</CardActions>
+
+									{/* Comment Box */}
+									<CardContent
+										sx={{
+											display: "flex",
+											justifyContent: "center",
+											marginBottom: 1.5,
+										}}
+									>
+										{!expandTextField ? (
+											<TextFieldAutosize
+												sx={{
+													width: "100%",
+
+													fontSize: 18,
+													fontFamily: "Nunito",
+													fontWeight: "Medium",
+												}}
+												minRows={1}
+												placeholder="Add a comment"
+												onClick={() => {
+													setExpandTextField(true);
 												}}
 											/>
-											<Button
-												buttonIcon={<SendRoundedIcon />}
-												color="primary.dark"
-												handleButtonClick={handleCommentSubmit}
-											/>
-										</Box>
-									</Box>
-								)}
-							</CardContent>
+										) : (
+											<Box sx={{ width: "100%" }}>
+												<FormControl fullWidth>
+													<Controller
+														name="comment"
+														control={control}
+														render={() => (
+															<TextFieldAutosize
+																sx={{
+																	width: "100%",
+																	fontSize: 18,
+																	fontFamily: "Nunito",
+																	fontWeight: "Medium",
+																}}
+																placeholder="Add a comment"
+																minRows={3}
+																required
+																{...register("comment", { required: true })}
+																autoFocus
+															/>
+														)}
+													/>
+												</FormControl>
+
+												<Box sx={{ display: "flex", justifyContent: "right" }}>
+													<Button
+														buttonIcon={
+															<CancelRoundedIcon sx={{ padding: 0 }} />
+														}
+														color="primary.dark"
+														handleButtonClick={() => {
+															setExpandTextField(false);
+															reset();
+														}}
+													/>
+													<Button
+														buttonIcon={<SendRoundedIcon />}
+														color="primary.dark"
+														handleButtonClick={handleCommentSubmit}
+														loadingStatus={isUploadingComment}
+													/>
+												</Box>
+											</Box>
+										)}
+									</CardContent>
+								</>
+							)}
+
 							<Divider />
 							<CardContent>
 								<Box
@@ -499,40 +614,33 @@ const Thread = () => {
 									alignItems="center"
 								>
 									<Typography fontFamily="Open Sans" fontSize={18}>
-										{commentCount} Comments
+										{thread.commentCount} Comments
 									</Typography>
 									<Menu
-										menuExpandedItemsArray={["Newest", "Popular", "Oldest"]}
+										menuExpandedItemsArray={commentSortOrder}
+										menuExpandedDataValuesArray={commentSortOrder.map(
+											(_, index) => index
+										)}
 										menuIcon={<SortRoundedIcon />}
 										variant="text"
 										handleMenuExpandedItemsClick={Array(3).fill(
 											(event: React.MouseEvent<HTMLElement>) =>
-												event.currentTarget.dataset.value &&
-												setCommentSortingOrder(
-													event.currentTarget.dataset.value
+												setCommentSortIndex(
+													Number(event.currentTarget.dataset?.value)
 												)
 										)}
 										menuStyle={{ fontFamily: "Open Sans" }}
 									>
-										{commentSortingOrder}
+										{commentSortOrder[commentSortIndex]}
 									</Menu>
 								</Box>
 								<List
 									variant="text"
 									disablePadding
-									listItemsArray={threadExpanded.comments.map((comment) => {
+									listItemsArray={thread.comments.map((comment: CommentDTO) => {
 										return (
 											<Comment
-												id={comment.commentID}
-												key={comment.commentID}
-												author={comment.authorName}
-												likeCount={0}
-												content={comment.content}
-												date={dateToTimeYear(comment.createdAt, "short")}
-												avatarIconLink={comment.avatarIconLink}
-												handleAvatarIconClick={() =>
-													navigate(`../Profile/${comment.authorID}`)
-												}
+												comment={comment}
 											/>
 										);
 									})}
@@ -543,7 +651,7 @@ const Thread = () => {
 				</Container>
 			</Box>
 			<FullScreenImage
-				path={threadExpanded.imageLink}
+				path={thread.imageLink}
 				setFullScreenImage={setFullScreenImage}
 				fullScreenImage={fullScreenImage}
 			/>

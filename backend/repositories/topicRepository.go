@@ -11,14 +11,14 @@ type TopicRepository struct {
 	DB *sql.DB
 }
 
-func (topicRepository *TopicRepository) GetAllTopics(userAuthorID int) ([]*dtos.TopicWithThreads, error) {
+func (topicRepository *TopicRepository) GetAllTopics(authorID int) ([]*dtos.TopicDTO, error) {
 	rows, err := topicRepository.DB.Query(`SELECT DISTINCT topic.topic_id, topic.name,
 	CASE 
         WHEN follow.follower_author_id = $1 THEN TRUE
         ELSE FALSE
     END AS follow_status
 	FROM topic
-	LEFT JOIN follow ON topic.topic_id = follow.followee_topic_id AND follow.follower_author_id = $1`, userAuthorID)
+	LEFT JOIN follow ON topic.topic_id = follow.followee_topic_id AND follow.follower_author_id = $1`, authorID)
 
 	if err != nil {
 		return nil, err
@@ -27,11 +27,11 @@ func (topicRepository *TopicRepository) GetAllTopics(userAuthorID int) ([]*dtos.
 	//Close rows after finishing query
 	defer rows.Close()
 
-	topics := make([]*dtos.TopicWithThreads, 0)
+	topics := make([]*dtos.TopicDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a topic struct
-		topic := new(dtos.TopicWithThreads)
+		topic := new(dtos.TopicDTO)
 
 		// Scan the current row into the topic struct
 		err := rows.Scan(
@@ -52,7 +52,7 @@ func (topicRepository *TopicRepository) GetAllTopics(userAuthorID int) ([]*dtos.
 	return topics, err
 }
 
-func (topicRepository *TopicRepository) GetTopicByID(topicID int, userAuthorID int) (*dtos.TopicWithThreads, error) {
+func (topicRepository *TopicRepository) GetTopicByID(topicID int, userAuthorID int) (*dtos.TopicDTO, error) {
 	row:= topicRepository.DB.QueryRow(`
 		SELECT topic.topic_id, topic.name,
 		CASE 
@@ -64,7 +64,7 @@ func (topicRepository *TopicRepository) GetTopicByID(topicID int, userAuthorID i
 		WHERE topic.topic_id = $2
 		`, userAuthorID, topicID)
 
-	topic := new(dtos.TopicWithThreads)
+	topic := new(dtos.TopicDTO)
 
 	err := row.Scan(
 		&topic.TopicID,

@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 )
 
@@ -88,8 +89,8 @@ func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash s
 	return author
 }
 
-func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*models.Author, error) {
-	author := new(models.Author)
+func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*dtos.AuthorDTO, error) {
+	author := new(dtos.AuthorDTO)
 	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE author_id = $1", authorID)
 	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
 

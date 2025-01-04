@@ -1,6 +1,13 @@
-import PostsPage from "./ThreadsPage";
-import RemovedPage from "./ArchivedPage";
-import LikesPage from "./LikesPage";
-import CommentsPage from "./CommentsPage";
+import ThreadsPage from "./ThreadsPage/ThreadsPage";
+import RemovedPage from "./ArchivesPage/ArchivesPage";
+import LikesPage from "./LikesPage/LikesPage";
+import CommentsPage from "./CommentsPage/CommentsPage";
+import OverviewPage from "./OverviewPage/OverviewPage";
 
-export default [<></>, <PostsPage />, <CommentsPage />, <LikesPage />, <RemovedPage />];
+export default [
+	<OverviewPage />,
+	<ThreadsPage />,
+	<CommentsPage />,
+	<LikesPage />,
+	<RemovedPage />,
+];

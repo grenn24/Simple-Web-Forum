@@ -42,7 +42,8 @@ func (threadService *ThreadService) GetThreadByID(threadID int) (*models.Thread,
 	return thread, nil
 }
 
-func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuthorID int) (*dtos.ThreadExpanded, *dtos.Error) {
+// Will retrieve like, bookmark and archive status accordingly based on author id given
+func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuthorID int, commentSortIndex int) (*dtos.ThreadDTO, *dtos.Error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
 	likeRepository := &repositories.LikeRepository{DB: threadService.DB}
@@ -52,7 +53,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	archiveRepository := &repositories.ArchiveRepository{DB: threadService.DB}
 
 	// Retrieve expanded thread information
-	threadExpanded := new(dtos.ThreadExpanded)
+	threadExpanded := new(dtos.ThreadDTO)
 	thread, err := threadRepository.GetThreadByID(threadID)
 	copier.Copy(threadExpanded, thread)
 
@@ -72,14 +73,8 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 		}
 	}
 
-	// Retrieve author information
-	authorMinimised := new(dtos.AuthorMinimised)
-	author := new(models.Author)
-	author, err = authorRepository.GetAuthorByID(thread.AuthorID)
-	authorMinimised.AuthorID = author.AuthorID
-	authorMinimised.AuthorName = author.Name
-	authorMinimised.AvatarIconLink = author.AvatarIconLink
-	threadExpanded.Author = *authorMinimised
+	// Retrieve author information (check if thread author is user)
+	author, err := authorRepository.GetAuthorByID(thread.AuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -87,6 +82,9 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 			Message:   err.Error(),
 		}
 	}
+	isUser := thread.AuthorID == userAuthorID
+	author.IsUser = &isUser
+	threadExpanded.Author = author
 
 	// Retrieve commentCount
 	commentCount, err := commentRepository.CountCommentsByThreadID(threadID)
@@ -97,17 +95,18 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 			Message:   err.Error(),
 		}
 	}
-	threadExpanded.CommentCount = commentCount
+	threadExpanded.CommentCount = &commentCount
 
 	// Retrieve like, bookmark, archive status
-	threadExpanded.LikeStatus = likeRepository.GetLikeStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
+	likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
+	threadExpanded.LikeStatus = &likeStatus
 	bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
 	threadExpanded.BookmarkStatus = &bookmarkStatus
 	archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(threadExpanded.ThreadID, userAuthorID)
 	threadExpanded.ArchiveStatus = &archiveStatus
 
 	// Retrieve comments
-	comments, err := commentRepository.GetCommentsByThreadID(threadID, "")
+	comments, err := commentRepository.GetCommentsByThreadID(threadID, commentSortIndex)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -131,7 +130,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	return threadExpanded, nil
 }
 
-func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadDTO, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
@@ -146,7 +145,7 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.
 	}
 
 	// Retrieve the topics array for each thread
-	threadsWithTopics := make([]*dtos.ThreadCard, 0)
+	threadsWithTopics := make([]*dtos.ThreadDTO, 0)
 	for _, thread := range threads {
 		topics, err := topicRepository.GetTopicsByThreadID(thread.ThreadID)
 		thread.TopicsTagged = topics
@@ -157,15 +156,15 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.
 				Message:   err.Error(),
 			}
 		}
-		thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
-		thread.AuthorName = authorRepository.GetAuthorNameByAuthorID(thread.AuthorID)
+		thread.Content = utils.TruncateString(thread.Content, 10)
+		thread.Author.Name = authorRepository.GetAuthorNameByAuthorID(thread.Author.AuthorID)
 		threadsWithTopics = append(threadsWithTopics, thread)
 	}
 
 	return threadsWithTopics, nil
 }
 
-func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorID int) (*dtos.TopicWithThreads, *dtos.Error) {
+func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorID int) (*dtos.TopicDTO, *dtos.Error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: threadService.DB}
 	archiveRepository := &repositories.ArchiveRepository{DB: threadService.DB}
@@ -193,7 +192,7 @@ func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorI
 
 	for _, thread := range threads {
 		// Truncate content
-		thread.ContentSummarised = utils.TruncateString(thread.ContentSummarised, 10)
+		thread.Content = utils.TruncateString(thread.Content, 10)
 		// Get bookmark and archive status
 		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
 		thread.BookmarkStatus = &bookmarkStatus
@@ -222,20 +221,34 @@ func (threadService *ThreadService) CreateThread(thread *models.Thread) *dtos.Er
 		}
 	}
 
-	// Create thread topic links (add thread to multiple topics)
+	// For each topic listed, check if it exists in the db and then match it to the thread being created
 	topicNames := thread.TopicsTagged
 	for _, topicName := range topicNames {
 		topic, err := topicRepository.GetTopicByName(topicName)
-		// If there is no topic with matching name found
+		// If there is no topic with matching name found, create it
 		if topic == nil || err == sql.ErrNoRows {
-			// Create new topic
 			topicRepository.CreateTopic(&models.Topic{Name: topicName})
 		}
 		topic, _ = topicRepository.GetTopicByName(topicName)
-		// Create thread topic link
+		// Link the topic to the thread created
 		responseErr := threadService.AddThreadToTopic(threadID, topic.TopicID)
 		if responseErr != nil {
 			return responseErr
+		}
+	}
+	return nil
+}
+
+func (threadService *ThreadService) UpdateThread(thread *models.Thread, threadID int) *dtos.Error {
+	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
+
+	err := threadRepository.UpdateThread(thread, threadID)
+
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
 	}
 	return nil

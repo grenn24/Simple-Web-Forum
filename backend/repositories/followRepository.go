@@ -36,7 +36,7 @@ func (followRepository *FollowRepository) DeleteFollowByFollowerFolloweeID(follo
 }
 
 // Threads from followed topics and authors (duplicates removed)
-func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, error) {
+func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
 	sortOrder := []string{"", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
 	rows, err := followRepository.DB.Query(`
 		SELECT DISTINCT
@@ -69,20 +69,21 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 	//Close rows after finishing query
 	defer rows.Close()
 
-	followedThreads := make([]*dtos.ThreadCard, 0)
+	followedThreads := make([]*dtos.ThreadDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a followed thread struct
-		followedThread := new(dtos.ThreadCard)
+		followedThread := new(dtos.ThreadDTO)
+		followedThread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&followedThread.ThreadID,
 			&followedThread.Title,
 			&followedThread.CreatedAt,
-			&followedThread.ContentSummarised,
-			&followedThread.AuthorID,
-			&followedThread.AuthorName,
+			&followedThread.Content,
+			&followedThread.Author.AuthorID,
+			&followedThread.Author.Name,
 			&followedThread.ImageTitle,
 			&followedThread.ImageLink,
 			&followedThread.LikeCount,

@@ -1,32 +1,14 @@
-export interface ThreadCardDTO {
-	threadID: number;
-	title: string;
-	contentSummarised: string;
-	authorID: number;
-	authorName: string;
-	avatarIconLink: string;
-	createdAt: Date;
-	likes: number;
-	imageTitle: string;
-	imageLink: string;
-	commentCount: number;
-	likeCount: number;
-	likeStatus: boolean;
-	topicsTagged: TopicDTO[];
-	bookmarkStatus: boolean;
-	archiveStatus: boolean
-}
+import { AuthorDTO } from "./AuthorDTO";
+import { CommentDTO} from "./CommentDTO";
+import { TopicDTO } from "./TopicDTO";
 
-export interface ThreadExpandedDTO {
+
+export interface ThreadDTO {
 	threadID: number;
 	title: string;
 	content: string;
 	commentCount: number;
-	author: {
-		authorName: string;
-		authorID: number;
-		avatarIconLink: string;
-	};
+	author: AuthorDTO;
 	createdAt: Date;
 	likeCount: number;
 	likeStatus: boolean;
@@ -38,20 +20,6 @@ export interface ThreadExpandedDTO {
 	archiveStatus: boolean
 }
 
-export interface TopicDTO {
-	topicID: number;
-	name: string;
-}
 
-export interface CommentDTO {
-	commentID: number;
-	threadID: number;
-	threadTitle: string;
-	threadContentSummarised: string;
-	authorID: number;
-	content: string;
-	createdAt: Date;
-	authorName: string;
-	avatarIconLink: string;
-	topicsTagged: TopicDTO[]
-}
+
+

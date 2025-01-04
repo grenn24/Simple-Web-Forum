@@ -78,7 +78,7 @@ interface Prop {
 	handleAvatarIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	threadLikeStatus: boolean;
 	threadBookmarkStatus: boolean;
-	threadArchiveStatus: boolean
+	threadArchiveStatus: boolean;
 }
 
 const ThreadCard = ({
@@ -157,7 +157,10 @@ const ThreadCard = ({
 							<>
 								<Menu
 									menuIcon={<MoreVertIcon sx={{ color: "primary.dark" }} />}
-									menuExpandedIconsArray={MenuExpandedIcons(bookmarkStatus, archiveStatus)}
+									menuExpandedIconsArray={MenuExpandedIcons(
+										bookmarkStatus,
+										archiveStatus
+									)}
 									menuExpandedItemsArray={MenuExpandedItems(archiveStatus)}
 									toolTipText="More"
 									scrollLock={true}
@@ -297,9 +300,11 @@ const ThreadCard = ({
 								handleListItemsClick={[
 									(event) => {
 										setOpenSnackbar(true);
+										setOpenShareDialog(false);
 										event.stopPropagation();
 									},
 									(event) => {
+										setOpenShareDialog(false);
 										const currentPathObject = new URL(window.location.href);
 										const parentPathRelative =
 											currentPathObject.pathname.substring(
@@ -313,25 +318,24 @@ const ThreadCard = ({
 								]}
 								listItemsStyles={{ padding: 2.5 }}
 							/>
-							<Snackbar
-								openSnackbar={openSnackbar}
-								setOpenSnackbar={setOpenSnackbar}
-								message="Link copied to clipboard"
-								handleSnackbarClose={() => {
-									const currentPathObject = new URL(window.location.href);
-									const parentPathRelative =
-										currentPathObject.pathname.substring(
-											0,
-											currentPathObject.pathname.lastIndexOf("/")
-										);
-									const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-									navigator.clipboard.writeText(
-										`${parentPathAbsolute}/Thread/${threadID}`
-									);
-								}}
-								duration={1500}
-							/>
 						</SimpleDialog>
+						<Snackbar
+							openSnackbar={openSnackbar}
+							setOpenSnackbar={setOpenSnackbar}
+							message="Link copied to clipboard"
+							handleSnackbarClose={() => {
+								const currentPathObject = new URL(window.location.href);
+								const parentPathRelative = currentPathObject.pathname.substring(
+									0,
+									currentPathObject.pathname.lastIndexOf("/")
+								);
+								const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
+								navigator.clipboard.writeText(
+									`${parentPathAbsolute}/Thread/${threadID}`
+								);
+							}}
+							duration={1500}
+						/>
 						<ExpandMore
 							expand={expandCardContent}
 							onClick={(event) => {

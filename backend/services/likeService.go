@@ -26,13 +26,13 @@ func (likeService *LikeService) GetAllLikes() ([]*models.Like, *dtos.Error) {
 	return likes, nil
 }
 
-func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadCard, *dtos.Error) {
+func (likeService *LikeService) GetLikesByAuthorID(authorID int, sortIndex int) ([]*dtos.LikeDTO, *dtos.Error) {
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	commentRepository := &repositories.CommentRepository{DB: likeService.DB}
 	topicRepository := &repositories.TopicRepository{DB: likeService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: likeService.DB}
 
-	likedThreads, err := likeRepository.GetLikedThreadsByAuthorID(authorID, sortIndex)
+	likedThreads, err := likeRepository.GetLikesByAuthorID(authorID, sortIndex)
 
 	// Check for internal server errors
 	if err != nil {
@@ -45,7 +45,7 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int, sortInde
 
 	for _, likedThread := range likedThreads {
 		// Retrieve comment count
-		commentCount, err := commentRepository.CountCommentsByThreadID(likedThread.ThreadID)
+		commentCount, err := commentRepository.CountCommentsByThreadID(likedThread.Thread.ThreadID)
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",
@@ -53,16 +53,17 @@ func (likeService *LikeService) GetLikedThreadsByAuthorID(authorID int, sortInde
 				Message:   err.Error(),
 			}
 		}
-		likedThread.CommentCount = commentCount
+		likedThread.Thread.CommentCount = &commentCount
 
 		// Retrieve like and bookmark status
-		likedThread.LikeStatus = true
-		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(likedThread.ThreadID, likedThread.AuthorID)
-		likedThread.BookmarkStatus = &bookmarkStatus
+		likeStatus := true
+		likedThread.Thread.LikeStatus = &likeStatus
+		bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(likedThread.Thread.ThreadID, likedThread.Author.AuthorID)
+		likedThread.Thread.BookmarkStatus = &bookmarkStatus
 
 		// Retrieve topics tagged
-		topics, err := topicRepository.GetTopicsByThreadID(likedThread.ThreadID)
-		likedThread.TopicsTagged = topics
+		topics, err := topicRepository.GetTopicsByThreadID(likedThread.Thread.ThreadID)
+		likedThread.Thread.TopicsTagged = topics
 		if err != nil {
 			return nil, &dtos.Error{
 				Status:    "error",

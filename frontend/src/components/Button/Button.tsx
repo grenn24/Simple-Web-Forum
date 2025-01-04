@@ -1,4 +1,9 @@
-import { IconButton, Tooltip, Button as ButtonBase } from "@mui/material";
+import {
+	IconButton,
+	Tooltip,
+	Button as ButtonBase,
+	CircularProgress,
+} from "@mui/material";
 
 interface Prop {
 	children?: React.ReactNode;
@@ -24,6 +29,7 @@ interface Prop {
 	disableRipple?: boolean;
 	iconPosition?: "start" | "end";
 	type?: string;
+	loadingStatus?: boolean;
 }
 const Button = ({
 	role = "undefined",
@@ -49,63 +55,86 @@ const Button = ({
 	disableRipple = false,
 	iconPosition = "start",
 	type,
+	loadingStatus,
 }: Prop) => {
 	const buttonWithoutTooltipText = (
 		<>
 			{children ? (
-				<ButtonBase
-					type={type}
-					component={component as React.ElementType}
-					role={role}
-					variant={variant}
-					tabIndex={tabIndex}
-					startIcon={iconPosition === "start" ? buttonIcon : undefined}
-					endIcon={iconPosition === "end" ? buttonIcon : undefined}
-					disabled={disabled}
-					size={size}
-					disableRipple={disableRipple}
-					sx={{
-						...buttonStyle,
-						borderRadius: { borderRadius },
-						border: { borderWeight },
-						color: color,
-						textTransform: allUppercaseText ? "uppercase" : "none",
-						fontSize: { fontSize },
-						fontFamily: { fontFamily },
-						fontWeight: { fontWeight },
-						"& .MuiSvgIcon-root": {
-							borderColor: borderColor,
-						},
-
-						backgroundColor: backgroundColor,
-					}}
-					onClick={handleButtonClick}
-				>
-					{children}
-				</ButtonBase>
-			) : (
-				<IconButton
-					type={type}
-					component={component as React.ElementType}
-					role={role}
-					variant={variant}
-					tabIndex={tabIndex}
-					disabled={disabled}
-					disableRipple={disableRipple}
-					sx={{
-						...buttonStyle,
-						borderRadius: { borderRadius },
-						border: { borderWeight },
-						"& .MuiSvgIcon-root": {
+				<>
+					<ButtonBase
+						type={type}
+						component={component as React.ElementType}
+						role={role}
+						variant={variant}
+						tabIndex={tabIndex}
+						startIcon={iconPosition === "start" ? buttonIcon : undefined}
+						endIcon={iconPosition === "end" ? buttonIcon : undefined}
+						disabled={disabled || loadingStatus}
+						size={size}
+						disableRipple={disableRipple}
+						sx={{
+							...buttonStyle,
+							borderRadius: { borderRadius },
+							border: { borderWeight },
 							color: color,
-							borderColor: borderColor,
-						},
-						fontSize: { fontSize },
-					}}
-					onClick={handleButtonClick}
-				>
-					{buttonIcon}
-				</IconButton>
+							textTransform: allUppercaseText ? "uppercase" : "none",
+							fontSize: { fontSize },
+							fontFamily: { fontFamily },
+							fontWeight: { fontWeight },
+							"& .MuiSvgIcon-root": {
+								borderColor: borderColor,
+							},
+							
+							backgroundColor: backgroundColor,
+						}}
+						onClick={handleButtonClick}
+					>
+						{children}
+						{loadingStatus && (
+							<CircularProgress
+								size={24}
+								sx={{
+									color: "green",
+									position: "absolute",
+								}}
+							/>
+						)}
+					</ButtonBase>
+				</>
+			) : (
+				<>
+					<IconButton
+						type={type}
+						component={component as React.ElementType}
+						role={role}
+						variant={variant}
+						tabIndex={tabIndex}
+						disabled={disabled || loadingStatus}
+						disableRipple={disableRipple}
+						sx={{
+							...buttonStyle,
+							borderRadius: { borderRadius },
+							border: { borderWeight },
+							"& .MuiSvgIcon-root": {
+								color: color,
+								borderColor: borderColor,
+							},
+							fontSize: { fontSize },
+						}}
+						onClick={handleButtonClick}
+					>
+						{buttonIcon}
+						{loadingStatus && (
+							<CircularProgress
+								size={24}
+								sx={{
+									color: "green",
+									position: "absolute",
+								}}
+							/>
+						)}
+					</IconButton>
+				</>
 			)}
 		</>
 	);

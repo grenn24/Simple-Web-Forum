@@ -11,9 +11,10 @@ interface Prop {
 	control: Control;
 	topicsSelected: string[];
 	setTopicsSelected: (topics: string[]) => void;
+	isUploading: boolean
 }
 
-const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTopicsSelected }: Prop) => {
+const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTopicsSelected, isUploading }: Prop) => {
 	
 	return (
 		<>
@@ -28,13 +29,9 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 						fullWidth
 						required
 						autoComplete="off"
-						{...register("title", { required: true })}
-						error={errors.title?.type === "required"}
-						helperText={
-							errors.title?.type === "required"
-								? "The title field is required"
-								: null
-						}
+						{...register("title", { required: "Thread title is required" })}
+						error={!!errors.title}
+						helperText={errors.title?.message as string}
 					/>
 				)}
 			/>
@@ -78,7 +75,9 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 						variant="outlined"
 						minRows={4}
 						fullWidth
-						{...register("content")}
+						{...register("content", { required: "Thread content is required" })}
+						error={!!errors.content}
+						helperText={errors.content?.message as string}
 					/>
 				)}
 			/>
@@ -93,6 +92,7 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 					fontSize={17}
 					fontWeight={600}
 					handleButtonClick={submitForm}
+					loadingStatus={isUploading}
 				>
 					Post
 				</Button>

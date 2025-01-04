@@ -57,27 +57,19 @@ func (commentRepository *CommentRepository) GetAllComments(sort string) ([]*mode
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sort string) ([]*dtos.CommentExpanded, error) {
+func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sortIndex int) ([]*dtos.CommentDTO, error) {
+	sortOrder := []string{"comment.created_at DESC", "", "comment.created_at ASC"}
 
-	var rows *sql.Rows
-	var err error
-
-	if sort == "" {
-		rows, err = commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.content, comment.created_at, comment.thread_id, thread.title, thread.content, comment.author_id, author.name, author.avatar_icon_link
+	rows, err := commentRepository.DB.Query(`
+		SELECT comment.comment_id, comment.content, comment.created_at, comment_author.author_id, comment_author.name, comment_author.username, comment_author.avatar_icon_link, thread.thread_id, thread.title,
+		thread.content, thread.created_at, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link
 		FROM comment 
-		INNER JOIN author ON comment.author_id = author.author_id
+		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
-		WHERE thread.thread_id = $1`, threadID)
-	} else {
-		rows, err = commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.content, comment.created_at, comment.thread_id, thread.title, thread.content, comment.author_id, author.name, author.avatar_icon_link
-		FROM comment 
-		INNER JOIN author ON comment.author_id = author.author_id
-		INNER JOIN thread ON comment.thread_id = thread.thread_id
+		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		WHERE thread.thread_id = $1
-		ORDER BY created_at `+sort, threadID)
-	}
+		ORDER BY 
+	`+sortOrder[sortIndex], threadID)
 
 	if err != nil {
 		return nil, err
@@ -86,23 +78,32 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	//Close rows after finishing query
 	defer rows.Close()
 
-	comments := make([]*dtos.CommentExpanded, 0)
+	comments := make([]*dtos.CommentDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a comment struct
-		comment := new(dtos.CommentExpanded)
+		comment := new(dtos.CommentDTO)
+		comment.Author = new(dtos.AuthorDTO)
+		comment.Thread = new(dtos.ThreadDTO)
+		comment.Thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the comment struct
 		err := rows.Scan(
 			&comment.CommentID,
 			&comment.Content,
 			&comment.CreatedAt,
-			&comment.ThreadID,
-			&comment.ThreadTitle,
-			&comment.ThreadContentSummarised,
-			&comment.AuthorID,
-			&comment.AuthorName,
-			&comment.AvatarIconLink,
+			&comment.Author.AuthorID,
+			&comment.Author.Name,
+			&comment.Author.Username,
+			&comment.Author.AvatarIconLink,
+			&comment.Thread.ThreadID,
+			&comment.Thread.Title,
+			&comment.Thread.Content,
+			&comment.Thread.CreatedAt,
+			&comment.Thread.Author.AuthorID,
+			&comment.Thread.Author.Name,
+			&comment.Thread.Author.Username,
+			&comment.Thread.Author.AvatarIconLink,
 		)
 
 		// Check for any scanning errors
@@ -117,16 +118,17 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(authorID int) ([]*dtos.CommentExpanded, error) {
+func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) ([]*dtos.CommentDTO, error) {
 
 	rows, err := commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.thread_id, thread.title, thread.content, comment.author_id, comment.created_at, comment.content, author.name, author.avatar_icon_link
+		SELECT comment.comment_id, comment.created_at, comment.content, comment_author.author_id, comment_author.name, comment_author.avatar_icon_link,
+		thread.thread_id, thread.title, thread.content, thread.created_at, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link
 		FROM comment 
-		INNER JOIN author ON comment.author_id = author.author_id
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
-		WHERE author.author_id = $1
+		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		INNER JOIN author AS comment_author ON thread.author_id = comment_author.author_id
+		WHERE comment.author_id = $1
 		ORDER BY comment.created_at DESC`, authorID)
-
 	if err != nil {
 		return nil, err
 	}
@@ -134,23 +136,30 @@ func (commentRepository *CommentRepository) GetCommentedThreadsByAuthorID(author
 	//Close rows after finishing query
 	defer rows.Close()
 
-	comments := make([]*dtos.CommentExpanded, 0)
+	comments := make([]*dtos.CommentDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a comment struct
-		comment := new(dtos.CommentExpanded)
+		comment := new(dtos.CommentDTO)
+		comment.Author = new(dtos.AuthorDTO)
+		comment.Thread = new(dtos.ThreadDTO)
+		comment.Thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the comment struct
 		err := rows.Scan(
 			&comment.CommentID,
-			&comment.ThreadID,
-			&comment.ThreadTitle,
-			&comment.ThreadContentSummarised,
-			&comment.AuthorID,
 			&comment.CreatedAt,
 			&comment.Content,
-			&comment.AuthorName,
-			&comment.AvatarIconLink,
+			&comment.Author.AuthorID,
+			&comment.Author.Name,
+			&comment.Author.AvatarIconLink,
+			&comment.Thread.ThreadID,
+			&comment.Thread.Title,
+			&comment.Thread.Content,
+			&comment.Thread.CreatedAt,
+			&comment.Thread.Author.AuthorID,
+			&comment.Thread.Author.Name,
+			&comment.Thread.Author.AvatarIconLink,
 		)
 
 		// Check for any scanning errors

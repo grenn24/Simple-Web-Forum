@@ -73,7 +73,7 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 	return thread, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadCard, error) {
+func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadDTO, error) {
 	rows, err := threadRepository.DB.Query(fmt.Sprintf(`
 		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread.author_id, thread.image_title, thread.image_link, thread.like_count,
 		CASE 
@@ -84,7 +84,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 		FROM thread
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = thread.author_id
 		WHERE thread.author_id = %v
-		
+		ORDER BY thread.created_at DESC
 	`, authorID))
 
 	if err != nil {
@@ -94,19 +94,21 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	//Close rows after finishing query
 	defer rows.Close()
 
-	threads := make([]*dtos.ThreadCard, 0)
+	threads := make([]*dtos.ThreadDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread struct
-		thread := new(dtos.ThreadCard)
+		thread := new(dtos.ThreadDTO)
+
+		thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&thread.ThreadID,
 			&thread.Title,
 			&thread.CreatedAt,
-			&thread.ContentSummarised,
-			&thread.AuthorID,
+			&thread.Content,
+			&thread.Author.AuthorID,
 			&thread.ImageTitle,
 			&thread.ImageLink,
 			&thread.LikeCount,
@@ -125,7 +127,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadGridCard, error) {
+func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*dtos.ThreadDTO, error) {
 	rows, err := threadRepository.DB.Query(`
 		SELECT
 			thread.thread_id,
@@ -150,20 +152,22 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 	//Close rows after finishing query
 	defer rows.Close()
 
-	threads := make([]*dtos.ThreadGridCard, 0)
+	threads := make([]*dtos.ThreadDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a thread with author name struct
-		thread := new(dtos.ThreadGridCard)
+		thread := new(dtos.ThreadDTO)
+
+		thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the thread struct
 		err := rows.Scan(
 			&thread.ThreadID,
 			&thread.Title,
 			&thread.CreatedAt,
-			&thread.ContentSummarised,
-			&thread.AuthorID,
-			&thread.AuthorName,
+			&thread.Content,
+			&thread.Author.AuthorID,
+			&thread.Author.Name,
 			&thread.AvatarIconLink,
 			&thread.ImageTitle,
 			&thread.ImageLink,
@@ -201,7 +205,7 @@ func (threadRepository *ThreadRepository) DecrementLikeCountByThreadID(threadID 
 	return err
 }
 
-func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) (int) {
+func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) int {
 	var likeCount int
 	row := threadRepository.DB.QueryRow("SELECT like_count FROM thread WHERE thread_id = $1", threadID)
 	row.Scan(&likeCount)
@@ -215,6 +219,15 @@ func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (i
 	// Check for errors while returning thread id
 	err := row.Scan(&threadID)
 	return int(threadID), err
+}
+
+func (threadRepository *ThreadRepository) UpdateThread(thread *models.Thread, threadID int) error {
+	_, err := threadRepository.DB.Exec(`
+		UPDATE thread
+		SET title = $1, content = $2
+		WHERE thread_id = $3
+	`, thread.Title, thread.Content, threadID)
+	return err
 }
 
 func (threadRepository *ThreadRepository) DeleteAllThreads() error {

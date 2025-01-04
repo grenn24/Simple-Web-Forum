@@ -13,12 +13,12 @@ import (
 	"github.com/grenn24/simple-web-forum/dtos"
 )
 
-func GenerateRefreshToken(userAuthorID int, expiresIn string) (string, error) {
+func GenerateRefreshToken(userAuthorID int, expiresIn string, role string) (string, error) {
 	currentTime := time.Now()
 	timeElapsed, _ := time.ParseDuration(expiresIn)
 
 	header := gin.H{"alg": "HS256"}
-	payload := gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": userAuthorID,"role": "user", "iat": currentTime.Unix(), "exp": currentTime.Add(timeElapsed).Unix()}
+	payload := gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": userAuthorID,"role": role, "iat": currentTime.Unix(), "exp": currentTime.Add(timeElapsed).Unix()}
 	// Convert Headers and Payload into JSON
 	headerJSON, err1 := json.Marshal(header)
 	if err1 != nil {
