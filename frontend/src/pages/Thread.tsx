@@ -82,6 +82,7 @@ const Thread = () => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isCommenting, setIsCommenting] = useState(false);
 
+	// Fetch thread data and set the relevant state variables
 	useEffect(
 		() =>
 			get<ThreadDTO>(

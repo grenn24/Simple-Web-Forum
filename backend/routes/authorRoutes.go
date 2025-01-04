@@ -11,7 +11,7 @@ import (
 
 func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter := router.Group("/authors")
-	authorRouter.Use(middlewares.ValidateJwtToken)
+	authorRouter.Use(middlewares.Authenticate)
 
 	// Initialise controller handlers
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{

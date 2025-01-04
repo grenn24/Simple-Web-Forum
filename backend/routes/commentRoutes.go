@@ -11,7 +11,7 @@ import (
 
 func CommentRoutes(router *gin.RouterGroup, db *sql.DB) {
 	commentRouter := router.Group("/comments")
-	commentRouter.Use(middlewares.ValidateJwtToken)
+	commentRouter.Use(middlewares.Authenticate)
 
 	// Initialise controller handlers
 	commentController := &controllers.CommentController{CommentService: &services.CommentService{

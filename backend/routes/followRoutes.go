@@ -11,7 +11,7 @@ import (
 
 func FollowRoutes(router *gin.RouterGroup, db *sql.DB) {
 	followRouter := router.Group("/follows")
-	followRouter.Use(middlewares.ValidateJwtToken)
+	followRouter.Use(middlewares.Authenticate)
 
 	// Initialise controller handlers
 	followController := &controllers.FollowController{FollowService: &services.FollowService{

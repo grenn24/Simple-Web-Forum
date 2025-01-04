@@ -74,6 +74,7 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 						multiline
 						variant="outlined"
 						minRows={4}
+						required
 						fullWidth
 						{...register("content", { required: "Thread content is required" })}
 						error={!!errors.content}

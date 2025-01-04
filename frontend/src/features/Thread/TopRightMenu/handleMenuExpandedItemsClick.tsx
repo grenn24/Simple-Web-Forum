@@ -11,55 +11,95 @@ const handleMenuExpandedItemsClick = (
 	setIsEditing: (status: boolean) => void,
 	thread: ThreadDTO,
 	navigate: (x: any) => void
-) =>  [
-	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-		event.stopPropagation();
-		setIsEditing(!isEditing);
-	},
-	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-		event.stopPropagation();
-		setArchiveStatus(!archiveStatus);
-		archiveStatus
-			? Delete(
-					`threads/${thread.threadID}/archives/user`,
-					{},
-					() => {},
-					(err) => console.log(err)
-			  )
-			: postJSON(
-					`threads/${thread.threadID}/archives/user`,
-					{},
-					() => {},
-					(err) => console.log(err)
-			  );
-	},
-	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-		event.stopPropagation();
-		setBookmarkStatus(!bookmarkStatus);
-		bookmarkStatus
-			? Delete(
-					`threads/${thread.threadID}/bookmarks/user`,
-					{},
-					() => {},
-					(err) => console.log(err)
-			  )
-			: postJSON(
-					`threads/${thread.threadID}/bookmarks/user`,
-					{},
-					() => {},
-					(err) => console.log(err)
-			  );
-	},
-	(event: React.MouseEvent<HTMLElement, MouseEvent>) => {event.stopPropagation();
-		navigate(-1);
-		Delete(
-			`threads/${thread.threadID}`,
-			{},
-			() => {},
-			(err) => console.log(err)
-		);
-	},
-	(event: React.MouseEvent<HTMLElement, MouseEvent>) => event.stopPropagation(),
-]
+) =>
+	thread.author.isUser
+		? [
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					setIsEditing(!isEditing);
+				},
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					setArchiveStatus(!archiveStatus);
+					archiveStatus
+						? Delete(
+								`threads/${thread.threadID}/archives/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  )
+						: postJSON(
+								`threads/${thread.threadID}/archives/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  );
+				},
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					setBookmarkStatus(!bookmarkStatus);
+					bookmarkStatus
+						? Delete(
+								`threads/${thread.threadID}/bookmarks/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  )
+						: postJSON(
+								`threads/${thread.threadID}/bookmarks/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  );
+				},
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					navigate(-1);
+					Delete(
+						`threads/${thread.threadID}`,
+						{},
+						() => {},
+						(err) => console.log(err)
+					);
+				},
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) =>
+					event.stopPropagation(),
+		  ]
+		: [
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					setArchiveStatus(!archiveStatus);
+					archiveStatus
+						? Delete(
+								`threads/${thread.threadID}/archives/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  )
+						: postJSON(
+								`threads/${thread.threadID}/archives/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  );
+				},
+				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+					event.stopPropagation();
+					setBookmarkStatus(!bookmarkStatus);
+					bookmarkStatus
+						? Delete(
+								`threads/${thread.threadID}/bookmarks/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  )
+						: postJSON(
+								`threads/${thread.threadID}/bookmarks/user`,
+								{},
+								() => {},
+								(err) => console.log(err)
+						  );
+				},
+		  ];
 
 export default handleMenuExpandedItemsClick;

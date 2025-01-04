@@ -1,8 +1,13 @@
 package services
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -128,6 +133,7 @@ func (authenticationService *AuthenticationService) SignUp(name string, username
 	return jwtToken, refreshToken, nil
 }
 
+// Generate a new jwt token using user author id
 func (authenticationService *AuthenticationService) GenerateJwtToken(userAuthorID int) (string, *dtos.Error) {
 	jwtToken, err := utils.GenerateJwtToken(userAuthorID, os.Getenv("JWT_TOKEN_MAX_AGE")+"s", "user")
 
@@ -141,4 +147,143 @@ func (authenticationService *AuthenticationService) GenerateJwtToken(userAuthorI
 	}
 
 	return jwtToken, nil
+}
+
+// Validate a jwt token 
+func (authenticationService *AuthenticationService) ValidateJwtToken(jwtToken string) *dtos.Error {
+
+	jwtTokenSlice := strings.Split(jwtToken, ".")
+
+	// Check for jwt token structure
+	if len(jwtTokenSlice) != 3 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired jwt token",
+		}
+	}
+
+	headerEncoded := jwtTokenSlice[0]
+	payloadEncoded := jwtTokenSlice[1]
+	signatureOriginalEncoded := jwtTokenSlice[2]
+
+	// Check for validity: By recreating signature using HMAC SHA-256 and encode it using base64
+	secretKey := []byte(os.Getenv("SECRET_KEY"))
+	hmac := hmac.New(sha256.New, secretKey)
+	hmac.Write([]byte(headerEncoded + "." + payloadEncoded))
+	signatureRecreated := hmac.Sum(nil)
+	signatureRecreatedEncoded := base64.URLEncoding.EncodeToString(signatureRecreated)
+
+	if signatureOriginalEncoded != signatureRecreatedEncoded {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired jwt token",
+		}
+	}
+
+	// Check for expiration time
+	payload, _ := utils.ParseJwtTokenPayload(jwtToken)
+	var expirationTime int64
+	val, ok := payload["exp"].(float64)
+	if !ok {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired jwt token",
+		}
+	} else {
+		expirationTime = int64(val)
+	}
+	currentTime := time.Now().Unix()
+	if currentTime > expirationTime {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired jwt token",
+		}
+	}
+	return nil
+}
+
+// Generate a new jwt token using refresh token payload (refresh token must be validated first)
+func (authenticationService *AuthenticationService) RefreshJwtToken(refreshToken string) (string, *dtos.Error) {
+	// Get user author id from refresh token
+	payload, responseErr := utils.ParseRefreshTokenPayload(refreshToken)
+	if responseErr != nil {
+		return "", responseErr
+	}
+	userAuthorID := payload["sub"]
+	var userAuthorIDInt int
+	// Convert author id from float64 to int
+	if val, ok := userAuthorID.(float64); ok {
+		userAuthorIDInt = int(val)
+	}
+
+	// Generate a new jwt token
+	jwtToken, responseErr := authenticationService.GenerateJwtToken(userAuthorIDInt)
+	if responseErr != nil {
+		return "", responseErr
+	}
+	return jwtToken, nil
+}
+
+func (authenticationService *AuthenticationService) ValidateRefreshToken(refreshToken string) *dtos.Error {
+
+	refreshTokenSlice := strings.Split(refreshToken, ".")
+
+	// Incorrect token structure
+	if len(refreshTokenSlice) != 3 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired refresh token",
+		}
+
+	}
+
+	headerEncoded := refreshTokenSlice[0]
+	payloadEncoded := refreshTokenSlice[1]
+	signatureOriginalEncoded := refreshTokenSlice[2]
+
+	// Check validity: Recreate signature using HMAC SHA-256 and encode it using base64
+	secretKey := []byte(os.Getenv("SECRET_KEY"))
+	hmac := hmac.New(sha256.New, secretKey)
+	hmac.Write([]byte(headerEncoded + "." + payloadEncoded))
+	signatureRecreated := hmac.Sum(nil)
+	signatureRecreatedEncoded := base64.URLEncoding.EncodeToString(signatureRecreated)
+
+	if signatureOriginalEncoded != signatureRecreatedEncoded {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired refresh token",
+		}
+	}
+
+	// Check expiration time
+	payload, responseErr := utils.ParseRefreshTokenPayload(refreshToken)
+	if responseErr != nil {
+		return responseErr
+	}
+	var expirationTime int64
+	val, ok := payload["exp"].(float64)
+	if !ok {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired refresh token",
+		}
+	} else {
+		expirationTime = int64(val)
+	}
+	currentTime := time.Now().Unix()
+	if currentTime > expirationTime {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INVALID_TOKEN",
+			Message:   "Invalid or expired refresh token",
+		}
+	}
+	return nil
 }

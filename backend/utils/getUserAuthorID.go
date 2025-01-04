@@ -8,6 +8,7 @@ import (
 
 func GetUserAuthorID(context *gin.Context) int {
 	payload, responseErr := ParseJwtTokenPayload(RetrieveJwtToken(context))
+	
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)

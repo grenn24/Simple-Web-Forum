@@ -11,7 +11,7 @@ import (
 
 func TopicRoutes(router *gin.RouterGroup, db *sql.DB) {
 	topicRouter := router.Group("/topics")
-	topicRouter.Use(middlewares.ValidateJwtToken)
+	topicRouter.Use(middlewares.Authenticate)
 
 	// Initialise controller handlers
 	topicController := &controllers.TopicController{TopicService: &services.TopicService{

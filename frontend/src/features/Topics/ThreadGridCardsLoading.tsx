@@ -17,7 +17,7 @@ const ThreadGridCardsLoading = () => {
 					rowSpacing={2}
 					sx={{ marginTop: 2 }}
 				>
-					{new Array(3).map((_, index) => (
+					{new Array(3).fill("").map((_, index) => (
 						<Grid
 							key={index}
 							size={
@@ -49,7 +49,7 @@ const ThreadGridCardsLoading = () => {
 					rowSpacing={2}
 					sx={{ marginTop: 2 }}
 				>
-					{new Array(3).map((_, index) => (
+					{new Array(3).fill("").map((_, index) => (
 						<Grid
 							key={index}
 							size={

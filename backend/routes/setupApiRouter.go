@@ -11,7 +11,7 @@ func SetupApiRouter(router *gin.Engine, db *sql.DB) {
 	// Declare api router group
 	apiRouter := router.Group("/api")
 	
-
+	// Protected Routes (Require JWT token)
 	// Thread Related Routes
 	ThreadRoutes(apiRouter, db)
 
@@ -33,6 +33,7 @@ func SetupApiRouter(router *gin.Engine, db *sql.DB) {
 	// Admin / Debugging Related Routes
 	AdminRoutes(apiRouter, db)
 
+	// Non-Protected Routes (Does not require JWT token)
 	// User Authentication Related Routes
 	AuthenticationRoutes(apiRouter, db)
 

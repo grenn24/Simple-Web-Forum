@@ -6,8 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"os"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -18,7 +18,7 @@ func GenerateRefreshToken(userAuthorID int, expiresIn string, role string) (stri
 	timeElapsed, _ := time.ParseDuration(expiresIn)
 
 	header := gin.H{"alg": "HS256"}
-	payload := gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": userAuthorID,"role": role, "iat": currentTime.Unix(), "exp": currentTime.Add(timeElapsed).Unix()}
+	payload := gin.H{"iss": "https://simple-web-forum-backend-61723a55a3b5.herokuapp.com", "sub": userAuthorID, "role": role, "iat": currentTime.Unix(), "exp": currentTime.Add(timeElapsed).Unix()}
 	// Convert Headers and Payload into JSON
 	headerJSON, err1 := json.Marshal(header)
 	if err1 != nil {
@@ -26,7 +26,7 @@ func GenerateRefreshToken(userAuthorID int, expiresIn string, role string) (stri
 	}
 	payloadJSON, err2 := json.Marshal(payload)
 	if err2 != nil {
-		return "", err1
+		return "", err2
 	}
 
 	// Encode Headers and Payload using base64
@@ -73,15 +73,14 @@ func ParseRefreshTokenPayload(refreshToken string) (map[string]any, *dtos.Error)
 	return payload, nil
 }
 
+// Checks for structure, signature and expiry date of refresh token
 func ValidateRefreshToken(refreshToken string) *dtos.Error {
-
 	refreshTokenSlice := strings.Split(refreshToken, ".")
-
 	// Incorrect token structure
 	if len(refreshTokenSlice) != 3 {
 		return &dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired refresh token",
 		}
 
@@ -101,7 +100,7 @@ func ValidateRefreshToken(refreshToken string) *dtos.Error {
 	if signatureOriginalEncoded != signatureRecreatedEncoded {
 		return &dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired refresh token",
 		}
 	}
@@ -116,7 +115,7 @@ func ValidateRefreshToken(refreshToken string) *dtos.Error {
 	if !ok {
 		return &dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired refresh token",
 		}
 	} else {
@@ -126,10 +125,9 @@ func ValidateRefreshToken(refreshToken string) *dtos.Error {
 	if currentTime > expirationTime {
 		return &dtos.Error{
 			Status:    "error",
-			ErrorCode: "UNAUTHORIZED",
+			ErrorCode: "INVALID_TOKEN",
 			Message:   "Invalid or expired refresh token",
 		}
 	}
 	return nil
 }
-

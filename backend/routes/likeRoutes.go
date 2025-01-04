@@ -11,7 +11,7 @@ import (
 
 func LikeRoutes(router *gin.RouterGroup, db *sql.DB) {
 	likeRouter := router.Group("/likes")
-	likeRouter.Use(middlewares.ValidateJwtToken)
+	likeRouter.Use(middlewares.Authenticate)
 
 	// Initialise controller handlers
 	likeController := &controllers.LikeController{LikeService: &services.LikeService{

@@ -75,7 +75,7 @@ const Menu = ({
 						endIcon={menuIcon}
 						sx={{ ...menuStyle, textTransform: allCaps ? "uppercase" : "none" }}
 					>
-						{children}
+						<span>{children}</span>
 					</Button>
 				)}
 			</Tooltip>

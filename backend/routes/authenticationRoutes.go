@@ -28,6 +28,10 @@ func AuthenticationRoutes(router *gin.RouterGroup, db *sql.DB) {
 		authenticationController.RefreshJwtToken(context, db)
 	})
 
+	authenticationRouter.GET("/validate-jwt-token", func(context *gin.Context) {
+		authenticationController.ValidateJwtToken(context, db)
+	})
+
 	authenticationRouter.GET("/log-out", func(context *gin.Context) {
 		authenticationController.LogOut(context, db)
 	})

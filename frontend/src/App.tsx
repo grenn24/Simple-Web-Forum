@@ -17,6 +17,8 @@ import Theme from "./styles/Theme";
 import { ThemeProvider } from "@emotion/react";
 import CreateThread from "./pages/CreateThread";
 import AutoScrollToTop from "./utilities/AutoScrollToTop";
+import Authentication from "./components/AuthenticationWrapper";
+import Error from "./pages/Error";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -43,37 +45,40 @@ function App() {
 			<ThemeProvider theme={Theme}>
 				<BrowserRouter>
 					<Routes>
-						{/*Pages using Main Layout*/}
-						<Route
-							path=""
-							element={
-								<MainLayout
-									setLeftNavBarExpandedStatus={setleftNavBarExpandedStatus}
-									openLeftNavBar={openLeftNavBar}
-									closeLeftNavBar={closeLeftNavBar}
-									leftNavBarExpandedStatus={leftNavBarExpandedStatus}
-									handleLeftBarCloseTransitionEnd={
-										handleLeftBarCloseTransitionEnd
-									}
-								/>
-							}
-						>
-							<Route index element={<Home />} />
-							<Route path="Following" element={<Following />} />
-							<Route path="Recommended" element={<Recommended />} />
-							<Route path="Topics" element={<Topics />} />
-							<Route path="Topics/:topicID" element={<Topics />} />
-							<Route path="Bookmarked" element={<Bookmarked />} />
-							<Route path="Liked" element={<Liked />} />
-							<Route path="Settings" element={<Settings />} />
-							<Route path="Profile/:authorID" element={<Profile />} />
-							<Route path="Thread/:threadID" element={<Thread />} />
-							<Route path="Create-Thread" element={<CreateThread />} />
+						{/*Protected Routes using Main Layout and require jwt token authentication*/}
+						<Route path="" element={<Authentication />}>
+							<Route
+								path=""
+								element={
+									<MainLayout
+										setLeftNavBarExpandedStatus={setleftNavBarExpandedStatus}
+										openLeftNavBar={openLeftNavBar}
+										closeLeftNavBar={closeLeftNavBar}
+										leftNavBarExpandedStatus={leftNavBarExpandedStatus}
+										handleLeftBarCloseTransitionEnd={
+											handleLeftBarCloseTransitionEnd
+										}
+									/>
+								}
+							>
+								<Route index element={<Home />} />
+								<Route path="Following" element={<Following />} />
+								<Route path="Recommended" element={<Recommended />} />
+								<Route path="Topics" element={<Topics />} />
+								<Route path="Topics/:topicID" element={<Topics />} />
+								<Route path="Bookmarked" element={<Bookmarked />} />
+								<Route path="Liked" element={<Liked />} />
+								<Route path="Settings" element={<Settings />} />
+								<Route path="Profile/:authorID" element={<Profile />} />
+								<Route path="Thread/:threadID" element={<Thread />} />
+								<Route path="Create-Thread" element={<CreateThread />} />
+							</Route>
 						</Route>
-						{/*Pages without Layout*/}
+
+						{/*Non-protected routes*/}
 						<Route path="Welcome" element={<WelcomeScreen />} />
 						{/*Missed Routes*/}
-						<Route path="*" element={<WelcomeScreen />} />
+						<Route path="*" element={<Error />} />
 					</Routes>
 					<AutoScrollToTop />
 				</BrowserRouter>
