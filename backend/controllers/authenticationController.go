@@ -71,7 +71,7 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 
 	// Send the cookies containing the newly created jwt and refresh tokens
 	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api/authentication/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("REFRESH_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("REFRESH_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -122,7 +122,7 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 
 	// Return the newly created jwt token and refresh token in http response header as cookies
 	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=Strict", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api/authentication/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=Strict", refreshToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=Strict", refreshToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -157,21 +157,8 @@ func (authenticationController *AuthenticationController) RefreshJwtToken(contex
 		}
 	}
 
-	// Get user author id from refresh token
-	payload, responseErr := utils.ParseRefreshTokenPayload(refreshToken)
-	if responseErr != nil {
-		context.JSON(http.StatusInternalServerError, responseErr)
-		return
-	}
-	userAuthorID := payload["sub"]
-	var userAuthorIDInt int
-	// Convert author id from float64 to int
-	if val, ok := userAuthorID.(float64); ok {
-		userAuthorIDInt = int(val)
-	}
-
 	// Generate a new jwt token
-	jwtToken, responseErr := authenticationService.GenerateJwtToken(userAuthorIDInt)
+	jwtToken, responseErr := authenticationService.RefreshJwtToken(refreshToken)
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
@@ -192,7 +179,7 @@ func (authenticationController *AuthenticationController) LogOut(context *gin.Co
 	refreshToken, _ := context.Cookie("refreshToken")
 	// Return the expired cookies with max age of 0
 	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, 0, os.Getenv("DOMAIN_NAME")))
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api/authentication/refresh-jwt-token; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, 0, os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, 0, os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -205,6 +192,7 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 	authenticationService := authenticationController.AuthenticationService
 	jwtToken, _ := context.Cookie("jwtToken")
 	refreshToken, _ := context.Cookie("refreshToken")
+
 	// Both jwt and refresh tokens not present in cookies
 	if jwtToken == "" && refreshToken == "" {
 		context.JSON(http.StatusUnauthorized, dtos.Error{
@@ -218,6 +206,7 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 	// If jwt tokens are missing, validate the refresh tokens
 	if jwtToken == "" {
 		responseErr := authenticationService.ValidateRefreshToken(refreshToken)
+		// Refresh token invalid / internal server error
 		if responseErr != nil {
 			if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 				context.JSON(http.StatusInternalServerError, responseErr)
@@ -226,7 +215,8 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 			context.JSON(http.StatusUnauthorized, responseErr)
 			return
 		}
-		//After the refresh token is validated successfully, return the new jwt tokens as cookies
+		// Refresh token valid, create new jwt tokens and return back to client
+		jwtToken, _ = utils.RefreshJwtToken(refreshToken)
 		context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 		context.JSON(http.StatusOK, dtos.Success{
 			Status:  "success",
@@ -237,22 +227,24 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 
 	// If jwt token is present, validate it
 	responseErr := authenticationService.ValidateJwtToken(jwtToken)
+	// Jwt token invalid / internal server error
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 			context.JSON(http.StatusInternalServerError, responseErr)
 			return
 		}
+
 		responseErr := authenticationService.ValidateRefreshToken(refreshToken)
+		// Refresh token invalid / internal server error
 		if responseErr != nil {
 			if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 				context.JSON(http.StatusInternalServerError, responseErr)
 				return
-			} else {
-				context.JSON(http.StatusUnauthorized, responseErr)
-				return
 			}
+			context.JSON(http.StatusUnauthorized, responseErr)
+			return
 		}
-		//If refresh token is validated, return the new jwt tokens as cookies
+		// Refresh token valid, create new jwt tokens and return back to client
 		jwtToken, responseErr := authenticationService.RefreshJwtToken(refreshToken)
 		if responseErr != nil {
 			context.JSON(http.StatusInternalServerError, responseErr)
@@ -265,6 +257,8 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 		})
 		return
 	}
+
+	// Jwt token is present and validated
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
 		Message: "Jwt token validated successfully!",

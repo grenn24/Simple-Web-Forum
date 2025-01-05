@@ -94,7 +94,7 @@ func RetrieveJwtToken(context *gin.Context) (string) {
 }
 
 
-// Generate a new jwt token using refresh token payload (refresh token must be validated first)
+// Generate a new jwt token using existing refresh token payload (refresh token must be present and validated first)
 func RefreshJwtToken(refreshToken string) (string, *dtos.Error) {
 	// Get user author id from refresh token
 	payload, responseErr := ParseRefreshTokenPayload(refreshToken)

@@ -1,16 +1,18 @@
 import { useEffect } from "react";
 import { get } from "../../utilities/apiClient";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-// A wrapper for making jwt validation request to api server
+// A wrapper for making jwt validation request to api server (for protected routes)
 const Authentication = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
+	// Trigger authentication logic whenever there is a change in route
 	useEffect(() => {
 		get(
 			"/authentication/validate-jwt-token",
 			() => {},
 			(err) => {
-				// Check for errors caused by missing or invalid jwt tokens (jwt token automatically refreshed by api server if it is expired)
+				// Check for erros due to expired refresh tokens or missing tokens (if refresh token is valid and jwt token is expired, api server will automatically return a new jwt token)
 				const errBody = err.response.data;
 				if (errBody.error_code === "INVALID_TOKEN" || "MISSING_TOKENS") {
 					navigate("../Welcome");
@@ -19,7 +21,7 @@ const Authentication = () => {
 				}
 			}
 		);
-	}, []);
+	}, [location]);
 	return <Outlet />;
 };
 

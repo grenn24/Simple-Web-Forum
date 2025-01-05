@@ -4,7 +4,7 @@ import { parseAuthor } from "../../../utilities/parseApiResponse";
 import { useParams } from "react-router-dom";
 import { get } from "../../../utilities/apiClient";
 import { dateToYear } from "../../../utilities/dateToString";
-import { Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 
 const OverviewPage = () => {
     const { authorID} = useParams();
@@ -25,11 +25,12 @@ const OverviewPage = () => {
 		[authorID]
 	);
 	return (
-		<>
+		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+		{isLoading && <CircularProgress size={70} />}
 			<Typography>
 				{!isLoading && "User since " + dateToYear(author.createdAt, "short")}
 			</Typography>
-		</>
+		</Box>
 	);
 };
 

@@ -32,7 +32,7 @@ export default function MainBody({
 				sx={{
 					display: "flex",
 					marginTop: `80px`,
-					justifyContent: "flex-start",
+					flexDirection: "row"
 				}}
 			>
 				<LeftNavigationBar
@@ -41,7 +41,7 @@ export default function MainBody({
 					closeLeftNavBar={closeLeftNavBar}
 					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 				/>
-				<Box sx={{ width: "100%", position: "relative" }}>
+				<Box flexGrow={1} sx={{ position: "relative" }}>
 					<Outlet />
 				</Box>
 			</Box>

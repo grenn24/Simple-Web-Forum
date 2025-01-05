@@ -1,4 +1,4 @@
-import { Box, Divider, Typography, Container } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 import ThreadCard from "../components/ThreadCard";
 import {
@@ -14,9 +14,10 @@ import { get } from "../utilities/apiClient";
 import { ThreadDTO } from "../dtos/ThreadDTO";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
+import cryingCat from "../assets/image/crying-cat.png";
 
 const Following = () => {
-	const [isLoading, setIsLoading] = useState(true)
+	const [isLoading, setIsLoading] = useState(true);
 	const [sortIndex, setSortIndex] = useState(0);
 	const navigate = useNavigate();
 	const [followedThreads, setFollowedThreads] = useState<ThreadDTO[]>([]);
@@ -25,12 +26,12 @@ const Following = () => {
 	useEffect(
 		() =>
 			get<ThreadDTO[]>(
-				"./authors/user/follows?sort="+sortIndex,
+				"./authors/user/follows?sort=" + sortIndex,
 				(res) => {
 					const responseBody = res.data.data;
 					const threads = parseThreads(responseBody);
 					setFollowedThreads(threads);
-					setIsLoading(false)
+					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
@@ -46,6 +47,9 @@ const Following = () => {
 					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
+				display="flex"
+				flexDirection="column"
+				alignItems="center"
 			>
 				<Box
 					sx={{
@@ -55,6 +59,7 @@ const Following = () => {
 						justifyContent: "center",
 						alignContent: "center",
 					}}
+					width="100%"
 				>
 					<Typography
 						textAlign={"left"}
@@ -66,9 +71,12 @@ const Following = () => {
 						Following
 					</Typography>
 				</Box>
-				<Divider />
+				<Box width="100%">
+					<Divider />
+				</Box>
 				<Box
 					sx={{ marginTop: 2 }}
+					width="100%"
 					display="flex"
 					justifyContent="space-between"
 				>
@@ -102,25 +110,50 @@ const Following = () => {
 						{sortOrder[sortIndex]}
 					</Menu>
 				</Box>
-				<Container
+				<Box
 					sx={{
 						width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
 						marginBottom: 3,
 					}}
-					disableGutters
 				>
 					{/*If website is still fetching data from api, display loading skeleton cards instead*/}
-					{isLoading && <ThreadCardLoading bodyHeight={180} />}
-					{followedThreads.map((followedThread) => (
-						<Box key={followedThread.threadID}>
-							<ThreadCard
-								
-								thread={followedThread}
-							/>
-							<Divider />
+					{isLoading ? (
+						<Box width="100%">
+							<ThreadCardLoading bodyHeight={180} />
 						</Box>
-					))}
-				</Container>
+					) : followedThreads.length !== 0 ? (
+						followedThreads.map((followedThread) => (
+							<Box width="100%" key={followedThread.threadID}>
+								<ThreadCard thread={followedThread} />
+								<Divider />
+							</Box>
+						))
+					) : (
+						<Box
+							width="100%"
+							display="flex"
+							flexDirection="column"
+							alignItems="center"
+						>
+							<Typography
+								textAlign="center"
+								fontFamily="Open Sans"
+								fontSize={25}
+								fontStyle="primary.dark"
+							>
+								No threads from followed authors or topics for now
+							</Typography>
+							<br />
+							<br />
+							<img
+								src={cryingCat}
+								width={220}
+								alt="crying cat"
+								loading="eager"
+							/>
+						</Box>
+					)}
+				</Box>
 			</Box>
 		</>
 	);

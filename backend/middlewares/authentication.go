@@ -41,8 +41,8 @@ func Authenticate(context *gin.Context) {
 			context.Abort()
 			return
 		}
-		jwtToken, _ = utils.RefreshJwtToken(refreshToken)
 		//After the refresh token is validated successfully, return the new jwt tokens as cookies
+		jwtToken, _ = utils.RefreshJwtToken(refreshToken)
 		context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 		context.JSON(http.StatusOK, dtos.Success{
 			Status:  "success",
@@ -81,7 +81,6 @@ func Authenticate(context *gin.Context) {
 		}
 		//If refresh token is validated, add the new jwt tokens as cookies to be returned
 		jwtToken, _ = utils.RefreshJwtToken(refreshToken)
-
 		context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 		context.JSON(http.StatusOK, dtos.Success{
 			Status:  "success",
