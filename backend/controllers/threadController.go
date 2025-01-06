@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	_ "image"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -139,14 +140,27 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 	})
 }
 
+// Accepts form data request body
 func (threadController *ThreadController) CreateUserThread(context *gin.Context, db *sql.DB) {
 	threadService := threadController.ThreadService
 
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
-
-	err := context.ShouldBind(thread)
-
+	// Assign the necessary fields
+	authorID := utils.GetUserAuthorID(context)
+	thread.AuthorID = authorID
+	thread.Title = context.PostForm("title")
+	thread.Content = context.PostForm("content")
+	imageTitle := context.PostForm("image_title")
+	thread.ImageTitle = &imageTitle
+	thread.TopicsTagged = context.PostFormArray("topics_tagged")
+	formData, err := context.MultipartForm()
+	images := formData.File["images"]
+	if len(images) == 0 {
+		thread.Image = nil
+	} else {
+		thread.Image = images[0]
+	}
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{
 			Status:    "error",
@@ -156,12 +170,8 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 		return
 	}
 
-	// Retrieve current user author id and bind it to thread struct
-	authorID := utils.GetUserAuthorID(context)
-	thread.AuthorID = authorID
-
 	// Check if the binded struct contains necessary fields
-	if thread.Title == "" || thread.AuthorID == 0 {
+	if thread.Title == "" || thread.Content == "" || thread.AuthorID == 0 {
 		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",
@@ -186,10 +196,10 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 
 func (threadController *ThreadController) UpdateThread(context *gin.Context, db *sql.DB) {
 	threadService := threadController.ThreadService
-	threadID := utils.ConvertStringToInt(context.Param("threadID"),context)
+	threadID := utils.ConvertStringToInt(context.Param("threadID"), context)
 
 	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)	
+	thread := new(models.Thread)
 	thread.ThreadID = threadID
 	err := context.ShouldBind(thread)
 
@@ -242,24 +252,14 @@ func (threadController *ThreadController) DeleteThreadByID(context *gin.Context,
 
 	threadService := threadController.ThreadService
 
-	rowsDeleted, err := threadService.DeleteThreadByID(utils.ConvertStringToInt(threadID, context))
+	responseErr := threadService.DeleteThreadByID(utils.ConvertStringToInt(threadID, context))
 
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-
-	// Check for thread not found error
-	if rowsDeleted == 0 {
-		context.JSON(http.StatusBadRequest, dtos.Error{
-			Status:    "error",
-			ErrorCode: "NOT_FOUND",
-			Message:   "No threads found with thread id: " + threadID,
-		})
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+		context.JSON(http.StatusNotFound, responseErr)
 		return
 	}
 

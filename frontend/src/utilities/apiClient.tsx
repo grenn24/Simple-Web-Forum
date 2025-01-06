@@ -173,7 +173,7 @@ export function putFormData<T>(
 
 export function Delete(
 	url: string,
-	requestBody?: object,
+	requestBody?: object | FormData,
 	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
 	handleErrorResponse?: (err: any) => void
 ) {

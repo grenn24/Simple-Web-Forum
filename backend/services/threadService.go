@@ -202,13 +202,34 @@ func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorI
 
 	topic.Threads = threads
 	return topic, nil
-
 }
 
 // Create a new thread and add it to the topics tagged (if any)
 func (threadService *ThreadService) CreateThread(thread *models.Thread) *dtos.Error {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
+
+	// If an image was attached, upload to s3 and retrieve the link
+	if thread.Image != nil {
+		filename, file, err := utils.ConvertFileHeaderToFile(thread.Image)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		defer (*file).Close()
+		imageLink, err := utils.PostFileToS3Bucket(filename, "thread_image", file)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		thread.ImageLink = &imageLink
+	}
 
 	threadID, err := threadRepository.CreateThread(thread)
 
@@ -259,9 +280,38 @@ func (threadService *ThreadService) DeleteAllThreads() error {
 	return threadRepository.DeleteAllThreads()
 }
 
-func (threadService *ThreadService) DeleteThreadByID(threadID int) (int, error) {
+func (threadService *ThreadService) DeleteThreadByID(threadID int) *dtos.Error {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
-	return threadRepository.DeleteThreadByID(threadID)
+	// Check if there is existing thread image link in db, and delete if it from s3 exists
+	imageLink := threadRepository.GetImageLinkByThreadID(threadID)
+	if imageLink != "" {
+		err := utils.DeleteFileFromS3Bucket(imageLink)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+	}
+	rowsDeleted, err := threadRepository.DeleteThreadByID(threadID)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// Check for thread not found error
+	if rowsDeleted == 0 {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NOT_FOUND",
+			Message:   fmt.Sprintf("No threads found with thread id: %v", threadID),
+		}
+	}
+	return nil
 }
 
 func (threadService *ThreadService) GetAllThreadTopicJunctions() ([]*models.ThreadTopicJunction, error) {

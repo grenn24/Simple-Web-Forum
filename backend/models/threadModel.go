@@ -2,6 +2,7 @@ package models
 
 import (
 	_ "database/sql"
+	"mime/multipart"
 	"time"
 )
 
@@ -13,7 +14,8 @@ type Thread struct {
 	AuthorID  int       `json:"author_id" db:"author_id"`
 	LikeCount int       `json:"like_count" db:"like_count"`
 	//Optional JSON Fields
-	ImageTitle   *string   `json:"image_title,omitempty" db:"image_title"`
-	ImageLink    *string   `json:"image_link,omitempty" db:"image_link"`
-	TopicsTagged []string `json:"topics_tagged,omitempty"`
+	ImageTitle   *string               `json:"image_title,omitempty" db:"image_title"`
+	Image        *multipart.FileHeader `json:"image,omitempty"`
+	ImageLink    *string               `json:"image_link,omitempty" db:"image_link"`
+	TopicsTagged []string              `json:"topics_tagged,omitempty"`
 }

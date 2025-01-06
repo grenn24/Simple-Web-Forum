@@ -6,42 +6,54 @@ import TabMenu from "../components/TabMenu";
 import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
-import { postJSON } from "../utilities/apiClient";
+import { postFormData } from "../utilities/apiClient";
 import { useState } from "react";
+import Snackbar from "../components/Snackbar";
 
 const CreateThread = () => {
 	const navigate = useNavigate();
 	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
+	const [imagesSelected, setImagesSelected] = useState<File[]>([]);
+	const [openThreadPostedSnackbar, setOpenThreadPostedSnackbar] =
+		useState(false);
 
 	const {
 		register,
-		watch,
 		handleSubmit,
 		formState: { errors },
 		reset,
 		control,
+		setValue,
 	} = useForm();
 
-	const submitForm = handleSubmit((data) => {
+	const createThread = handleSubmit((data) => {
 		setIsUploading(true);
-		postJSON(
+		const formData = new FormData();
+		formData.append("title", data.title);
+		formData.append("content", data.content);
+		formData.append("image_title", data.imageTitle);
+		imagesSelected &&
+			imagesSelected.forEach((image: File) =>
+				formData.append("images", image)
+			);
+		topicsSelected.forEach((topic) => formData.append("topics_tagged", topic));
+		postFormData(
 			"/threads/user",
-			{
-				title: data.title,
-				content: data.content,
-				image_title: data.imageTitle,
-				image_link: data.imageLink,
-				topics_tagged: topicsSelected,
-			},
-			() => {reset();
+			formData,
+			() => {
+				reset();
+				setValue("title", "");
+				setValue("content", "");
+				setImagesSelected([]);
 				setIsUploading(false);
+				setOpenThreadPostedSnackbar(true);
 			},
 			(err) => console.log(err)
 		);
 		setTopicsSelected([]);
-		
 	});
+
 	return (
 		<Box
 			sx={{
@@ -50,32 +62,35 @@ const CreateThread = () => {
 				p: { xs: 1.5, sm: 3 },
 				minHeight: "100%",
 			}}
+			display="flex"
+			flexDirection="column"
+			alignItems="center"
 		>
-			<Box
-				sx={{
-					marginBottom: 2,
-					display: "flex",
-					flexDirection: "column",
-					justifyContent: "center",
-					alignContent: "center",
-				}}
+			<Typography
+				textAlign={"left"}
+				fontFamily="Open Sans"
+				fontWeight={700}
+				fontSize={30}
+				color="primary.dark"
+				width="100%"
+				marginBottom={2}
 			>
-				<Typography
-					textAlign={"left"}
-					fontFamily="Open Sans"
-					fontWeight={700}
-					fontSize={30}
-					color="primary.dark"
-				>
-					Create Thread
-				</Typography>
+				Create Thread
+			</Typography>
+
+			<Box width="100%">
+				<Divider />
 			</Box>
-			<Divider />
-			<Box marginTop={2}>
+			<Box
+				marginTop={2}
+				width="100%"
+				display="flex"
+				justifyContent="space-between"
+			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 					color="primary.dark"
-					buttonStyle={{ mx: 0, px: 0 }}
+					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 				/>
 			</Box>
@@ -92,7 +107,7 @@ const CreateThread = () => {
 					tabPageArray={[
 						<TextPage
 							register={register}
-							submitForm={submitForm}
+							createThread={createThread}
 							errors={errors}
 							control={control}
 							topicsSelected={topicsSelected}
@@ -100,14 +115,23 @@ const CreateThread = () => {
 							isUploading={isUploading}
 						/>,
 						<ImagePage
+						imagesSelected={imagesSelected}
+							setImagesSelected={setImagesSelected}
 							register={register}
-							watch={watch}
-							errors={errors}
 							control={control}
 						/>,
 					]}
 				/>
 			</Container>
+			
+			{/*Thread posted snackbar*/}
+			<Snackbar
+				openSnackbar={openThreadPostedSnackbar}
+				setOpenSnackbar={setOpenThreadPostedSnackbar}
+				message="Thread has been posted successfully"
+				duration={2000}
+				undoButton={false}
+			/>
 		</Box>
 	);
 };

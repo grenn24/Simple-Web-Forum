@@ -177,7 +177,7 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 	return int(authorID), err
 }
 
-// Skip name and username fields if they are assigned to empty strings
+// Skip name, username and email fields if they are assigned to empty strings
 func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, authorID int) error {
 	if author.Name != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET name = $1 WHERE author_id = $2", author.Name, authorID)
@@ -187,6 +187,12 @@ func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, a
 	}
 	if author.Username != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET username = $1 WHERE author_id = $2", author.Username, authorID)
+		if err != nil {
+			return err
+		}
+	}
+	if author.Email != nil {
+		_, err := authorRepository.DB.Exec("UPDATE author SET email = $1 WHERE author_id = $2", author.Email, authorID)
 		if err != nil {
 			return err
 		}

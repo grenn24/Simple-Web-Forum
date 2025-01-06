@@ -271,6 +271,7 @@ const ThreadCard = ({
 							borderRadius={1.3}
 							handleCloseDialog={(event) => event.stopPropagation()}
 							dialogTitleHeight={55}
+							width={400}
 						>
 							<List
 								listItemsArray={["Copy Link", "Share to WhatsApp", "Cancel"]}
@@ -278,8 +279,7 @@ const ThreadCard = ({
 									<LinkRoundedIcon sx={{ marginRight: 1 }} />,
 									<WhatsAppIcon sx={{ marginRight: 1 }} />,
 								]}
-							
-								width={300}
+				
 								divider
 								handleListItemsClick={[
 									(event) => {
@@ -299,9 +299,7 @@ const ThreadCard = ({
 										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
 										event.stopPropagation();
 									},
-									() => 
-										setOpenShareDialog(false)
-									,
+									() => setOpenShareDialog(false),
 								]}
 							/>
 						</SimpleDialog>

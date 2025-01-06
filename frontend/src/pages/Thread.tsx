@@ -8,7 +8,6 @@ import {
 	Typography,
 	Box,
 	Divider,
-	Container,
 	FormControl,
 	TextField,
 } from "@mui/material";
@@ -151,8 +150,14 @@ const Thread = () => {
 
 	return (
 		<>
-			<Box sx={{ p: { xs: 1.5, sm: 3 }, bgcolor: "background.default" }}>
-				<Box>
+			<Box
+				sx={{ p: { xs: 1.5, sm: 3 }, bgcolor: "background.default" }}
+				display="flex"
+				flexDirection="column"
+				justifyContent="center"
+				alignItems="center"
+			>
+				<Box width="100%">
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
@@ -160,11 +165,8 @@ const Thread = () => {
 						handleButtonClick={() => navigate(-1)}
 					/>
 				</Box>
-				<Container
+				<Box
 					sx={{
-						flexGrow: 1,
-
-						minHeight: "100%",
 						width: {
 							xs: "100%",
 							sm: "100%",
@@ -179,7 +181,7 @@ const Thread = () => {
 					{isLoading ? (
 						<ThreadCardLoading bodyHeight={350} />
 					) : (
-						<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 2 } }}>
+						<Card elevation={2} sx={{ padding: { xs: 0.5, sm: 1, md: 1.5 } }}>
 							<CardHeader
 								avatar={
 									<Menu
@@ -238,7 +240,9 @@ const Thread = () => {
 								titleTypographyProps={{ fontWeight: 750 }}
 								subheader={dateToTimeYear(thread.createdAt, "long")}
 							/>
-							<Divider />
+
+							<Divider sx={{ mx: 2 }} />
+
 							{isEditing ? (
 								<>
 									{/*Edit Mode*/}
@@ -502,6 +506,7 @@ const Thread = () => {
 											backdropBlur={5}
 											borderRadius={1.3}
 											dialogTitleHeight={55}
+											width={400}
 										>
 											<List
 												listItemsArray={[
@@ -513,9 +518,8 @@ const Thread = () => {
 													<LinkRoundedIcon sx={{ marginRight: 1 }} />,
 													<WhatsAppIcon sx={{ marginRight: 1 }} />,
 												]}
-										
 												divider
-												width={300}
+								
 												handleListItemsClick={[
 													(event) => {
 														setOpenSnackbar(true);
@@ -615,7 +619,7 @@ const Thread = () => {
 								</>
 							)}
 
-							<Divider />
+							<Divider sx={{ mx: 2 }} />
 							<CardContent>
 								<Box
 									sx={{ px: 1, py: 0 }}
@@ -646,7 +650,6 @@ const Thread = () => {
 								</Box>
 								<List
 									variant="text"
-								
 									listItemsArray={thread.comments.map((comment: CommentDTO) => {
 										return <Comment comment={comment} />;
 									})}
@@ -654,7 +657,7 @@ const Thread = () => {
 							</CardContent>
 						</Card>
 					)}
-				</Container>
+				</Box>
 			</Box>
 			<FullScreenImage
 				path={thread.imageLink}

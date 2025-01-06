@@ -3,6 +3,7 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"mime/multipart"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -97,14 +98,51 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	return nil
 }
 
-func (authorService *AuthorService) UpdateAuthorNameUsername(author *dtos.AuthorDTO, authorID int) *dtos.Error {
+func (authorService *AuthorService) UpdateAuthor(author *dtos.AuthorDTO, authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	var err error
 	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
 	author.AvatarIconLink = &avatarIconLink
 
-	err = authorRepository.UpdateAuthor(author, authorID)
+	// Check if avatar icon file was uploaded
+	if author.AvatarIcon != nil {
+		// Check if existing icon link exists in db, if yes delete it in s3
+		avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
+		if avatarIconLink != "" {
+			err := utils.DeleteFileFromS3Bucket(avatarIconLink)
+			if err != nil {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
+			}
+		}
+
+		// Upload the avatar icon to s3 bucket and obtain the public link
+		filename, file, err := utils.ConvertFileHeaderToFile(author.AvatarIcon)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		defer (*file).Close()
+
+		avatarIconLink, err = utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		// Assign the newly returned link to author dto
+		author.AvatarIconLink = &avatarIconLink
+	}
+
+	err := authorRepository.UpdateAuthor(author, authorID)
 
 	if err != nil {
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
@@ -130,35 +168,21 @@ func (authorService *AuthorService) UpdateAuthorNameUsername(author *dtos.Author
 	return nil
 }
 
-// Can be used to delete avatar icon link on existing authors (set field in DB to NULL)
-func (authorService *AuthorService) UpdateAuthorAvatarIconLink(author *dtos.AuthorDTO, authorID int) *dtos.Error {
+// Update the avatar icon link field in authors table for a particular author
+func (authorService *AuthorService) UpdateAuthorAvatarIconLink(avatarIcon *multipart.FileHeader, authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	author := new(dtos.AuthorDTO)
 
-	// Replace these fields with existing values
+	// Replace these author fields with existing values
 	author.Name = authorRepository.GetAuthorNameByAuthorID(authorID)
 	author.Username = authorRepository.GetAuthorUsernameByAuthorID(authorID)
 	email := authorRepository.GetAuthorEmailByAuthorID(authorID)
 	author.Email = &email
 
-	var err error
-
-	// If the author dto contains an avatar icon file, delete the existing link in db, upload to s3 and assign a new link
-	if author.AvatarIcon != nil {
-		// Check if existing icon link exists in db, and delete if it exists
-		avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
-		if avatarIconLink != "" {
-			err = utils.DeleteFileFromS3Bucket(avatarIconLink)
-			if err != nil {
-				return &dtos.Error{
-					Status:    "error",
-					ErrorCode: "INTERNAL_SERVER_ERROR",
-					Message:   err.Error(),
-				}
-			}
-		}
-
-		// Upload the avatar icon to s3 bucket and obtain the public link
-		avatarIconLink, err = utils.PostFileToS3Bucket("avatar_icon", author.AvatarIcon)
+	// Check if existing icon link exists in db, and delete if it exists
+	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
+	if avatarIconLink != "" {
+		err := utils.DeleteFileFromS3Bucket(avatarIconLink)
 		if err != nil {
 			return &dtos.Error{
 				Status:    "error",
@@ -166,12 +190,65 @@ func (authorService *AuthorService) UpdateAuthorAvatarIconLink(author *dtos.Auth
 				Message:   err.Error(),
 			}
 		}
-		// Assign the newly returned link to author dto
-		author.AvatarIconLink = &avatarIconLink
 	}
 
-	// Avatar icon field contains either empty string (for deletion) or new link
+	// Upload the avatar icon to s3 bucket and obtain the public link
+	filename, file, err := utils.ConvertFileHeaderToFile(avatarIcon)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	defer (*file).Close()
+
+	avatarIconLink, err = utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	// Assign the newly returned link to author dto
+	author.AvatarIconLink = &avatarIconLink
+
 	err = authorRepository.UpdateAuthor(author, authorID)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
+}
+
+func (authorService *AuthorService) DeleteAuthorAvatarIconLink(authorID int) *dtos.Error {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	author := new(dtos.AuthorDTO)
+	// Replace these author fields with existing values
+	author.Name = authorRepository.GetAuthorNameByAuthorID(authorID)
+	author.Username = authorRepository.GetAuthorUsernameByAuthorID(authorID)
+	email := authorRepository.GetAuthorEmailByAuthorID(authorID)
+	author.Email = &email
+	author.AvatarIconLink = nil
+
+	// Check if existing icon link exists in db, and delete if it exists
+	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
+	if avatarIconLink != "" {
+		err := utils.DeleteFileFromS3Bucket(avatarIconLink)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+	}
+	// Set the icon link in the db to null
+	err := authorRepository.UpdateAuthor(author, authorID)
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",

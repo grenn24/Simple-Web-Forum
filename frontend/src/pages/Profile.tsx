@@ -9,7 +9,6 @@ import {
 	TextField,
 	InputAdornment,
 	useMediaQuery,
-	styled,
 } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate, useParams } from "react-router-dom";
@@ -26,25 +25,16 @@ import {
 import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
-import { get, putFormData, putJSON } from "../utilities/apiClient";
+import { Delete, get, putFormData } from "../utilities/apiClient";
 import { Controller, useForm } from "react-hook-form";
 import { parseAuthor } from "../utilities/parseApiResponse";
 import { AuthorDTO } from "../dtos/AuthorDTO";
 import SimpleDialog from "../components/SimpleDialog";
 import List from "../components/List";
 import Snackbar from "../components/Snackbar";
+import FileInput from "../components/FileInput";
 
-const FileInput = styled("input")({
-	clip: "rect(0 0 0 0)",
-	clipPath: "inset(50%)",
-	height: 1,
-	overflow: "hidden",
-	position: "absolute",
-	bottom: 0,
-	left: 0,
-	whiteSpace: "nowrap",
-	width: 1,
-});
+
 
 const Profile = () => {
 	const {
@@ -65,6 +55,8 @@ const Profile = () => {
 	const [openUploadAvatarDialog, setOpenUploadAvatarDialog] = useState(false);
 	const [openFileSizeLimitSnackbar, setOpenFileSizeLimitSnackbar] =
 		useState(false);
+	const [openAvatarIconDeletedSnackbar, setOpenAvatarIconDeletedSnackbar] =
+		useState(false);
 	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,12 +75,15 @@ const Profile = () => {
 		[authorID, isEditing]
 	);
 
-	const handleEditProfileClick = handleSubmit((data) => {
+	const handleEditProfileInfo = handleSubmit((data) => {
 		if (isEditing) {
 			setIsUploading(true);
-			putJSON(
+			const formData = new FormData;
+			formData.append("name", data.name);
+			formData.append("username", data.username);
+			putFormData(
 				"/authors/user",
-				{ name: data.name, username: data.username },
+				formData,
 				() => {
 					setIsEditing(false);
 					setIsUploading(false);
@@ -138,14 +133,17 @@ const Profile = () => {
 		}
 	};
 
-	const handleDeleteAvatarIcon = () =>
-		{setOpenUploadAvatarDialog(false);
-			putJSON(
+	const handleDeleteAvatarIcon = () => {
+		setOpenUploadAvatarDialog(false);
+		setOpenAvatarIconDeletedSnackbar(true);
+		setAuthor({ ...author, avatarIconLink: "" });
+		Delete(
 			"/authors/user/avatar-icon-link",
 			{},
 			() => {},
 			(err) => console.log(err)
-		);}
+		);
+	};
 
 	return (
 		<Box
@@ -237,6 +235,7 @@ const Profile = () => {
 							dialogTitleHeight={55}
 						>
 							<List
+							
 								divider
 								listIconsArray={[
 									<FileUploadRoundedIcon sx={{ marginRight: 1 }} />,
@@ -366,7 +365,7 @@ const Profile = () => {
 									isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
 								}
 								type="submit"
-								handleButtonClick={handleEditProfileClick}
+								handleButtonClick={handleEditProfileInfo}
 							>
 								{isEditing ? "Confirm" : "Edit"}
 							</Button>
@@ -397,11 +396,21 @@ const Profile = () => {
 				ref={fileInputRef}
 				accept="image/jpeg, image/png, image/gif"
 			/>
+			{/*File Size Limit exceeded snackbar*/}
 			<Snackbar
 				openSnackbar={openFileSizeLimitSnackbar}
 				setOpenSnackbar={setOpenFileSizeLimitSnackbar}
 				message="File size exceeds 20mb limit"
-				duration={1000}
+				duration={2000}
+				undoButton={false}
+			/>
+			{/*Avatar icon deleted snackbar*/}
+			<Snackbar
+				openSnackbar={openAvatarIconDeletedSnackbar}
+				setOpenSnackbar={setOpenAvatarIconDeletedSnackbar}
+				message="Avatar icon deleted"
+				duration={2000}
+				undoButton={false}
 			/>
 		</Box>
 	);

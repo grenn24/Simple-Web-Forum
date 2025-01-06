@@ -117,21 +117,21 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 	})
 }
 
-// Handles both JSON and FormData types in request body
 // Can update avatar icon link (but wont delete it undefined)
-func (authorController *AuthorController) UpdateUserNameUsername(context *gin.Context, db *sql.DB) {
+func (authorController *AuthorController) UpdateUser(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 	userAuthorID := utils.GetUserAuthorID(context)
 
 	// Declare a pointer to a new instance of an author dto
 	author := new(dtos.AuthorDTO)
-	var responseErr *dtos.Error
 
-	// JSON request body
-	if context.ContentType() == "application/json" {
-		err := context.ShouldBind(author)
-		// Check for JSON binding errors
-		if err != nil {
+	author.Username = context.PostForm("username")
+	author.Name = context.PostForm("name")
+	avatarIcon, err := context.FormFile("avatar_icon")
+
+	if err != nil {
+		// Check for internal server errors
+		if err.Error() != "http: no such file" {
 			context.JSON(http.StatusInternalServerError, dtos.Error{
 				Status:    "error",
 				ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -139,26 +139,12 @@ func (authorController *AuthorController) UpdateUserNameUsername(context *gin.Co
 			})
 			return
 		}
-		responseErr = authorService.UpdateAuthorNameUsername(author, userAuthorID)
-	}
-
-	// FormData request body (for updating avatar icons)
-	if context.ContentType() == "multipart/form-data" {
-		author.Username = context.PostForm("username")
-		author.Name = context.PostForm("name")
-		avatarIcon, err := context.FormFile("avatar_icon")
-
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			})
-			return
-		}
+		author.AvatarIcon = nil
+	} else {
 		author.AvatarIcon = avatarIcon
-		responseErr = authorService.UpdateAuthorNameUsername(author, userAuthorID)
 	}
+
+	responseErr := authorService.UpdateAuthor(author, userAuthorID)
 
 	if responseErr != nil {
 		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
@@ -176,20 +162,21 @@ func (authorController *AuthorController) UpdateUserNameUsername(context *gin.Co
 	})
 }
 
-// Handles both JSON and FormData types in request body
 // Can update avatar icon link (but wont delete it if its undefined)
-func (authorController *AuthorController) UpdateAuthorNameUsername(context *gin.Context, db *sql.DB) {
+func (authorController *AuthorController) UpdateAuthor(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
 
 	// Declare a pointer to a new instance of an author dto
 	author := new(dtos.AuthorDTO)
 
-	// JSON request body
-	if context.ContentType() == "application/json" {
-		err := context.ShouldBind(author)
-		// Check for JSON binding errors
-		if err != nil {
+	author.Username = context.PostForm("username")
+	author.Name = context.PostForm("name")
+	avatarIcon, err := context.FormFile("avatar_icon")
+
+	if err != nil {
+		// Check for internal server errors
+		if err.Error() != "http: no such file" {
 			context.JSON(http.StatusInternalServerError, dtos.Error{
 				Status:    "error",
 				ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -197,27 +184,12 @@ func (authorController *AuthorController) UpdateAuthorNameUsername(context *gin.
 			})
 			return
 		}
-
-	}
-
-	// FormData request body (for updating avatar icons)
-	if context.ContentType() == "multipart/form-data" {
-		author.Username = context.PostForm("username")
-		author.Name = context.PostForm("name")
-		avatarIcon, err := context.FormFile("avatar_icon")
-
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			})
-			return
-		}
+		author.AvatarIcon = nil
+	} else {
 		author.AvatarIcon = avatarIcon
-
 	}
-	responseErr := authorService.UpdateAuthorNameUsername(author, authorID)
+
+	responseErr := authorService.UpdateAuthor(author, authorID)
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
 			context.JSON(http.StatusInternalServerError, responseErr)
@@ -232,19 +204,15 @@ func (authorController *AuthorController) UpdateAuthorNameUsername(context *gin.
 	})
 }
 
-// Update only the avatar icon link of user (or delete it if its undefined in json or formdata)
+// Handles a http form data request and updates only the avatar icon link of user
 func (authorController *AuthorController) UpdateUserAvatarIconLink(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	// Declare a pointer to a new instance of an author dto
-	author := new(dtos.AuthorDTO)
+	avatarIcon, err := context.FormFile("avatar_icon")
 
-	// JSON request body
-	if context.ContentType() == "application/json" {
-		err := context.ShouldBind(author)
-		// Check for JSON binding errors
-		if err != nil {
+	if err != nil {
+		if err.Error() != "http: no such file" {
 			context.JSON(http.StatusInternalServerError, dtos.Error{
 				Status:    "error",
 				ErrorCode: "INTERNAL_SERVER_ERROR",
@@ -252,40 +220,41 @@ func (authorController *AuthorController) UpdateUserAvatarIconLink(context *gin.
 			})
 			return
 		}
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "No image file was uploaded",
+		})
+		return
 	}
 
-	// FormData request body (for updating avatar icons)
-	if context.ContentType() == "multipart/form-data" {
-		author.Username = context.PostForm("username")
-		author.Name = context.PostForm("name")
-		avatarIcon, err := context.FormFile("avatar_icon")
-		if err != nil {
-			context.JSON(http.StatusInternalServerError, dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			})
-			return
-		}
-		author.AvatarIcon = avatarIcon
-
-	}
-
-	responseErr := authorService.UpdateAuthorAvatarIconLink(author, userAuthorID)
+	responseErr := authorService.UpdateAuthorAvatarIconLink(avatarIcon, userAuthorID)
 
 	if responseErr != nil {
-		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
-			context.JSON(http.StatusInternalServerError, responseErr)
-			return
-		}
-		// Check for duplicate fields
-		context.JSON(http.StatusBadRequest, responseErr)
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
-		Message: "Updated author info successfully!",
+		Message: "Updated author avatar icon successfully!",
+	})
+}
+
+func (authorController *AuthorController) DeleteUserAvatarIconLink(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+	userAuthorID := utils.GetUserAuthorID(context)
+
+	responseErr := authorService.DeleteAuthorAvatarIconLink(userAuthorID)
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Delete author avatar icon successfully!",
 	})
 }
 

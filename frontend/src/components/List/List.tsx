@@ -21,7 +21,7 @@ interface Prop {
 	variant?: "text" | "button";
 	divider?: boolean;
 	listStyle?: object;
-	width?: number;
+	width?: number | string;
 	listItemTextStyle?: SxProps<Theme>;
 }
 

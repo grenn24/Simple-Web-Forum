@@ -4,9 +4,10 @@ import EditorBar from "./EditorBar";
 import { FieldErrors, Control, Controller } from "react-hook-form";
 import SelectChip from "../../components/SelectChip";
 
+
 interface Prop {
 	register: (name: string, options?: object) => object;
-	submitForm: () => void;
+	createThread: () => void;
 	errors: FieldErrors;
 	control: Control;
 	topicsSelected: string[];
@@ -14,8 +15,8 @@ interface Prop {
 	isUploading: boolean
 }
 
-const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTopicsSelected, isUploading }: Prop) => {
-	
+const TextPage = ({ register, createThread, errors, control, topicsSelected, setTopicsSelected, isUploading }: Prop) => {
+
 	return (
 		<>
 			<Controller
@@ -68,6 +69,7 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 				name="content"
 				control={control}
 				defaultValue=""
+				
 				render={() => (
 					<TextField
 						label="Content"
@@ -92,7 +94,7 @@ const TextPage = ({ register, submitForm, errors, control, topicsSelected, setTo
 					variant="outlined"
 					fontSize={17}
 					fontWeight={600}
-					handleButtonClick={submitForm}
+					handleButtonClick={createThread}
 					loadingStatus={isUploading}
 				>
 					Post

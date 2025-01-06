@@ -4,6 +4,7 @@ package utils
 
 import (
 	"fmt"
+	_ "io"
 	"mime/multipart"
 	"net/url"
 	"os"
@@ -28,12 +29,7 @@ func CreateSession() (*session.Session, error) {
 }
 
 // Upload file to s3 bucket is form data's file header and custom folder name (returns url on successful upload)
-func PostFileToS3Bucket(folder string, fileHeader *multipart.FileHeader) (string, error) {
-	file, err := fileHeader.Open()
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
+func PostFileToS3Bucket(filename string, folder string, file *multipart.File) (string, error) {
 	session, err := CreateSession()
 	if err != nil {
 		return "", err
@@ -42,8 +38,8 @@ func PostFileToS3Bucket(folder string, fileHeader *multipart.FileHeader) (string
 	uploader := s3manager.NewUploader(session)
 	result, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(os.Getenv("AWS_S3_BUCKET")),
-		Key:    aws.String(fmt.Sprintf("%v/%v", folder, fileHeader.Filename)),
-		Body:   file,
+		Key:    aws.String(fmt.Sprintf("%v/%v", folder, filename)),
+		Body:   *file,
 	})
 	if err != nil {
 		return "", err

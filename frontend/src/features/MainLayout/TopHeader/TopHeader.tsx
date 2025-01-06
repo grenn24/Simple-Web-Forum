@@ -19,6 +19,9 @@ import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { get } from "../../../utilities/apiClient";
+import SimpleDialog from "../../../components/SimpleDialog";
+import List from "../../../components/List";
+import { useState } from "react";
 
 interface Prop {
 	openLeftNavBar: () => void;
@@ -26,8 +29,8 @@ interface Prop {
 }
 export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 	const navigate = useNavigate();
-
 	const screenWidth = useWindowSize().width as number;
+	const [openLogOutDialog, setOpenLogOutDialog] = useState(false);
 
 	return (
 		<>
@@ -44,12 +47,11 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 				}}
 				id="AppBar"
 			>
-				
 				<Box
 					sx={{
 						width: "100%",
 						display: "flex",
-						flexDirection:"row",
+						flexDirection: "row",
 						justifyContent: "space-between",
 						alignItems: "center",
 					}}
@@ -87,8 +89,8 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								lg: "none",
 								xl: "none",
 							},
-							px:1.5,
-							height:"80%"
+							px: 1.5,
+							height: "80%",
 						}}
 						handleButtonClick={() => {
 							openLeftNavBar();
@@ -136,15 +138,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								(event: React.MouseEvent<HTMLElement>) =>
 									event.currentTarget.dataset.value &&
 									navigate(event.currentTarget.dataset.value),
-								(event: React.MouseEvent<HTMLElement>) => {
-									get(
-										"/authentication/log-out",
-										() => {},
-										(err) => console.log(err)
-									);
-									event.currentTarget.dataset.value &&
-										navigate(event.currentTarget.dataset.value);
-								},
+								() => setOpenLogOutDialog(true),
 							]}
 							menuExpandedPosition={{
 								vertical: "top",
@@ -157,6 +151,37 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					</Box>
 				</Box>
 			</AppBar>
+			{/*Confirm Sign Out Dialog*/}
+			<SimpleDialog
+				openDialog={openLogOutDialog}
+				setOpenDialog={setOpenLogOutDialog}
+				title="Confirm Sign Out"
+				backdropBlur={5}
+				borderRadius={1.3}
+				dialogTitleHeight={55}
+				width={400}
+			>
+				<List
+					listItemsArray={["Yes", "No"]}
+					divider
+					handleListItemsClick={[
+						(event) => {
+							event.stopPropagation();
+							get(
+								"/authentication/log-out",
+								() => {},
+								(err) => console.log(err)
+							);
+							navigate("../Welcome");
+							
+						},
+						(event) => {
+							event.stopPropagation();
+							setOpenLogOutDialog(false);
+						}
+					]}
+				/>
+			</SimpleDialog>
 		</>
 	);
 };

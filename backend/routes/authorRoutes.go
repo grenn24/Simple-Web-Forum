@@ -44,19 +44,22 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 		authorController.GetAuthorByID(context, db)
 	})
 	authorRouter.PUT("/:authorID", func(context *gin.Context) {
-		authorController.UpdateAuthorNameUsername(context, db)
+		authorController.UpdateAuthor(context, db)
 	})
 	authorRouter.GET("/user", func(context *gin.Context) {
 		authorController.GetUser(context, db)
 	})
-	authorRouter.PUT("/user", func(context *gin.Context) {
-		authorController.UpdateUserNameUsername(context, db)
-	})
 	authorRouter.POST("", func(context *gin.Context) {
 		authorController.CreateAuthor(context, db)
 	})
+	authorRouter.PUT("/user", func(context *gin.Context) {
+		authorController.UpdateUser(context, db)
+	})
 	authorRouter.PUT("/user/avatar-icon-link", func(context *gin.Context) {
 		authorController.UpdateUserAvatarIconLink(context, db)
+	})
+	authorRouter.DELETE("/user/avatar-icon-link", func(context *gin.Context) {
+		authorController.DeleteUserAvatarIconLink(context, db)
 	})
 	authorRouter.DELETE("", func(context *gin.Context) {
 		authorController.DeleteAllAuthors(context, db)

@@ -8,6 +8,7 @@ interface Prop {
 	handleSnackbarClose?: () => void;
 	message: string;
 	duration: number;
+	undoButton?: boolean;
 }
 const Snackbar = ({
 	openSnackbar,
@@ -15,16 +16,20 @@ const Snackbar = ({
 	handleSnackbarClose,
 	message,
 	duration,
+	undoButton = true,
 }: Prop) => {
 	const action = (
 		<>
-			<Button
-				color="secondary"
-				size="small"
-				handleButtonClick={() => setOpenSnackbar(false)}
-			>
-				UNDO
-			</Button>
+			{undoButton && (
+				<Button
+					color="secondary"
+					size="small"
+					handleButtonClick={() => setOpenSnackbar(false)}
+				>
+					UNDO
+				</Button>
+			)}
+
 			<Button
 				size="small"
 				aria-label="close"

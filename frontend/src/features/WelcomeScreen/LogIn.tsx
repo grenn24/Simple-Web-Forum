@@ -84,7 +84,6 @@ const LogIn = ({ opacity, visibility, setFormStatus }: Prop) => {
 							error={!!errors.email}
 							helperText={errors.email?.message as string}
 							fullWidth
-							autoComplete="on"
 						/>
 
 						<br />

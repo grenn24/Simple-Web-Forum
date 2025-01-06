@@ -212,6 +212,20 @@ func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) i
 	return likeCount
 }
 
+func (threadRepository *ThreadRepository) GetImageLinkByThreadID(threadID int) string {
+	var imageLink string
+	row := threadRepository.DB.QueryRow("SELECT image_link FROM thread WHERE thread_id = $1", threadID)
+	err := row.Scan(&imageLink)
+
+	// No image links found
+	if err != nil || err == sql.ErrNoRows {
+
+		return ""
+	}
+	return imageLink
+}
+
+
 func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {
 	var threadID int64
 	row := threadRepository.DB.QueryRow("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5) RETURNING thread_id", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
