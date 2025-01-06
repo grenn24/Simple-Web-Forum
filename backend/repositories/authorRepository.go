@@ -11,7 +11,7 @@ type AuthorRepository struct {
 	DB *sql.DB
 }
 
-func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, error) {
+func (authorRepository *AuthorRepository) GetAllAuthors() ([]*dtos.AuthorDTO, error) {
 	rows, err := authorRepository.DB.Query("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author")
 
 	if err != nil {
@@ -21,11 +21,11 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*models.Author, err
 	//Close rows after finishing query
 	defer rows.Close()
 
-	authors := make([]*models.Author, 0)
+	authors := make([]*dtos.AuthorDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of an author struct
-		author := new(models.Author)
+		author := new(dtos.AuthorDTO)
 
 		// Scan the current row into the author struct
 		err := rows.Scan(
@@ -115,6 +115,19 @@ func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int
 	return password
 }
 
+func (authorRepository *AuthorRepository) GetAuthorEmailByAuthorID(authorID int) string {
+	var email string
+	row := authorRepository.DB.QueryRow("SELECT email FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&email)
+
+	// No authors found
+	if err != nil || err == sql.ErrNoRows {
+
+		return ""
+	}
+	return email
+}
+
 func (authorRepository *AuthorRepository) GetAuthorNameByAuthorID(authorID int) string {
 	var name string
 	row := authorRepository.DB.QueryRow("SELECT name FROM author WHERE author_id = $1", authorID)
@@ -128,6 +141,32 @@ func (authorRepository *AuthorRepository) GetAuthorNameByAuthorID(authorID int) 
 	return name
 }
 
+func (authorRepository *AuthorRepository) GetAuthorUsernameByAuthorID(authorID int) string {
+	var username string
+	row := authorRepository.DB.QueryRow("SELECT username FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&username)
+
+	// No authors found
+	if err != nil || err == sql.ErrNoRows {
+
+		return ""
+	}
+	return username
+}
+
+func (authorRepository *AuthorRepository) GetAvatarIconLinkByAuthorID(authorID int) string {
+	var avatarIconLink string
+	row := authorRepository.DB.QueryRow("SELECT avatar_icon_link FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&avatarIconLink)
+
+	// No authors found
+	if err != nil || err == sql.ErrNoRows {
+
+		return ""
+	}
+	return avatarIconLink
+}
+
 func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (int, error) {
 	var authorID int64
 
@@ -138,7 +177,8 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 	return int(authorID), err
 }
 
-func (authorRepository *AuthorRepository) UpdateAuthor(author *models.Author, authorID int) error {
+// Skip name and username fields if they are assigned to empty strings
+func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, authorID int) error {
 	if author.Name != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET name = $1 WHERE author_id = $2", author.Name, authorID)
 		if err != nil {
@@ -151,12 +191,19 @@ func (authorRepository *AuthorRepository) UpdateAuthor(author *models.Author, au
 			return err
 		}
 	}
+	// Check if avatar icon field is nil
 	if author.AvatarIconLink != nil {
 		_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = $1 WHERE author_id = $2", author.AvatarIconLink, authorID)
 		if err != nil {
 			return err
 		}
+	} else {
+		_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = NULL WHERE author_id = $1", authorID)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 
 }

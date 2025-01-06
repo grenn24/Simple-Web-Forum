@@ -43,7 +43,7 @@ const GeneralPage = () => {
 						/>
 					</Box>,
 				]}
-				disablePadding
+
 				disableRipple
 				divider
 			/>

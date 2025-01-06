@@ -1,9 +1,7 @@
 import {
 	AppBar,
 	Box,
-	Toolbar,
 	Typography,
-	IconButton,
 	Avatar,
 	useTheme,
 } from "@mui/material";
@@ -40,16 +38,20 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					bgcolor: "background.default",
 					height: "auto",
 					zIndex: 2000,
+					width: "100%",
+					py: 1,
+					px: 1,
 				}}
 				id="AppBar"
 			>
-				<Toolbar
+				
+				<Box
 					sx={{
-						maxWidth: "auto",
+						width: "100%",
 						display: "flex",
+						flexDirection:"row",
 						justifyContent: "space-between",
-						marginTop: 1,
-						marginBottom: 1,
+						alignItems: "center",
 					}}
 				>
 					<Typography
@@ -57,6 +59,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 						noWrap
 						component="a"
 						href="./"
+						mx={2}
 						sx={{
 							fontFamily: "poppins",
 							fontWeight: 500,
@@ -74,9 +77,9 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					>
 						NUS Gossips
 					</Typography>
-					<IconButton
+					<Button
 						color="secondary"
-						sx={{
+						buttonStyle={{
 							display: {
 								xs: "block",
 								sm: "block",
@@ -84,18 +87,20 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								lg: "none",
 								xl: "none",
 							},
+							px:1.5,
+							height:"80%"
 						}}
-						onClick={() => {
+						handleButtonClick={() => {
 							openLeftNavBar();
 						}}
-					>
-						{!leftNavBarStatus ? (
-							<MenuRoundedIcon color="primary" />
-						) : (
-							<CloseRoundedIcon color="primary" />
-						)}
-					</IconButton>
-
+						buttonIcon={
+							!leftNavBarStatus ? (
+								<MenuRoundedIcon color="primary" />
+							) : (
+								<CloseRoundedIcon color="primary" />
+							)
+						}
+					></Button>
 					<SearchBar placeholder="Search for a thread" />
 					<Box display="flex" alignItems="center">
 						<Button
@@ -116,7 +121,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								navigate("../Create-Thread");
 							}}
 						>
-							{screenWidth > useTheme().breakpoints.values.md ? "Create" : null}
+							{screenWidth > useTheme().breakpoints.values.md && "Create"}
 						</Button>
 						<Menu
 							menuExpandedItemsArray={MenuExpandedItems}
@@ -150,7 +155,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							toolTipText="More"
 						/>
 					</Box>
-				</Toolbar>
+				</Box>
 			</AppBar>
 		</>
 	);

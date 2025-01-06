@@ -501,14 +501,21 @@ const Thread = () => {
 											title="Share"
 											backdropBlur={5}
 											borderRadius={1.3}
+											dialogTitleHeight={55}
 										>
 											<List
-												listItemsArray={["Copy Link", "Share to WhatsApp"]}
+												listItemsArray={[
+													"Copy Link",
+													"Share to WhatsApp",
+													"Cancel",
+												]}
 												listIconsArray={[
 													<LinkRoundedIcon sx={{ marginRight: 1 }} />,
 													<WhatsAppIcon sx={{ marginRight: 1 }} />,
 												]}
-												disablePadding
+										
+												divider
+												width={300}
 												handleListItemsClick={[
 													(event) => {
 														setOpenSnackbar(true);
@@ -520,8 +527,8 @@ const Thread = () => {
 														const currentPathAbsolute = window.location.href;
 														window.location.href = `whatsapp://send?text=${currentPathAbsolute}`;
 													},
+													() => setOpenShareDialog(false),
 												]}
-												listItemsStyles={{ padding: 2.5 }}
 											/>
 										</SimpleDialog>
 										<Snackbar
@@ -639,7 +646,7 @@ const Thread = () => {
 								</Box>
 								<List
 									variant="text"
-									disablePadding
+								
 									listItemsArray={thread.comments.map((comment: CommentDTO) => {
 										return <Comment comment={comment} />;
 									})}

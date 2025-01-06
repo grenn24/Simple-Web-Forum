@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle } from "@mui/material";
+import { Dialog, DialogTitle} from "@mui/material";
 
 interface Prop {
 	children?: React.ReactNode;
@@ -8,6 +8,11 @@ interface Prop {
 	title: string;
 	backdropBlur?: string | number;
 	borderRadius?: string | number;
+	fullWidth?: boolean;
+	width?: number;
+	dialogTitleFontSize?: number;
+	dialogTitleFontFamily?: string;
+	dialogTitleHeight?: number
 }
 
 const SimpleDialog = ({
@@ -18,6 +23,11 @@ const SimpleDialog = ({
 	title,
 	backdropBlur,
 	borderRadius,
+	fullWidth,
+	width,
+	dialogTitleFontSize,
+	dialogTitleFontFamily,
+	dialogTitleHeight,
 }: Prop) => {
 	return (
 		<Dialog
@@ -31,11 +41,12 @@ const SimpleDialog = ({
 					backdropFilter: `blur(${backdropBlur}px)`
 				},
 			}}
-			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius } }}
+			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius, width: width } }}
 			onClick={(event)=>event.stopPropagation()}
-
+			fullWidth = {fullWidth}
+			
 		>
-			<DialogTitle sx={{ paddingBottom: 0, textAlign: "center" }}>
+			<DialogTitle sx={{ textAlign: "center" }} fontSize={dialogTitleFontSize} fontFamily={dialogTitleFontFamily} height={dialogTitleHeight} display="flex" justifyContent="center" alignItems="center">
 				{title}
 			</DialogTitle>
 			{children}

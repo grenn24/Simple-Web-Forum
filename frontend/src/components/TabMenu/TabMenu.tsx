@@ -37,8 +37,8 @@ interface TabMenuProp {
 export default function TabMenu({
 	tabLabelArray,
 	tabPageArray,
-	variant,
 	padding = 0,
+	variant = "fullWidth"
 }: TabMenuProp) {
 	const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
@@ -49,35 +49,37 @@ export default function TabMenu({
 
 	return (
 		<Box sx={{ width: "100%" }}>
-			<Box>
-				<Tabs
-					value={currentTabIndex}
-					onChange={handleTabChange}
-					variant={variant}
-					allowScrollButtonsMobile={true}
-					scrollButtons="auto"
-					sx={{
-						"& .MuiTabs-indicator": {
-							border: 1.5,
-						},
-						marginBottom: 4,
-					}}
-				>
-					{tabLabelArray.map((label) => (
-						<Tab label={label} key={label} />
-					))}
-				</Tabs>
+			<Tabs
+				value={currentTabIndex}
+				onChange={handleTabChange}
+				variant={variant}
+				allowScrollButtonsMobile={true}
+				scrollButtons="auto"
+				sx={{
+					"& .MuiTabs-indicator": {
+						border: 1.5,
+					},
+					marginBottom: 4,
+					
+				}}
+			>
+				{tabLabelArray.map((label) => (
+					<Tab label={label} key={label} />
+				))}
+			</Tabs>
+
+			<Box width="100%">
+				{tabLabelArray.map((_, index) => (
+					<TabPage
+						key={index}
+						currentTabIndex={currentTabIndex}
+						index={index}
+						padding={padding}
+					>
+						{tabPageArray && tabPageArray[index]}
+					</TabPage>
+				))}
 			</Box>
-			{tabLabelArray.map((_, index) => (
-				<TabPage
-					key={index}
-					currentTabIndex={currentTabIndex}
-					index={index}
-					padding={padding}
-				>
-					{tabPageArray && tabPageArray[index]}
-				</TabPage>
-			))}
 		</Box>
 	);
 }

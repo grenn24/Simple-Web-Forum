@@ -3,6 +3,8 @@ import {
 	Tooltip,
 	Button as ButtonBase,
 	CircularProgress,
+	SxProps,
+	Theme,
 } from "@mui/material";
 
 interface Prop {
@@ -18,7 +20,7 @@ interface Prop {
 	borderRadius?: string | number;
 	borderWeight?: string | number;
 	borderColor?: string;
-	buttonStyle?: Object;
+	buttonStyle?: SxProps<Theme>;
 	handleButtonClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	allUppercaseText?: boolean;
 	fontSize?: string | number;
@@ -27,6 +29,7 @@ interface Prop {
 	toolTipText?: string;
 	disabled?: boolean;
 	disableRipple?: boolean;
+	disableHoverEffect?: boolean;
 	iconPosition?: "start" | "end";
 	type?: string;
 	loadingStatus?: boolean;
@@ -81,11 +84,10 @@ const Button = ({
 							fontSize: { fontSize },
 							fontFamily: { fontFamily },
 							fontWeight: { fontWeight },
+							backgroundColor: backgroundColor,
 							"& .MuiSvgIcon-root": {
 								borderColor: borderColor,
 							},
-							
-							backgroundColor: backgroundColor,
 						}}
 						onClick={handleButtonClick}
 					>

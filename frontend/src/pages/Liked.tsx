@@ -41,11 +41,11 @@ const Liked = () => {
 	return (
 		<Box
 			sx={{
-				flexGrow: 1,
 				bgcolor: "background.default",
 				p: { xs: 1.5, sm: 3 },
 				minHeight: "100%",
 			}}
+			flexGrow={1}
 			display="flex"
 			flexDirection="column"
 			alignItems="center"
@@ -83,7 +83,7 @@ const Liked = () => {
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 					color="primary.dark"
-					buttonStyle={{ mx: 0, px: 0 }}
+					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
 				/>
@@ -98,7 +98,7 @@ const Liked = () => {
 						py: 0,
 						fontSize: 20,
 						fontFamily: "Open Sans",
-						color: "text.primary",
+						color: "primary.dark",
 					}}
 					handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 						(event: React.MouseEvent<HTMLElement>) =>
@@ -118,6 +118,7 @@ const Liked = () => {
 				display="flex"
 				flexDirection="column"
 				alignItems="center"
+				justifyContent="center"
 			>
 				{/*If website is still fetching data from api, display loading skeleton cards instead*/}
 				{isLoading ? (
@@ -132,17 +133,24 @@ const Liked = () => {
 						</Box>
 					))
 				) : (
-					<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+					<Box
+						width="100%"
+						display="flex"
+						flexDirection="column"
+						alignItems="center"
+						justifyContent="center"
+						marginTop={5}
+					>
 						<Typography
 							textAlign="center"
 							fontFamily="Open Sans"
-							fontSize={25}
-							fontStyle="primary.dark"
+							fontSize={19}
+							color="primary.dark"
 						>
 							No likes for now
 						</Typography>
 						<br />
-						<br />
+
 						<img src={cryingCat} width={220} alt="crying cat" loading="eager" />
 					</Box>
 				)}

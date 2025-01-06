@@ -5,71 +5,96 @@ import {
 	ListItemText,
 	Divider,
 	Box,
+	Typography,
+	SxProps,
+	Theme,
 } from "@mui/material";
 interface Prop {
 	listItemsArray: string[] | JSX.Element[];
 	listIconsArray?: JSX.Element[];
-	disablePadding?: boolean;
+	listItemPadding?: number;
 	backgroundColor?: string;
 	listItemsDataValues?: string[];
 	handleListItemsClick?: ((event: React.MouseEvent<HTMLElement>) => void)[];
-	listItemsStyles?: object;
 	disabled?: boolean;
 	disableRipple?: boolean;
 	variant?: "text" | "button";
 	divider?: boolean;
-	listStyle?: object
+	listStyle?: object;
+	width?: number;
+	listItemTextStyle?: SxProps<Theme>;
 }
 
 const List = ({
 	listItemsArray,
 	listIconsArray,
-	disablePadding,
+	listItemPadding = 2.3,
 	backgroundColor,
 	listItemsDataValues,
 	handleListItemsClick,
-	listItemsStyles,
 	disabled,
 	disableRipple = false,
 	variant = "button",
 	divider = false,
-	listStyle
+	listStyle,
+	width,
+	listItemTextStyle,
 }: Prop) => {
 	return (
-			<ListBase
-				sx={{ backgroundColor: backgroundColor, ...listStyle}}
-				disablePadding={disablePadding}
-			>
-				{listItemsArray.map((item, index) => (
-					<Box key={index}>
-						<ListItem disablePadding={disablePadding}>
-							{variant === "button" ? (
-								<ListItemButton
-									data-value={listItemsDataValues && listItemsDataValues[index]}
-									onClick={handleListItemsClick && handleListItemsClick[index]}
-									sx={{ ...listItemsStyles }}
-									disabled={disabled}
-									disableRipple={disableRipple}
-									disableTouchRipple={disableRipple}
-								>
+		<ListBase
+			sx={{
+				backgroundColor: backgroundColor,
+				width: width,
+				lineHeight: 15,
+				...listStyle,
+			}}
+			disablePadding
+		>
+			{divider ? <Divider variant="fullWidth" component="li" /> : null}
+			{listItemsArray.map((item, index) => (
+				<Box key={index}>
+					<ListItem disablePadding>
+						{variant === "button" ? (
+							<ListItemButton
+								data-value={listItemsDataValues && listItemsDataValues[index]}
+								onClick={handleListItemsClick && handleListItemsClick[index]}
+								sx={{
+									display: "flex",
+									flexDirection: "column",
+									justifyContent: "center",
+									padding: listItemPadding,
+								}}
+								disabled={disabled}
+								disableRipple={disableRipple}
+								disableTouchRipple={disableRipple}
+							>
+								<Box display="flex" width="100%" justifyContent="center">
 									{listIconsArray && listIconsArray[index]}
-									<ListItemText primary={item} />
-								</ListItemButton>
-							) : (
-								<ListItemText
-									data-value={listItemsDataValues && listItemsDataValues[index]}
-									onClick={handleListItemsClick && handleListItemsClick[index]}
-									sx={{ ...listItemsStyles }}
-								>
+									<Typography sx={{ ...listItemTextStyle }}>{item}</Typography>
+								</Box>
+							</ListItemButton>
+						) : (
+							<ListItemText
+								data-value={listItemsDataValues && listItemsDataValues[index]}
+								onClick={handleListItemsClick && handleListItemsClick[index]}
+								sx={{
+									display: "flex",
+									flexDirection: "column",
+									justifyContent: "center",
+									padding: listItemPadding,
+								}}
+							>
+								<Box display="flex" width="100%" justifyContent="center">
 									{listIconsArray && listIconsArray[index]}
-									<ListItemText primary={item} />
-								</ListItemText>
-							)}
-						</ListItem>
-						{divider ? <Divider variant="inset" component="li" /> : null}
-					</Box>
-				))}
-			</ListBase>
+									<Typography sx={{ ...listItemTextStyle }}>{item}</Typography>
+								</Box>
+							</ListItemText>
+						)}
+					</ListItem>
+					{divider ? <Divider variant="fullWidth" component="li" /> : null}
+				</Box>
+			))}
+		</ListBase>
 	);
 };
 

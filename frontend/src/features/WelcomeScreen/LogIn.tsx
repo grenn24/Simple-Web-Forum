@@ -1,14 +1,19 @@
-import { Box, TextField } from "@mui/material";
+import { Box, Card, CardContent, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
 import { postJSON } from "../../utilities/apiClient";
+import {
+	ArrowBackRounded as ArrowBackRoundedIcon,
+	ArrowForwardIosRounded as ArrowForwardIosRoundedIcon,
+} from "@mui/icons-material";
 
 interface Prop {
 	opacity: number;
 	visibility: string;
+	setFormStatus: (status: string) => void;
 }
-const LogIn = ({ opacity, visibility }: Prop) => {
+const LogIn = ({ opacity, visibility, setFormStatus }: Prop) => {
 	const {
 		register,
 		handleSubmit,
@@ -24,7 +29,7 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 				password: data.password,
 			},
 			() => {
-				navigate("../Following");
+				navigate("..");
 			},
 			(err) => {
 				const responseBody = err.data;
@@ -46,40 +51,72 @@ const LogIn = ({ opacity, visibility }: Prop) => {
 		<Box
 			position="absolute"
 			top="50%"
+			left="50%"
+			display="flex"
+			flexDirection="column"
+			justifyContent="center"
+			alignItems="center"
 			sx={{
-				transform: "translateY(-50%) translateX(50%)",
+				transform: "translate(-50%, -50%)",
 				opacity: opacity,
 				visibility: visibility,
 				transition: "all 1.0s ease-in-out",
 			}}
 			{...register("email", { required: true })}
 		>
-			<form onSubmit={handleFormSubmit}>
-				<TextField
-					label="Email"
-					variant="outlined"
-					{...register("email", { required: "The email field is required" })}
-					error={!!errors.email}
-					helperText={errors.email?.message as string}
-					fullWidth
+			<Box width="100%" display="flex" justifyContent="flex-start">
+				<Button
+					buttonIcon={<ArrowBackRoundedIcon />}
+					color="primary.dark"
+					handleButtonClick={() => setFormStatus("none")}
 				/>
-				<br />
-				<br />
-				<TextField
-					label="Password"
-					type="password"
-					variant="outlined"
-					{...register("password", {
-						required: "The password field is required",
-					})}
-					error={!!errors.password}
-					helperText={errors.password?.message as string}
-					fullWidth
-				/>
-				<Button type="submit" buttonStyle={{ display: "none" }}>
-					Submit
-				</Button>
-			</form>
+			</Box>
+
+			<Card elevation={4} sx={{ width: 300 }}>
+				<form onSubmit={handleFormSubmit}>
+					<CardContent>
+						<TextField
+							label="Email"
+							variant="outlined"
+							{...register("email", {
+								required: "The email field is required",
+							})}
+							error={!!errors.email}
+							helperText={errors.email?.message as string}
+							fullWidth
+							autoComplete="on"
+						/>
+
+						<br />
+						<br />
+
+						<TextField
+							label="Password"
+							type="password"
+							variant="outlined"
+							{...register("password", {
+								required: "The password field is required",
+							})}
+							error={!!errors.password}
+							helperText={errors.password?.message as string}
+							fullWidth
+						/>
+						<br />
+						<br />
+						<Box display="flex" justifyContent="center">
+							<Button
+								type="submit"
+								variant="outlined"
+								buttonIcon={<ArrowForwardIosRoundedIcon />}
+								iconPosition="end"
+								color="primary.dark"
+							>
+								Log In
+							</Button>
+						</Box>
+					</CardContent>
+				</form>
+			</Card>
 		</Box>
 	);
 };

@@ -1,4 +1,10 @@
-import { Box, Typography, Divider, Container, useTheme, useMediaQuery } from "@mui/material";
+import {
+	Box,
+	Typography,
+	Divider,
+	useTheme,
+	useMediaQuery,
+} from "@mui/material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import settingsTabMenuLabels from "../features/Settings/settingsTabMenuLabels";
 import settingsTabMenuPages from "../features/Settings/settingsTabMenuPages";
@@ -17,49 +23,57 @@ const Settings = () => {
 				p: { xs: 1.5, sm: 3 },
 				minHeight: "100%",
 			}}
+			display="flex"
+			flexDirection="column"
+			alignItems="center"
 		>
-			<Box
-				sx={{
-					marginBottom: 2,
-					display: "flex",
-					flexDirection: "column",
-					justifyContent: "center",
-					alignContent: "center",
-				}}
+			<Typography
+				textAlign={"left"}
+				fontFamily="Open Sans"
+				fontWeight={700}
+				fontSize={30}
+				color="primary.dark"
+				width="100%"
+				marginBottom={2}
 			>
-				<Typography
-					textAlign={"left"}
-					fontFamily="Open Sans"
-					fontWeight={700}
-					fontSize={30}
-					color="primary.dark"
-				>
-					Settings
-				</Typography>
+				Settings
+			</Typography>
+			<Box width="100%">
+				<Divider />
 			</Box>
-			<Divider />
-			<Box marginTop={2}>
+			<Box
+				sx={{ marginTop: 2 }}
+				width="100%"
+				display="flex"
+				justifyContent="space-between"
+			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 					color="primary.dark"
-					buttonStyle={{ mx: 0, p: 0.5 }}
+					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
 				/>
 			</Box>
-			<Container
+
+			<Box
 				sx={{
 					width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
-					my: 5,
 				}}
-				disableGutters
+				display="flex"
+				flexDirection="column"
+				alignItems="center"
 			>
 				<TabMenu
 					tabLabelArray={settingsTabMenuLabels}
 					tabPageArray={settingsTabMenuPages}
-					variant={useMediaQuery(theme.breakpoints.up("sm") )? "fullWidth" : "scrollable"}
+					variant={
+						useMediaQuery(theme.breakpoints.up("sm"))
+							? "fullWidth"
+							: "scrollable"
+					}
 				/>
-			</Container>
+			</Box>
 		</Box>
 	);
 };

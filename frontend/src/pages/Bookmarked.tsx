@@ -39,11 +39,11 @@ const Bookmarked = () => {
 	return (
 		<Box
 			sx={{
-				flexGrow: 1,
 				bgcolor: "background.default",
 				p: { xs: 1.5, sm: 3 },
 				minHeight: "100%",
 			}}
+			flexGrow={1}
 			display="flex"
 			flexDirection="column"
 			alignItems="center"
@@ -80,7 +80,7 @@ const Bookmarked = () => {
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 					color="primary.dark"
-					buttonStyle={{ mx: 0, px: 0 }}
+					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
 				/>
@@ -95,7 +95,7 @@ const Bookmarked = () => {
 						py: 0,
 						fontSize: 20,
 						fontFamily: "Open Sans",
-						color: "text.primary",
+						color: "primary.dark",
 					}}
 					handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 						(event: React.MouseEvent<HTMLElement>) =>
@@ -132,12 +132,14 @@ const Bookmarked = () => {
 						display="flex"
 						flexDirection="column"
 						alignItems="center"
+						justifyContent="center"
+						marginTop={5}
 					>
 						<Typography
 							textAlign="center"
 							fontFamily="Open Sans"
-							fontSize={25}
-							fontStyle="primary.dark"
+							fontSize={19}
+							color="primary.dark"
 						>
 							No bookmarks for now, try adding some
 						</Typography>

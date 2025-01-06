@@ -28,7 +28,7 @@ const PrivacyPage = () => {
 						<Switch color="secondary" />
 					</Box>,
 				]}
-				disablePadding
+	
 				disableRipple
 				divider
 				variant="text"

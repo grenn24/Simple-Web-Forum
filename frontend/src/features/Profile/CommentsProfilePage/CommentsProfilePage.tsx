@@ -1,4 +1,4 @@
-import { Box, CircularProgress} from "@mui/material";
+import { Box, CircularProgress, Typography} from "@mui/material";
 import List from "../../../components/List";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -28,30 +28,43 @@ const CommentsPage = () => {
 	}, []);
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
-			{isLoading && <CircularProgress size={70} />}
-			<List
-				listStyle={{ width: "100%" }}
-				listItemsArray={comments.map((comment, _) => {
-					return (
-						<ThreadCardMini
-							comment={comment}
-							setComments={setComments}
-							comments={comments}
-						/>
-					);
-				})}
-				listItemsDataValues={comments.map((comment, _) =>
-					String(comment.thread.threadID)
-				)}
-				handleListItemsClick={new Array(comments.length).fill(
-					(event: React.MouseEvent<HTMLElement>) =>
-						event.currentTarget.dataset &&
-						navigate(`../Thread/${event.currentTarget.dataset.value}`)
-				)}
-				disablePadding
-				disableRipple
-				divider
-			/>
+			{isLoading ? (
+				<CircularProgress size={70} />
+			) : comments.length !== 0 ? (
+				<List
+					listStyle={{ width: "100%" }}
+					listItemsArray={comments.map((comment, _) => {
+						return (
+							<ThreadCardMini
+								comment={comment}
+								setComments={setComments}
+								comments={comments}
+							/>
+						);
+					})}
+					listItemsDataValues={comments.map((comment, _) =>
+						String(comment.thread.threadID)
+					)}
+					handleListItemsClick={new Array(comments.length).fill(
+						(event: React.MouseEvent<HTMLElement>) =>
+							event.currentTarget.dataset &&
+							navigate(`../Thread/${event.currentTarget.dataset.value}`)
+					)}
+					listItemTextStyle={{ flexGrow: 1 }}
+					listItemPadding={1.4}
+					disableRipple
+					divider
+				/>
+			) : (
+				<Typography
+					marginTop={4}
+					fontStyle="primary.dark"
+					fontFamily="Open Sans"
+					fontSize={17}
+				>
+					You have not commented on any threads yet
+				</Typography>
+			)}
 		</Box>
 	);
 };

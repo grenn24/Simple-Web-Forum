@@ -1,21 +1,13 @@
-import {
-	Box,
-	Typography,
-	Divider,
-	Container,
-} from "@mui/material";
+import { Box, Typography, Divider, Container } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../components/Button";
-import {
-	ArrowBackRounded as ArrowBackRoundedIcon
-} from "@mui/icons-material";
+import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { get } from "../utilities/apiClient";
 import ThreadGridCardsLoading from "../features/Topics/ThreadGridCardsLoading";
 import { TopicDTO } from "../dtos/TopicDTO";
 import { parseTopic, parseTopics } from "../utilities/parseApiResponse";
 import Topic from "../features/Topics/Topic.tsx";
-
 
 const Topics = () => {
 	const navigate = useNavigate();
@@ -26,33 +18,33 @@ const Topics = () => {
 	const [isLoading, setIsLoading] = useState(true);
 
 	// Fetch topics with threads tagged to it from api (re-fetch again when topicID path variable in url is added or changed)
-	useEffect(
-		() =>
-			get(
-				`/topics${topicID ? `/${topicID}` : ""}/threads`,
-				(res) => {
-					const responseBody = res.data.data;
-					if (topicID) {
-						setTopicsWithThreads([parseTopic(responseBody)]);
-					} else {
-						setTopicsWithThreads(parseTopics(responseBody));
-					}
-					setIsLoading(false);
-				},
-				(err) => console.log(err)
-			),
-		[topicID]
-	);
+	useEffect(() => {
+		setIsLoading(true);
+		setTopicsWithThreads([]);
+		get(
+			`/topics${topicID ? `/${topicID}` : ""}/threads`,
+			(res) => {
+				const responseBody = res.data.data;
+				if (topicID) {
+					setTopicsWithThreads([parseTopic(responseBody)]);
+				} else {
+					setTopicsWithThreads(parseTopics(responseBody));
+				}
+				setIsLoading(false);
+			},
+			(err) => console.log(err)
+		);
+	}, [topicID]);
 
 	return (
 		<>
 			<Box
 				sx={{
-					flexGrow: 1,
 					bgcolor: "background.default",
 					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
+				flexGrow={1}
 			>
 				<Box
 					sx={{
@@ -78,7 +70,7 @@ const Topics = () => {
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
-						buttonStyle={{ mx: 0, px: 0 }}
+						buttonStyle={{ mx: 0, p: 0 }}
 						handleButtonClick={() => navigate(-1)}
 						toolTipText="Back"
 					/>
@@ -93,9 +85,7 @@ const Topics = () => {
 					{/*If website is still fetching data from api, display loading skeleton grid cards instead*/}
 					{isLoading && <ThreadGridCardsLoading />}
 					{topicsWithThreads.map((topic) => (
-						<Topic key={topic.topicID}
-							topic={topic}
-						/>
+						<Topic key={topic.topicID} topic={topic} />
 					))}
 				</Container>
 			</Box>

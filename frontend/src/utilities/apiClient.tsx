@@ -47,7 +47,7 @@ export function get<T>(
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request:" + err.message);
+				console.log("Error while setting up request or handling the response:" + err.message);
 			}
 		});
 	return;
@@ -76,7 +76,37 @@ export function postJSON<T>(
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request:" + err.message);
+				console.log("Error while setting up request or handling the response:" + err.message);
+			}
+		});
+	return;
+}
+
+// For sending over other data types not supported in json (e.g. binary data) in http post requests
+export function postFormData<T>(
+	url: string,
+	formData: FormData,
+	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
+	handleErrorResponse?: (err: any) => void
+) {
+	apiClient
+		.post<T>(url, formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+			withCredentials: true,
+		})
+		.then(handleSuccessResponse)
+		.catch((err) => {
+			// Response with http status code outside 2xx
+			if (err.response) {
+				handleErrorResponse && handleErrorResponse(err.response);
+			} else if (err.request) {
+				// Request was made but no response was received
+				console.log("No response from server:" + err.request);
+			} else {
+				// An error occurred while setting up the request
+				console.log("Error while setting up request or handling the response or handling the response:" + err.message);
 			}
 		});
 	return;
@@ -105,7 +135,37 @@ export function putJSON<T>(
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request:" + err.message);
+				console.log("Error while setting up request or handling the response:" + err.message);
+			}
+		});
+	return;
+}
+
+// For sending over other data types not supported in json (e.g. binary data) in http put requests
+export function putFormData<T>(
+	url: string,
+	formData: FormData,
+	handleSuccessResponse?: (res: AxiosResponse<any, any>) => void,
+	handleErrorResponse?: (err: any) => void
+) {
+	apiClient
+		.put<T>(url, formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+			withCredentials: true,
+		})
+		.then(handleSuccessResponse)
+		.catch((err) => {
+			// Response with http status code outside 2xx
+			if (err.response) {
+				handleErrorResponse && handleErrorResponse(err.response);
+			} else if (err.request) {
+				// Request was made but no response was received
+				console.log("No response from server:" + err.request);
+			} else {
+				// An error occurred while setting up the request
+				console.log("Error while setting up request or handling the response:" + err.message);
 			}
 		});
 	return;
@@ -135,7 +195,7 @@ export function Delete(
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request:" + err.message);
+				console.log("Error while setting up request or handling the response:" + err.message);
 			}
 		});
 	return;

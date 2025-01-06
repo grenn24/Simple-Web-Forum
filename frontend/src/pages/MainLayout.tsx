@@ -21,7 +21,7 @@ export default function MainBody({
 }: Prop) {
 
 	return (
-		<>
+		<Box width="100vw" height="100vh">
 			<TopHeader
 				openLeftNavBar={openLeftNavBar}
 				leftNavBarStatus={leftNavBarExpandedStatus}
@@ -41,10 +41,10 @@ export default function MainBody({
 					closeLeftNavBar={closeLeftNavBar}
 					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 				/>
-				<Box flexGrow={1} sx={{ position: "relative" }}>
+				<Box width="100%">
 					<Outlet />
 				</Box>
 			</Box>
-		</>
+		</Box>
 	);
 }

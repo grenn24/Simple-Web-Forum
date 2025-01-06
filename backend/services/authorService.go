@@ -14,7 +14,7 @@ type AuthorService struct {
 	DB *sql.DB
 }
 
-func (authorService *AuthorService) GetAllAuthors() ([]*models.Author, *dtos.Error) {
+func (authorService *AuthorService) GetAllAuthors() ([]*dtos.AuthorDTO, *dtos.Error) {
 
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
@@ -97,10 +97,14 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	return nil
 }
 
-func (authorService *AuthorService) UpdateAuthor(author *models.Author, authorID int) *dtos.Error {
+func (authorService *AuthorService) UpdateAuthorNameUsername(author *dtos.AuthorDTO, authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	err := authorRepository.UpdateAuthor(author, authorID)
+	var err error
+	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
+	author.AvatarIconLink = &avatarIconLink
+
+	err = authorRepository.UpdateAuthor(author, authorID)
 
 	if err != nil {
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
@@ -117,6 +121,58 @@ func (authorService *AuthorService) UpdateAuthor(author *models.Author, authorID
 				Message:   "Username already exists (duplicate)",
 			}
 		}
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return nil
+}
+
+// Can be used to delete avatar icon link on existing authors (set field in DB to NULL)
+func (authorService *AuthorService) UpdateAuthorAvatarIconLink(author *dtos.AuthorDTO, authorID int) *dtos.Error {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+
+	// Replace these fields with existing values
+	author.Name = authorRepository.GetAuthorNameByAuthorID(authorID)
+	author.Username = authorRepository.GetAuthorUsernameByAuthorID(authorID)
+	email := authorRepository.GetAuthorEmailByAuthorID(authorID)
+	author.Email = &email
+
+	var err error
+
+	// If the author dto contains an avatar icon file, delete the existing link in db, upload to s3 and assign a new link
+	if author.AvatarIcon != nil {
+		// Check if existing icon link exists in db, and delete if it exists
+		avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
+		if avatarIconLink != "" {
+			err = utils.DeleteFileFromS3Bucket(avatarIconLink)
+			if err != nil {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
+			}
+		}
+
+		// Upload the avatar icon to s3 bucket and obtain the public link
+		avatarIconLink, err = utils.PostFileToS3Bucket("avatar_icon", author.AvatarIcon)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		// Assign the newly returned link to author dto
+		author.AvatarIconLink = &avatarIconLink
+	}
+
+	// Avatar icon field contains either empty string (for deletion) or new link
+	err = authorRepository.UpdateAuthor(author, authorID)
+	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",

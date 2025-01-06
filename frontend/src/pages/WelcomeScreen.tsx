@@ -1,9 +1,9 @@
 import { Box } from "@mui/material";
 import whiteBackground from "../assets/image/white-background.jpg";
-import Button from "../components/Button";
 import { useState } from "react";
 import LogIn from "../features/WelcomeScreen/LogIn";
 import SignUp from "../features/WelcomeScreen/SignUp";
+import MainButton from "../features/WelcomeScreen/MainButton";
 
 const WelcomeScreen = () => {
 	const [formStatus, setFormStatus] = useState("none");
@@ -17,48 +17,28 @@ const WelcomeScreen = () => {
 			height="100vh"
 			display="flex"
 			flexDirection="row"
-			justifyContent={formStatus === "none" ? "center" : "space-evenly"}
+			justifyContent="center"
+			alignItems="center"
 		>
 			<Box
 				height="auto"
-				width="50%"
 				display="flex"
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"
 			>
-				<Button
-					variant="contained"
-					backgroundColor="primary.dark"
-					handleButtonClick={() => setFormStatus("log in")}
-				>
-					Log In
-				</Button>
-				<br />
-				<br />
-				<Button
-					variant="contained"
-					backgroundColor="primary.dark"
-					handleButtonClick={() => setFormStatus("sign up")}
-				>
-					Sign Up
-				</Button>
-			</Box>
-			<Box
-				alignItems="center"
-				width={formStatus !== "none" ? "50%" : 0}
-				height={formStatus !== "none" ? "auto" : 0}
-				visibility={formStatus !== "none" ? "visible" : "hidden"}
-				sx={{
-					transition: "all 1.0s ease-in-out",
-					opacity: formStatus !== "none" ? 1 : 0,
-				}}
-			>
+				<MainButton
+					setFormStatus={setFormStatus}
+					opacity={formStatus === "none" ? 1 : 0}
+					visibility={formStatus === "none" ? "visible" : "hidden"}
+				/>
 				<LogIn
+					setFormStatus={setFormStatus}
 					opacity={formStatus === "log in" ? 1 : 0}
 					visibility={formStatus === "log in" ? "visible" : "hidden"}
 				/>
 				<SignUp
+					setFormStatus={setFormStatus}
 					opacity={formStatus === "sign up" ? 1 : 0}
 					visibility={formStatus === "sign up" ? "visible" : "hidden"}
 				/>

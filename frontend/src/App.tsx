@@ -11,7 +11,6 @@ import Recommended from "./pages/Recommended";
 import Bookmarked from "./pages/Bookmarked";
 import Liked from "./pages/Liked";
 import Settings from "./pages/Settings";
-import Profile from "./pages/Profile";
 import Thread from "./pages/Thread";
 import Theme from "./styles/Theme";
 import { ThemeProvider } from "@emotion/react";
@@ -19,6 +18,7 @@ import CreateThread from "./pages/CreateThread";
 import AutoScrollToTop from "./utilities/AutoScrollToTop";
 import Authentication from "./components/AuthenticationWrapper";
 import Error from "./pages/Error";
+import Profile from "./pages/Profile";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =

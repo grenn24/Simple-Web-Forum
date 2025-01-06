@@ -125,7 +125,6 @@ const ThreadCard = ({
 								handleMenuIconClick={(event) => {
 									event.stopPropagation();
 									navigate(`../Profile/${thread.author.authorID}`);
-									
 								}}
 								showMenuExpandedOnClick={false}
 							/>
@@ -139,7 +138,10 @@ const ThreadCard = ({
 										archiveStatus,
 										thread
 									)}
-									menuExpandedItemsArray={MenuExpandedItems(thread, archiveStatus)}
+									menuExpandedItemsArray={MenuExpandedItems(
+										thread,
+										archiveStatus
+									)}
 									toolTipText="More"
 									scrollLock={true}
 									handleMenuIconClick={(event) => event.stopPropagation()}
@@ -238,7 +240,7 @@ const ThreadCard = ({
 							handleButtonClick={(event) => {
 								navigate(`../Thread/${thread.threadID}`, {
 									state: { isCommenting: true },
-								}); 
+								});
 								event.stopPropagation();
 							}}
 						>
@@ -268,14 +270,17 @@ const ThreadCard = ({
 							backdropBlur={5}
 							borderRadius={1.3}
 							handleCloseDialog={(event) => event.stopPropagation()}
+							dialogTitleHeight={55}
 						>
 							<List
-								listItemsArray={["Copy Link", "Share to WhatsApp"]}
+								listItemsArray={["Copy Link", "Share to WhatsApp", "Cancel"]}
 								listIconsArray={[
 									<LinkRoundedIcon sx={{ marginRight: 1 }} />,
 									<WhatsAppIcon sx={{ marginRight: 1 }} />,
 								]}
-								disablePadding
+							
+								width={300}
+								divider
 								handleListItemsClick={[
 									(event) => {
 										setOpenSnackbar(true);
@@ -294,8 +299,10 @@ const ThreadCard = ({
 										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
 										event.stopPropagation();
 									},
+									() => 
+										setOpenShareDialog(false)
+									,
 								]}
-								listItemsStyles={{ padding: 2.5 }}
 							/>
 						</SimpleDialog>
 						<Snackbar
@@ -328,9 +335,7 @@ const ThreadCard = ({
 
 					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
 						<CardContent>
-							<Typography sx={{ marginBottom: 2 }}>
-								{thread.content}
-							</Typography>
+							<Typography sx={{ marginBottom: 2 }}>{thread.content}</Typography>
 						</CardContent>
 					</Collapse>
 				</CardActionArea>

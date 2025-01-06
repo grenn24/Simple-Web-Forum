@@ -1,8 +1,8 @@
-import ThreadsPage from "./ThreadsPage/ThreadsPage";
-import RemovedPage from "./ArchivesPage/ArchivesPage";
-import LikesPage from "./LikesPage/LikesPage";
-import CommentsPage from "./CommentsPage/CommentsPage";
-import OverviewPage from "./OverviewPage/OverviewPage";
+import ThreadsPage from "./ThreadsProfilePage/ThreadsProfilePage";
+import RemovedPage from "./ArchivesProfilePage/ArchivesProfilePage";
+import LikesPage from "./LikesProfilePage/LikesProfilePage";
+import CommentsPage from "./CommentsProfilePage/CommentsProfilePage";
+import OverviewPage from "./OverviewProfilePage/OverviewProfilePage";
 
 export default [
 	<OverviewPage />,
