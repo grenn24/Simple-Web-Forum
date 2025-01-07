@@ -16,6 +16,9 @@ interface Prop {
 const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 	const [openImageUploadedSnackbar, setOpenImageUploadedSnackbar] =
 		useState(false);
+	const [openImageDeletedSnackbar, setOpenImageDeletedSnackbar] =
+		useState(false);
+	const [imageDeleted, setImageDeleted] = useState<File>({} as File);
 	const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files) {
 			const newImages = Array.from(event.target.files);
@@ -60,8 +63,13 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 			<br />
 			<br />
 			<br />
-			
-			<UploadedImageList imagesSelected={imagesSelected} setImagesSelected={setImagesSelected} />
+
+			<UploadedImageList
+				imagesSelected={imagesSelected}
+				setImagesSelected={setImagesSelected}
+				setImageDeleted={setImageDeleted}
+				setOpenImageDeletedSnackbar={setOpenImageDeletedSnackbar}
+			/>
 			{/*Hidden file input*/}
 			<FileInput
 				type="file"
@@ -77,6 +85,17 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 				message="Image Uploaded"
 				duration={2000}
 				undoButton={false}
+			/>
+			{/*Image Deleted Snackbar*/}
+			<Snackbar
+				openSnackbar={openImageDeletedSnackbar}
+				setOpenSnackbar={setOpenImageDeletedSnackbar}
+				message="Image deleted"
+				duration={3000}
+				undoButton
+				handleUndoButtonClick={() =>
+					setImagesSelected([...imagesSelected, imageDeleted])
+				}
 			/>
 		</>
 	);

@@ -104,7 +104,7 @@ const Button = ({
 					</ButtonBase>
 				</>
 			) : (
-				<>
+
 					<IconButton
 						type={type}
 						component={component as React.ElementType}
@@ -121,6 +121,7 @@ const Button = ({
 								color: color,
 								borderColor: borderColor,
 							},
+							backgroundColor: backgroundColor,
 							fontSize: { fontSize },
 						}}
 						onClick={handleButtonClick}
@@ -136,7 +137,7 @@ const Button = ({
 							/>
 						)}
 					</IconButton>
-				</>
+			
 			)}
 		</>
 	);

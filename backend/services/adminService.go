@@ -53,7 +53,7 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			content TEXT NOT NULL,
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
-			image_link TEXT,
+			image_link TEXT[] DEFAULT '{}',
 			like_count INTEGER DEFAULT 0
 		);
 

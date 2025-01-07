@@ -102,6 +102,29 @@ func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*dtos.Aut
 	return author, err
 }
 
+func (authorRepository *AuthorRepository) GetAuthorWithFollowStatusByID(authorID int, userAuthorID int) (*dtos.AuthorDTO, error) {
+	author := new(dtos.AuthorDTO)
+	row := authorRepository.DB.QueryRow(`
+		SELECT author.author_id, author.name, author.username, author.email, author.avatar_icon_link, author.created_at,
+		CASE 
+			WHEN follow.followee_author_id IS NOT NULL AND follow.follower_author_id IS NOT NULL 
+			THEN TRUE 
+		ELSE FALSE 
+    	END AS follow_status
+		FROM author
+		LEFT JOIN follow ON follow.followee_author_id = author.author_id AND follow.follower_author_id = $1
+		WHERE author.author_id = $2
+	`, userAuthorID, authorID)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.FollowStatus)
+
+	// No authors found
+	if err != nil {
+
+		return nil, err
+	}
+	return author, err
+}
+
 func (authorRepository *AuthorRepository) GetPasswordHashByAuthorID(authorID int) string {
 	var password string
 	row := authorRepository.DB.QueryRow("SELECT password_hash FROM author WHERE author_id = $1", authorID)

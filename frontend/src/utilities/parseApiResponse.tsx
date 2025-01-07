@@ -11,7 +11,7 @@ export function parseThread(thread: any): ThreadDTO {
 		title: thread.title,
 		content: thread.content,
 		imageTitle: thread.image_title,
-		imageLink: thread.image_link,
+		imageLink: thread.image_link ? thread.image_link.map((link: any) => link) : [],
 		createdAt: new Date(thread.created_at),
 		likeCount: thread.like_count,
 		likeStatus: thread.like_status,
@@ -98,6 +98,7 @@ export function parseAuthor(author: any): AuthorDTO {
 		createdAt: new Date(author.created_at),
 		isUser: author.is_user,
 		username: author.username,
+		followStatus: author.followStatus,
 	};
 }
 

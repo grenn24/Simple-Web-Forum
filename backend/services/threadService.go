@@ -209,26 +209,29 @@ func (threadService *ThreadService) CreateThread(thread *models.Thread) *dtos.Er
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
-	// If an image was attached, upload to s3 and retrieve the link
+	// If image(s) were attached, upload to s3 and retrieve the string array of links
+	thread.ImageLink = make([]string, 0)
 	if thread.Image != nil {
-		filename, file, err := utils.ConvertFileHeaderToFile(thread.Image)
-		if err != nil {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
+		for _, image := range thread.Image {
+			filename, file, err := utils.ConvertFileHeaderToFile(image)
+			if err != nil {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 			}
-		}
-		defer (*file).Close()
-		imageLink, err := utils.PostFileToS3Bucket(filename, "thread_image", file)
-		if err != nil {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
+			defer (*file).Close()
+			imageLink, err := utils.PostFileToS3Bucket(filename, "thread_image", file)
+			if err != nil {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 			}
+			thread.ImageLink = append(thread.ImageLink, imageLink)
 		}
-		thread.ImageLink = &imageLink
 	}
 
 	threadID, err := threadRepository.CreateThread(thread)
@@ -282,15 +285,17 @@ func (threadService *ThreadService) DeleteAllThreads() error {
 
 func (threadService *ThreadService) DeleteThreadByID(threadID int) *dtos.Error {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
-	// Check if there is existing thread image link in db, and delete if it from s3 exists
-	imageLink := threadRepository.GetImageLinkByThreadID(threadID)
-	if imageLink != "" {
-		err := utils.DeleteFileFromS3Bucket(imageLink)
-		if err != nil {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
+	// Check if thread to be deleted has image link(s), and delete if them from s3 if exist(s)
+	imageLinks := threadRepository.GetImageLinkByThreadID(threadID)
+	if len(imageLinks) != 0 {
+		for _, imageLink := range imageLinks {
+			err := utils.DeleteFileFromS3Bucket(imageLink)
+			if err != nil {
+				return &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 			}
 		}
 	}

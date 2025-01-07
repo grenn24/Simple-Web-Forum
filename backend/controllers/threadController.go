@@ -156,10 +156,11 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 	thread.TopicsTagged = context.PostFormArray("topics_tagged")
 	formData, err := context.MultipartForm()
 	images := formData.File["images"]
+	// If no images are uploaded, images will be an empty file array
 	if len(images) == 0 {
 		thread.Image = nil
 	} else {
-		thread.Image = images[0]
+		thread.Image = images
 	}
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, dtos.Error{

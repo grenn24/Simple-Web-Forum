@@ -33,6 +33,7 @@ function getStyles(name: string, personName: readonly string[], theme: Theme) {
 		fontWeight: personName.includes(name)
 			? theme.typography.fontWeightMedium
 			: theme.typography.fontWeightRegular,
+		color: theme.palette.primary.dark
 	};
 }
 

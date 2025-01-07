@@ -1,9 +1,11 @@
-
+import { Box } from "@mui/material";
 
 const Error = () => {
-  return (
-    <div>Error</div>
-  )
-}
+	return (
+		<Box width="100vw" height="100vh">
+			
+		</Box>
+	);
+};
 
-export default Error
+export default Error;

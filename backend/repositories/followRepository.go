@@ -5,6 +5,7 @@ import (
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/lib/pq"
 )
 
 type FollowRepository struct {
@@ -89,7 +90,7 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			&followedThread.Author.Username,
 			&followedThread.Author.AvatarIconLink,
 			&followedThread.ImageTitle,
-			&followedThread.ImageLink,
+			pq.Array(&followedThread.ImageLink),
 			&followedThread.LikeCount,
 			&followedThread.ArchiveStatus,
 		)

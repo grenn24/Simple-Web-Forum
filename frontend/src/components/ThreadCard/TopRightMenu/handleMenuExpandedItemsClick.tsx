@@ -9,7 +9,8 @@ const handleMenuExpandedItemsClick = (
 	archiveStatus: boolean,
 	setArchiveStatus: (status: boolean) => void,
 	thread: ThreadDTO,
-	navigate: (to: To, options?: NavigateOptions) => void | Promise<void>
+	navigate: (to: To, options?: NavigateOptions) => void | Promise<void>,
+	setOpenDeleteThreadDialog: (status: boolean) => void
 ) =>
 	thread.author.isUser
 		? [
@@ -56,18 +57,10 @@ const handleMenuExpandedItemsClick = (
 				},
 				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
 					event.stopPropagation();
-					Delete(
-						`threads/${thread.threadID}`,
-						{},
-						() => {},
-						(err) => console.log(err)
-					);
+					setOpenDeleteThreadDialog(true);
 				},
-				(event: React.MouseEvent<HTMLElement, MouseEvent>) =>
-					event.stopPropagation(),
 		  ]
 		: [
-				
 				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
 					event.stopPropagation();
 					setArchiveStatus(!archiveStatus);
@@ -110,7 +103,7 @@ const handleMenuExpandedItemsClick = (
 						() => {},
 						(err) => console.log(err)
 					);
-				}
-		  ]
+				},
+		  ];
 
 export default handleMenuExpandedItemsClick;

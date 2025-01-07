@@ -14,7 +14,7 @@ export interface ThreadDTO {
 	likeStatus: boolean;
 	comments: CommentDTO[];
 	imageTitle: string;
-	imageLink: string;
+	imageLink: string[];
 	topicsTagged: TopicDTO[];
 	bookmarkStatus: boolean;
 	archiveStatus: boolean

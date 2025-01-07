@@ -17,7 +17,7 @@ const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 	const { authorID } = useParams();
 	return (
 		<Box key={thread.threadID}>
-			<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600}>
+			<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600} marginBottom={1.7}>
 				{thread.title}
 			</Typography>
 

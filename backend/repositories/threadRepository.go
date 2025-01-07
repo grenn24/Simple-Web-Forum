@@ -6,6 +6,7 @@ import (
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
+	"github.com/lib/pq"
 )
 
 type ThreadRepository struct {
@@ -36,7 +37,7 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 			&thread.Content,
 			&thread.AuthorID,
 			&thread.ImageTitle,
-			&thread.ImageLink,
+			pq.Array(&thread.ImageLink),
 			&thread.LikeCount,
 		)
 
@@ -66,7 +67,7 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 		&thread.Content,
 		&thread.AuthorID,
 		&thread.ImageTitle,
-		&thread.ImageLink,
+		pq.Array(&thread.ImageLink),
 		&thread.LikeCount,
 	)
 
@@ -110,7 +111,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 			&thread.Content,
 			&thread.Author.AuthorID,
 			&thread.ImageTitle,
-			&thread.ImageLink,
+			pq.Array(&thread.ImageLink),
 			&thread.LikeCount,
 			&thread.ArchiveStatus,
 		)
@@ -136,6 +137,7 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			thread.content,
 			thread.author_id,
 			author.name,
+			author.username,
 			author.avatar_icon_link,
 			thread.image_title,
 			thread.image_link
@@ -168,9 +170,10 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			&thread.Content,
 			&thread.Author.AuthorID,
 			&thread.Author.Name,
-			&thread.AvatarIconLink,
+			&thread.Author.Username,
+			&thread.Author.AvatarIconLink,
 			&thread.ImageTitle,
-			&thread.ImageLink,
+			pq.Array(&thread.ImageLink),
 		)
 
 		// Check for any scanning errors
@@ -212,23 +215,22 @@ func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) i
 	return likeCount
 }
 
-func (threadRepository *ThreadRepository) GetImageLinkByThreadID(threadID int) string {
-	var imageLink string
+func (threadRepository *ThreadRepository) GetImageLinkByThreadID(threadID int) []string {
+	var imageLink []string
 	row := threadRepository.DB.QueryRow("SELECT image_link FROM thread WHERE thread_id = $1", threadID)
-	err := row.Scan(&imageLink)
+	err := row.Scan(pq.Array(&imageLink))
 
 	// No image links found
 	if err != nil || err == sql.ErrNoRows {
 
-		return ""
+		return []string{}
 	}
 	return imageLink
 }
 
-
 func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {
 	var threadID int64
-	row := threadRepository.DB.QueryRow("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5) RETURNING thread_id", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, thread.ImageLink)
+	row := threadRepository.DB.QueryRow("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5) RETURNING thread_id", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, pq.Array(thread.ImageLink))
 
 	// Check for errors while returning thread id
 	err := row.Scan(&threadID)

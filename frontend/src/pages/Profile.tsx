@@ -25,7 +25,7 @@ import {
 import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
-import { Delete, get, putFormData } from "../utilities/apiClient";
+import { Delete, get, postJSON, putFormData } from "../utilities/apiClient";
 import { Controller, useForm } from "react-hook-form";
 import { parseAuthor } from "../utilities/parseApiResponse";
 import { AuthorDTO } from "../dtos/AuthorDTO";
@@ -47,7 +47,8 @@ const Profile = () => {
 	} = useForm();
 	const navigate = useNavigate();
 	const theme = useTheme();
-	const [followStatus, setFollowStatus] = useState(false);
+	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
+	const [followStatus, setFollowStatus] = useState(true);
 	const { authorID } = useParams();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +58,6 @@ const Profile = () => {
 		useState(false);
 	const [openAvatarIconDeletedSnackbar, setOpenAvatarIconDeletedSnackbar] =
 		useState(false);
-	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
@@ -67,13 +67,30 @@ const Profile = () => {
 				`/authors/${authorID === "User" ? "user" : authorID}`,
 				(res) => {
 					const responseBody = res.data.data;
-					setAuthor(parseAuthor(responseBody));
+					const author = parseAuthor(responseBody);
+					setAuthor(author);
+					setFollowStatus(author.followStatus);
 					setIsLoading(false);
 				},
 				(err) => console.log(err)
 			),
 		[authorID, isEditing]
 	);
+	
+
+	const handleFollowAuthor = () => {
+		if (followStatus) {
+			setFollowStatus(false);
+			Delete("/follows/user", {
+				"followee_author_id": Number(authorID),
+			}, () => {}, (err) => console.log(err));
+		} else {
+			setFollowStatus(true);
+			postJSON("follows/user", {
+				followee_author_id: Number(authorID),
+			}, () => {}, (err) => console.log(err));
+		}
+	}
 
 	const handleEditProfileInfo = handleSubmit((data) => {
 		if (isEditing) {
@@ -348,7 +365,7 @@ const Profile = () => {
 										<NotificationsNoneRoundedIcon />
 									)
 								}
-								handleButtonClick={() => setFollowStatus(!followStatus)}
+								handleButtonClick={handleFollowAuthor}
 							>
 								Follow
 							</Button>

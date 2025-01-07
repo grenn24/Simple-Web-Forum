@@ -1,7 +1,6 @@
 import {
 	Card,
 	CardHeader,
-	CardMedia,
 	CardContent,
 	CardActions,
 	Avatar,
@@ -36,7 +35,6 @@ import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems
 import playerGenerator from "../utilities/playerGenerator.tsx";
 import likeSound from "../assets/audio/like-sound.mp3";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import FullScreenImage from "../components/FullScreenImage/index.ts";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON, putJSON } from "../utilities/apiClient.tsx";
@@ -50,6 +48,7 @@ import { TopicDTO } from "../dtos/TopicDTO.tsx";
 import { CommentDTO } from "../dtos/CommentDTO.tsx";
 import commentSortOrder from "../features/Thread/commentSortOrder.tsx";
 import { parseThread } from "../utilities/parseApiResponse.tsx";
+import MediaViewer from "../components/MediaViewer.tsx";
 
 const Thread = () => {
 	const player = playerGenerator(
@@ -70,7 +69,7 @@ const Thread = () => {
 	const [bookmarkStatus, setBookmarkStatus] = useState(false);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
-	const [fullScreenImage, setFullScreenImage] = useState(false);
+	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
 
 	const [thread, setThread] = useState<ThreadDTO>({} as ThreadDTO);
 
@@ -205,6 +204,7 @@ const Thread = () => {
 										handleMenuIconClick={() =>
 											navigate(`../Profile/${thread.author.authorID}`)
 										}
+										
 									/>
 								}
 								action={
@@ -228,9 +228,10 @@ const Thread = () => {
 												isEditing,
 												setIsEditing,
 												thread,
-												navigate
+												navigate,
+												setOpenDeleteThreadDialog
 											)}
-											closeMenuOnExpandedItemsClick={false}
+											closeMenuOnExpandedItemsClick
 											toolTipText="More"
 											scrollLock={true}
 										/>
@@ -373,8 +374,7 @@ const Thread = () => {
 											color="text.secondary"
 											fontFamily="Open Sans"
 											fontSize={17}
-											marginTop={2}
-											marginBottom={2}
+											my={2}
 										>
 											{thread.topicsTagged.map((topic: TopicDTO) => (
 												<Button
@@ -398,23 +398,20 @@ const Thread = () => {
 												</Button>
 											))}
 										</Typography>
-										<Typography textAlign="left">{thread.content}</Typography>
-
-										<CardMedia
-											component="img"
-											image={thread.imageLink}
-											sx={{
-												width: "100%",
-												height: "auto",
-												objectFit: "contain",
-												borderRadius: 1.3,
-												my: 3,
-												"&:hover": {
-													cursor: "pointer",
-												},
-											}}
-											onClick={() => setFullScreenImage(true)}
-										/>
+										<Typography textAlign="left" my={2}>
+											{thread.content}
+										</Typography>
+										<Box
+											height={470}
+											my={2}
+											display={thread.imageLink.length === 0 ? "none" : "block"}
+										>
+											<MediaViewer
+												borderRadius={1.3}
+												backgroundColor="grey"
+												imageLinks={thread.imageLink}
+											/>
+										</Box>
 									</CardContent>
 									<CardActions
 										disableSpacing
@@ -519,7 +516,6 @@ const Thread = () => {
 													<WhatsAppIcon sx={{ marginRight: 1 }} />,
 												]}
 												divider
-								
 												handleListItemsClick={[
 													(event) => {
 														setOpenSnackbar(true);
@@ -653,17 +649,44 @@ const Thread = () => {
 									listItemsArray={thread.comments.map((comment: CommentDTO) => {
 										return <Comment comment={comment} />;
 									})}
+									listItemTextStyle={{ width: "100%" }}
 								/>
 							</CardContent>
 						</Card>
 					)}
 				</Box>
 			</Box>
-			<FullScreenImage
-				path={thread.imageLink}
-				setFullScreenImage={setFullScreenImage}
-				fullScreenImage={fullScreenImage}
-			/>
+			{/*Confirm Delete Thread Dialog*/}
+			<SimpleDialog
+				openDialog={openDeleteThreadDialog}
+				setOpenDialog={setOpenDeleteThreadDialog}
+				title="Confirm Delete Thread"
+				backdropBlur={5}
+				borderRadius={1.3}
+				dialogTitleHeight={55}
+				width={400}
+			>
+				<List
+					listItemsArray={["Yes", "No"]}
+					divider
+					handleListItemsClick={[
+						(event) => {
+							event.stopPropagation();
+							navigate(-1);
+							Delete(
+								`threads/${thread.threadID}`,
+								{},
+								() => {},
+								(err) => console.log(err)
+							);
+						},
+						(event) => {
+							event.stopPropagation();
+							setOpenDeleteThreadDialog(false);
+						},
+					]}
+				/>
+			</SimpleDialog>
 		</>
 	);
 };

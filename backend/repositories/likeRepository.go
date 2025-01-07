@@ -6,6 +6,7 @@ import (
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/utils"
+	"github.com/lib/pq"
 )
 
 type LikeRepository struct {
@@ -106,7 +107,7 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			&like.Thread.Content,
 			&like.Thread.CreatedAt,
 			&like.Thread.ImageTitle,
-			&like.Thread.ImageLink,
+			pq.Array(&like.Thread.ImageLink),
 			&like.Thread.LikeCount,
 			&like.Thread.Author.AuthorID,
 			&like.Thread.Author.Name,

@@ -29,7 +29,7 @@ const ThreadCardMini = ({ like }: Prop) => {
 	const {authorID} = useParams();
 
 	return (
-		<>
+		<Box key={like.likeID}>
 			<Box
 				display="flex"
 				justifyContent="space-between"
@@ -147,7 +147,7 @@ const ThreadCardMini = ({ like }: Prop) => {
 					{dateToTimeYear(like.createdAt, "short")}
 				</Typography>
 			</Box>
-		</>
+		</Box>
 	);
 };
 

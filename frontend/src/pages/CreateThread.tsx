@@ -33,10 +33,7 @@ const CreateThread = () => {
 		formData.append("title", data.title);
 		formData.append("content", data.content);
 		formData.append("image_title", data.imageTitle);
-		imagesSelected &&
-			imagesSelected.forEach((image: File) =>
-				formData.append("images", image)
-			);
+		imagesSelected.forEach((image: File) => formData.append("images", image));
 		topicsSelected.forEach((topic) => formData.append("topics_tagged", topic));
 		postFormData(
 			"/threads/user",
@@ -115,7 +112,7 @@ const CreateThread = () => {
 							isUploading={isUploading}
 						/>,
 						<ImagePage
-						imagesSelected={imagesSelected}
+							imagesSelected={imagesSelected}
 							setImagesSelected={setImagesSelected}
 							register={register}
 							control={control}
@@ -123,7 +120,7 @@ const CreateThread = () => {
 					]}
 				/>
 			</Container>
-			
+
 			{/*Thread posted snackbar*/}
 			<Snackbar
 				openSnackbar={openThreadPostedSnackbar}

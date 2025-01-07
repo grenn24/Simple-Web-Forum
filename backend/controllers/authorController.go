@@ -71,6 +71,15 @@ func (authorController *AuthorController) GetUser(context *gin.Context, db *sql.
 	})
 }
 
+func (authorController *AuthorController) GetUserAvatarIconLink(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+	userAuthorID := utils.GetUserAuthorID(context)
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   authorService.GetAvatarIconLinkByAuthorID(userAuthorID),
+	})
+}
+
 func (authorController *AuthorController) CreateAuthor(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 

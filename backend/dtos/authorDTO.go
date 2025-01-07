@@ -15,4 +15,5 @@ type AuthorDTO struct {
 	AvatarIconLink *string               `json:"avatar_icon_link,omitempty"`
 	AvatarIcon     *multipart.FileHeader `json:"avatar_icon,omitempty"`
 	IsUser         *bool                 `json:"is_user,omitempty"`
+	FollowStatus   *bool                 `json:"follow_status,omitempty"`
 }

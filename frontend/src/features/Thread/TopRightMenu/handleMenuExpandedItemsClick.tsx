@@ -10,7 +10,8 @@ const handleMenuExpandedItemsClick = (
 	isEditing: boolean,
 	setIsEditing: (status: boolean) => void,
 	thread: ThreadDTO,
-	navigate: (x: any) => void
+	navigate: (x: any) => void,
+	setOpenDeleteThreadDialog: (status: boolean) => void
 ) =>
 	thread.author.isUser
 		? [
@@ -54,13 +55,7 @@ const handleMenuExpandedItemsClick = (
 				},
 				(event: React.MouseEvent<HTMLElement, MouseEvent>) => {
 					event.stopPropagation();
-					navigate(-1);
-					Delete(
-						`threads/${thread.threadID}`,
-						{},
-						() => {},
-						(err) => console.log(err)
-					);
+					setOpenDeleteThreadDialog(true);
 				},
 				(event: React.MouseEvent<HTMLElement, MouseEvent>) =>
 					event.stopPropagation(),

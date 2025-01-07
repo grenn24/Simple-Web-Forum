@@ -55,6 +55,9 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter.PUT("/user", func(context *gin.Context) {
 		authorController.UpdateUser(context, db)
 	})
+	authorRouter.GET("/user/avatar-icon-link", func(context *gin.Context) {
+		authorController.GetUserAvatarIconLink(context, db)
+	})
 	authorRouter.PUT("/user/avatar-icon-link", func(context *gin.Context) {
 		authorController.UpdateUserAvatarIconLink(context, db)
 	})

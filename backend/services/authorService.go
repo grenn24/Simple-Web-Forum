@@ -35,7 +35,7 @@ func (authorService *AuthorService) GetAllAuthors() ([]*dtos.AuthorDTO, *dtos.Er
 func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*dtos.AuthorDTO, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	author, err := authorRepository.GetAuthorByID(authorID)
+	author, err := authorRepository.GetAuthorWithFollowStatusByID(authorID, userAuthorID)
 	if err != nil {
 		// Check for author not found error
 		if err == sql.ErrNoRows {
@@ -56,6 +56,11 @@ func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int
 	isUser := userAuthorID == author.AuthorID
 	author.IsUser = &isUser
 	return author, nil
+}
+
+func (authorService *AuthorService) GetAvatarIconLinkByAuthorID(authorID int) string {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	return authorRepository.GetAvatarIconLinkByAuthorID(authorID)
 }
 
 func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Error {

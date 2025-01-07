@@ -6,6 +6,7 @@ import (
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
 	"github.com/grenn24/simple-web-forum/utils"
+	"github.com/lib/pq"
 )
 
 type BookmarkRepository struct {
@@ -86,7 +87,7 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			&bookmarkedThread.Author.Username,
 			&bookmarkedThread.Author.AvatarIconLink,
 			&bookmarkedThread.ImageTitle,
-			&bookmarkedThread.ImageLink,
+			pq.Array(&bookmarkedThread.ImageLink),
 			&bookmarkedThread.LikeCount,
 			&bookmarkedThread.ArchiveStatus,
 		)

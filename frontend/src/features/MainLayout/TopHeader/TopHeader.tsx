@@ -1,10 +1,4 @@
-import {
-	AppBar,
-	Box,
-	Typography,
-	Avatar,
-	useTheme,
-} from "@mui/material";
+import { AppBar, Box, Typography, Avatar, useTheme } from "@mui/material";
 import Menu from "../../../components/Menu";
 import SearchBar from "../../../components/SearchBar/SearchBar";
 import {
@@ -15,13 +9,13 @@ import {
 import MenuExpandedItems from "./MenuExpandedItems";
 import MenuExpandedIcons from "./MenuExpandedIcons";
 import MenuExpandedDataValues from "./MenuExpandedDataValues";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { get } from "../../../utilities/apiClient";
 import SimpleDialog from "../../../components/SimpleDialog";
 import List from "../../../components/List";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Prop {
 	openLeftNavBar: () => void;
@@ -29,8 +23,23 @@ interface Prop {
 }
 export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const screenWidth = useWindowSize().width as number;
 	const [openLogOutDialog, setOpenLogOutDialog] = useState(false);
+	const [avatarIconLink, setAvatarIconLink] = useState("")
+	
+	useEffect(
+		() =>
+			get(
+				"/authors/user/avatar-icon-link",
+				(res) => {
+					const avatarIconLink = res.data.data
+					setAvatarIconLink(avatarIconLink);
+				},
+				(err) => console.log(err)
+			),
+		[location]
+	);
 
 	return (
 		<>
@@ -129,7 +138,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							menuExpandedItemsArray={MenuExpandedItems}
 							menuExpandedIconsArray={MenuExpandedIcons}
 							menuIcon={
-								<Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+								<Avatar alt="Remy Sharp" src={avatarIconLink} sx={{width: 40, height: 40}}/>
 							}
 							handleMenuExpandedItemsClick={[
 								(event: React.MouseEvent<HTMLElement>) =>
@@ -173,12 +182,11 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								(err) => console.log(err)
 							);
 							navigate("../Welcome");
-							
 						},
 						(event) => {
 							event.stopPropagation();
 							setOpenLogOutDialog(false);
-						}
+						},
 					]}
 				/>
 			</SimpleDialog>

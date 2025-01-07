@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
 	Card,
 	CardHeader,
-	CardMedia,
 	CardContent,
 	CardActions,
 	CardActionArea,
@@ -12,6 +11,7 @@ import {
 	styled,
 	IconButton,
 	IconButtonProps,
+	Box,
 } from "@mui/material";
 import Button from "../Button";
 import Snackbar from "../Snackbar";
@@ -37,6 +37,7 @@ import { dateToYear } from "../../utilities/dateToString";
 import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
 import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
+import MediaViewer from "../MediaViewer";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -73,6 +74,7 @@ interface Prop {
 const ThreadCard = ({
 	thread,
 }: Prop) => {
+	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [expandCardContent, setExpandCardContent] = useState(false);
@@ -126,7 +128,6 @@ const ThreadCard = ({
 									event.stopPropagation();
 									navigate(`../Profile/${thread.author.authorID}`);
 								}}
-								showMenuExpandedOnClick={false}
 							/>
 						}
 						action={
@@ -151,9 +152,10 @@ const ThreadCard = ({
 										archiveStatus,
 										setArchiveStatus,
 										thread,
-										navigate
+										navigate,
+										setOpenDeleteThreadDialog
 									)}
-									closeMenuOnExpandedItemsClick={false}
+									closeMenuOnExpandedItemsClick
 								/>
 							</>
 						}
@@ -168,12 +170,13 @@ const ThreadCard = ({
 						</Typography>
 					</CardContent>
 
-					<CardMedia
-						component="img"
-						height="194"
-						image={thread.imageLink}
-						sx={{ height: "auto", objectFit: "contain", pointerEvents: "none" }}
-					/>
+					<Box
+						height={470}
+						my={2}
+						display={thread.imageLink.length === 0 ? "none" : "block"}
+					>
+						<MediaViewer backgroundColor="grey" imageLinks={thread.imageLink} />
+					</Box>
 
 					<CardActions
 						disableSpacing
@@ -279,7 +282,6 @@ const ThreadCard = ({
 									<LinkRoundedIcon sx={{ marginRight: 1 }} />,
 									<WhatsAppIcon sx={{ marginRight: 1 }} />,
 								]}
-				
 								divider
 								handleListItemsClick={[
 									(event) => {
@@ -338,6 +340,37 @@ const ThreadCard = ({
 					</Collapse>
 				</CardActionArea>
 			</Card>
+			{/*Confirm Delete Thread Dialog*/}
+			<SimpleDialog
+				openDialog={openDeleteThreadDialog}
+				setOpenDialog={setOpenDeleteThreadDialog}
+				title="Confirm Delete Thread"
+				backdropBlur={5}
+				borderRadius={1.3}
+				dialogTitleHeight={55}
+				width={400}
+			>
+				<List
+					listItemsArray={["Yes", "No"]}
+					divider
+					handleListItemsClick={[
+						(event) => {
+							event.stopPropagation();
+							navigate(-1);
+							Delete(
+								`threads/${thread.threadID}`,
+								{},
+								() => {},
+								(err) => console.log(err)
+							);
+						},
+						(event) => {
+							event.stopPropagation();
+							setOpenDeleteThreadDialog(false);
+						},
+					]}
+				/>
+			</SimpleDialog>
 		</>
 	);
 };

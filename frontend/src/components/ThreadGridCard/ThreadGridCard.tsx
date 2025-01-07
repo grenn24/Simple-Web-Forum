@@ -95,7 +95,7 @@ const ThreadGridCard = ({
 								handleMenuIconClick={handleBookmarkIconClick}
 							/>
 						}
-						title={thread.author.name}
+						title={thread.author.username}
 						subheader={dateToYear(thread.createdAt, "short")}
 						titleTypographyProps={{ fontWeight: 750 }}
 						sx={{ paddingBottom: 0.5 }}

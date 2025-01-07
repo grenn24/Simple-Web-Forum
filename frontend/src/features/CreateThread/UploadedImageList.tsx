@@ -1,14 +1,19 @@
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Divider, Link, Typography } from "@mui/material";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import Button from "../../components/Button";
 import { removeFromArray } from "../../utilities/arrayManipulation";
+import { openFileInNewWindow } from "../../utilities/fileManipulation";
 
 interface Prop {
 	imagesSelected: File[];
 	setImagesSelected: (images: File[]) => void;
+	setOpenImageDeletedSnackbar: (state: boolean) => void;
+	setImageDeleted: (image: File) => void;
 }
 
-const UploadedImageList = ({ imagesSelected, setImagesSelected }: Prop) => {
+const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDeletedSnackbar, setImageDeleted}: Prop) => {
+
+	
 	const imageFiles = Array.from(imagesSelected).map((image: File) => image);
 	return (
 		imageFiles.length !== 0 && (
@@ -23,14 +28,27 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected }: Prop) => {
 						flexDirection="row"
 						justifyContent="space-between"
 						alignItems="center"
+						key={index}
 					>
-						<Typography
-							fontFamily="Open Sans"
-							color="text.primary"
-							fontSize={15}
+						<Link
+							onClick={() => openFileInNewWindow(image)}
+							underline="hover"
+							rel="noreferrer"
+							target="_blank"
+							sx={{
+								"&:hover": {
+									cursor: "pointer",
+								},
+							}}
 						>
-							{image.name}
-						</Typography>
+							<Typography
+								fontFamily="Open Sans"
+								color="text.primary"
+								fontSize={15}
+							>
+								{image.name}
+							</Typography>
+						</Link>
 						<Box
 							display="flex"
 							flexDirection="row"
@@ -48,13 +66,16 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected }: Prop) => {
 								buttonIcon={<ClearRoundedIcon />}
 								color="primary.dark"
 								buttonStyle={{ marginLeft: 1, p: 0 }}
-								handleButtonClick={() =>
-									setImagesSelected(removeFromArray(imagesSelected, index))
-								}
+								handleButtonClick={() => {
+									setImagesSelected(removeFromArray(imagesSelected, index));
+									setImageDeleted(image);
+									setOpenImageDeletedSnackbar(true);
+								}}
 							/>
 						</Box>
 					</Box>
 				))}
+				
 			</>
 		)
 	);

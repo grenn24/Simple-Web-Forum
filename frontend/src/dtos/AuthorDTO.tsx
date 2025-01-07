@@ -5,5 +5,6 @@ export interface AuthorDTO {
 	username: string;
 	avatarIconLink: string;
 	createdAt: Date;
-	isUser: boolean
+	isUser: boolean;
+	followStatus: boolean
 }
