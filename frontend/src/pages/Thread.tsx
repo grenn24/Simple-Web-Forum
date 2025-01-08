@@ -228,7 +228,6 @@ const Thread = () => {
 												isEditing,
 												setIsEditing,
 												thread,
-												navigate,
 												setOpenDeleteThreadDialog
 											)}
 											closeMenuOnExpandedItemsClick

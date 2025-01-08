@@ -1,45 +1,52 @@
 import { Box } from "@mui/material";
+import Button from "../Button";
 import {
 	NavigateBeforeRounded as NavigateBeforeRoundedIcon,
 	NavigateNextRounded as NavigateNextRoundedIcon,
+	ClearRounded as ClearRoundedIcon
 } from "@mui/icons-material";
-import Button from "./Button";
-import { useRef, useState } from "react";
-import FullScreenImage from "./FullScreenMediaViewer";
+import { useRef } from "react";
+
 interface Prop {
 	imageLinks: string[];
-	borderRadius?: number;
-	backgroundColor?: string;
+	fullScreenImage: boolean;
+	setFullScreenImage: (state: boolean) => void;
 }
-
-const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
-	const [isScrolling, setIsScrolling] = useState(false);
-	const [fullScreenImage, setFullScreenImage] = useState(false);
-	const mediaViewerRef = useRef<HTMLDivElement>(null);
+const FullScreenImage = ({
+	imageLinks,
+	setFullScreenImage,
+	fullScreenImage,
+}: Prop) => {
+	
+	const imageViewerRef = useRef<HTMLDivElement>(null);
 	const scrollLeft = () => {
-		if (!isScrolling) {
-			setIsScrolling(true);
-			mediaViewerRef.current?.scrollBy({
-				left: -mediaViewerRef.current.clientWidth,
-				behavior: "smooth",
-			});
-			setTimeout(() => setIsScrolling(false), 550);
-		}
+		imageViewerRef.current?.scrollBy({
+			left: -imageViewerRef.current.clientWidth,
+			behavior: "auto",
+		});
 	};
 
 	const scrollRight = () => {
-		if (!isScrolling) {
-			setIsScrolling(true);
-			mediaViewerRef.current?.scrollBy({
-				left: mediaViewerRef.current.clientWidth,
-				behavior: "smooth",
-			});
-			setTimeout(() => setIsScrolling(false), 550);
-		}
+		imageViewerRef.current?.scrollBy({
+			left: imageViewerRef.current.clientWidth,
+			behavior: "auto",
+		});
 	};
-
+	window.onkeydown = (event) => {
+		event.key === "ArrowRight" && scrollRight();
+		event.key === "ArrowLeft" && scrollLeft();
+		event.key === "Escape" && setFullScreenImage(false);
+	};
 	return (
-		<Box width="100%" height="100%" position="relative">
+		<Box
+			width="100vw"
+			height="100vh"
+			position="fixed"
+			zIndex={20}
+			top={0}
+			left={0}
+			display={fullScreenImage ? "block" : "none"}
+		>
 			<Box
 				width="100%"
 				height="100%"
@@ -47,16 +54,9 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
 				display="flex"
 				flexDirection="row"
 				alignItems="center"
-				sx={{
-					backgroundColor: backgroundColor,
-					"::-webkit-scrollbar": {
-						display: "none",
-					},
-				}}
 				position="absolute"
-				ref={mediaViewerRef}
-				zIndex={5}
-				borderRadius={borderRadius}
+				ref={imageViewerRef}
+				sx={{ backgroundColor: "rgba(0, 0, 0, 0.88)" }}
 			>
 				{imageLinks.map((image: string) => (
 					<Box
@@ -121,14 +121,20 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
 						}}
 					/>
 				</Box>
+				<Box position="absolute" top="1%" right="1%">
+					<Button
+						buttonIcon={<ClearRoundedIcon />}
+						buttonStyle={{
+							p: 0.5,
+							zIndex: 6,
+						}}
+						color="background.default"
+						handleButtonClick={() => setFullScreenImage(false)}
+					/>
+				</Box>
 			</Box>
-			<FullScreenImage
-				imageLinks={imageLinks}
-				setFullScreenImage={setFullScreenImage}
-				fullScreenImage={fullScreenImage}
-			/>
 		</Box>
 	);
 };
 
-export default MediaViewer;
+export default FullScreenImage;

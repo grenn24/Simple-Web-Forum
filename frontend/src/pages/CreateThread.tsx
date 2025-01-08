@@ -17,7 +17,8 @@ const CreateThread = () => {
 	const [imagesSelected, setImagesSelected] = useState<File[]>([]);
 	const [openThreadPostedSnackbar, setOpenThreadPostedSnackbar] =
 		useState(false);
-
+	const [openThreadPostErrorSnackbar, setOpenThreadPostErrorSnackbar] =
+		useState(false);
 	const {
 		register,
 		handleSubmit,
@@ -46,7 +47,10 @@ const CreateThread = () => {
 				setIsUploading(false);
 				setOpenThreadPostedSnackbar(true);
 			},
-			(err) => console.log(err)
+			(err) => {
+				console.log(err);
+				setOpenThreadPostErrorSnackbar(true);
+			}
 		);
 		setTopicsSelected([]);
 	});
@@ -127,6 +131,14 @@ const CreateThread = () => {
 				setOpenSnackbar={setOpenThreadPostedSnackbar}
 				message="Thread has been posted successfully"
 				duration={2000}
+				undoButton={false}
+			/>
+			{/*Thread post error snackbar*/}
+			<Snackbar
+				openSnackbar={openThreadPostErrorSnackbar}
+				setOpenSnackbar={setOpenThreadPostErrorSnackbar}
+				message="An error has occured while posting the thread. Please try again in a moment"
+				duration={3000}
 				undoButton={false}
 			/>
 		</Box>

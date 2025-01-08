@@ -10,7 +10,6 @@ const handleMenuExpandedItemsClick = (
 	isEditing: boolean,
 	setIsEditing: (status: boolean) => void,
 	thread: ThreadDTO,
-	navigate: (x: any) => void,
 	setOpenDeleteThreadDialog: (status: boolean) => void
 ) =>
 	thread.author.isUser

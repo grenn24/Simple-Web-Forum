@@ -48,7 +48,7 @@ const Profile = () => {
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
-	const [followStatus, setFollowStatus] = useState(true);
+	const [followStatus, setFollowStatus] = useState(false);
 	const { authorID } = useParams();
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -228,12 +228,11 @@ const Profile = () => {
 									color="white"
 									toolTipText="Change Avatar"
 									buttonStyle={{
-										display: authorID !== "User" ? "none" : "static",
+										display: (authorID !== "User" || isLoading) ? "none" : "inline-flex",
 									}}
+									buttonIcon={<EditRoundedIcon style={{ fontSize: 22 }} />}
 									handleButtonClick={() => setOpenUploadAvatarDialog(true)}
-								>
-									<EditRoundedIcon style={{ fontSize: 22 }} />
-								</Button>
+								></Button>
 							}
 						>
 							<Avatar
@@ -252,7 +251,6 @@ const Profile = () => {
 							dialogTitleHeight={55}
 						>
 							<List
-							
 								divider
 								listIconsArray={[
 									<FileUploadRoundedIcon sx={{ marginRight: 1 }} />,

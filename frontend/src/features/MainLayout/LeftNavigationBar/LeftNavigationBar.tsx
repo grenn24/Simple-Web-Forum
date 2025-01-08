@@ -42,6 +42,7 @@ const LeftNavigationBar = ({
 				flexDirection: "column",
 				alignItems: "center",
 			}}
+			
 		>
 			<List
 				sx={{
@@ -53,7 +54,7 @@ const LeftNavigationBar = ({
 				}}
 			>
 				{DrawerItems.map((text, index) => (
-					<Box key={text} width="100%" >
+					<Box key={text} width="100%"  >
 						<ListItem  disablePadding >
 							<ListItemButton onClick={() => {
 								leftNavBarExpandedStatus ? closeLeftNavBar() : null;
@@ -149,6 +150,7 @@ const LeftNavigationBar = ({
 							lg: "300px",
 							xl: "300px",
 						},
+						zIndex: 8,
 					},
 				}}
 				open

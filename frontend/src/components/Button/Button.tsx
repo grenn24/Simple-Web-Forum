@@ -104,40 +104,41 @@ const Button = ({
 					</ButtonBase>
 				</>
 			) : (
-
-					<IconButton
-						type={type}
-						component={component as React.ElementType}
-						role={role}
-						variant={variant}
-						tabIndex={tabIndex}
-						disabled={disabled || loadingStatus}
-						disableRipple={disableRipple}
-						sx={{
-							...buttonStyle,
-							borderRadius: { borderRadius },
-							border: { borderWeight },
-							"& .MuiSvgIcon-root": {
-								color: color,
-								borderColor: borderColor,
-							},
-							backgroundColor: backgroundColor,
-							fontSize: { fontSize },
-						}}
-						onClick={handleButtonClick}
-					>
-						{buttonIcon}
-						{loadingStatus && (
-							<CircularProgress
-								size={24}
-								sx={{
-									color: "green",
-									position: "absolute",
-								}}
-							/>
-						)}
-					</IconButton>
-			
+				<IconButton
+					type={type}
+					component={component as React.ElementType}
+					role={role}
+					variant={variant}
+					tabIndex={tabIndex}
+					disabled={disabled || loadingStatus}
+					disableRipple={disableRipple}
+					sx={{
+						...buttonStyle,
+						borderRadius: { borderRadius },
+						border: { borderWeight },
+						"& .MuiSvgIcon-root": {
+							color: color,
+							borderColor: borderColor,
+						},
+						"&:hover": {
+							backgroundColor: backgroundColor, 
+						},
+						backgroundColor: backgroundColor,
+						fontSize: { fontSize },
+					}}
+					onClick={handleButtonClick}
+				>
+					{buttonIcon}
+					{loadingStatus && (
+						<CircularProgress
+							size={24}
+							sx={{
+								color: "green",
+								position: "absolute",
+							}}
+						/>
+					)}
+				</IconButton>
 			)}
 		</>
 	);

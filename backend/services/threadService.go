@@ -3,6 +3,8 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"mime/multipart"
+	"sync"
 
 	"github.com/jinzhu/copier"
 
@@ -209,29 +211,56 @@ func (threadService *ThreadService) CreateThread(thread *models.Thread) *dtos.Er
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
-	// If image(s) were attached, upload to s3 and retrieve the string array of links
+	// If image(s) were attached, upload to s3 and retrieve the string array of links (using goroutines)
 	thread.ImageLink = make([]string, 0)
+
+	// Create an errors channel
+	var wg sync.WaitGroup
+	errsChannel := make(chan *dtos.Error)
+	responseErrs := make([]*dtos.Error, 0)
+
+	// Continuously collect the errors from the error channel into responseErrs slice
+	go func(errsChannel chan *dtos.Error, responseErrs []*dtos.Error) {
+		for err := range errsChannel {
+			responseErrs = append(responseErrs, err)
+		}
+	}(errsChannel, responseErrs)
+
 	if thread.Image != nil {
 		for _, image := range thread.Image {
-			filename, file, err := utils.ConvertFileHeaderToFile(image)
-			if err != nil {
-				return &dtos.Error{
-					Status:    "error",
-					ErrorCode: "INTERNAL_SERVER_ERROR",
-					Message:   err.Error(),
+			//Add a goroutine to the waitgroup
+			wg.Add(1)
+			go func(image *multipart.FileHeader, errChannel chan *dtos.Error) {
+				//At the end of execution, remove the goroutine from waitgroup
+				defer wg.Done()
+				filename, file, err := utils.ConvertFileHeaderToFile(image)
+				if err != nil {
+					errsChannel <- &dtos.Error{
+						Status:    "error",
+						ErrorCode: "INTERNAL_SERVER_ERROR",
+						Message:   err.Error(),
+					}
 				}
-			}
-			defer (*file).Close()
-			imageLink, err := utils.PostFileToS3Bucket(filename, "thread_image", file)
-			if err != nil {
-				return &dtos.Error{
-					Status:    "error",
-					ErrorCode: "INTERNAL_SERVER_ERROR",
-					Message:   err.Error(),
+				defer (*file).Close()
+				imageLink, err := utils.PostFileToS3Bucket(filename, "thread_image", file)
+				if err != nil {
+					errsChannel <- &dtos.Error{
+						Status:    "error",
+						ErrorCode: "INTERNAL_SERVER_ERROR",
+						Message:   err.Error(),
+					}
 				}
-			}
-			thread.ImageLink = append(thread.ImageLink, imageLink)
+				thread.ImageLink = append(thread.ImageLink, imageLink)
+			}(image, errsChannel)
 		}
+	}
+
+	// Wait for all goroutines to finish before closing the channel and executing the rest
+	wg.Wait()
+	close(errsChannel)
+
+	if len(responseErrs) != 0 {
+		return responseErrs[0]
 	}
 
 	threadID, err := threadRepository.CreateThread(thread)
@@ -285,20 +314,48 @@ func (threadService *ThreadService) DeleteAllThreads() error {
 
 func (threadService *ThreadService) DeleteThreadByID(threadID int) *dtos.Error {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
+
+	// Create an errors channel
+	var wg sync.WaitGroup
+	errsChannel := make(chan *dtos.Error)
+	responseErrs := make([]*dtos.Error, 0)
+
+	// Continuously collect the errors from the error channel into responseErrs slice
+	go func(errsChannel chan *dtos.Error, responseErrs []*dtos.Error) {
+		for err := range errsChannel {
+			responseErrs = append(responseErrs, err)
+		}
+	}(errsChannel, responseErrs)
+
 	// Check if thread to be deleted has image link(s), and delete if them from s3 if exist(s)
 	imageLinks := threadRepository.GetImageLinkByThreadID(threadID)
 	if len(imageLinks) != 0 {
+		// For each imagelink, create a goroutine
 		for _, imageLink := range imageLinks {
-			err := utils.DeleteFileFromS3Bucket(imageLink)
-			if err != nil {
-				return &dtos.Error{
-					Status:    "error",
-					ErrorCode: "INTERNAL_SERVER_ERROR",
-					Message:   err.Error(),
+			//Add a goroutine to the waitgroup
+			wg.Add(1)
+			go func(imageLink string, errChannel chan *dtos.Error) {
+				defer wg.Done()
+				err := utils.DeleteFileFromS3Bucket(imageLink)
+				if err != nil {
+					errsChannel <- &dtos.Error{
+						Status:    "error",
+						ErrorCode: "INTERNAL_SERVER_ERROR",
+						Message:   err.Error(),
+					}
 				}
-			}
+			}(imageLink, errsChannel)
 		}
 	}
+
+	// Wait for all goroutines to finish before closing the channel and executing the rest
+	wg.Wait()
+	close(errsChannel)
+
+	if len(responseErrs) != 0 {
+		return responseErrs[0]
+	}
+
 	rowsDeleted, err := threadRepository.DeleteThreadByID(threadID)
 	if err != nil {
 		return &dtos.Error{
