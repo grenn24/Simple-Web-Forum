@@ -27,5 +27,6 @@ Perform CRUD operations on authors or author-specific resources
 - Discussions: Join discussion groups to share threads with trusted friends
 - Follow: Follow topics or authors whom you are interested in, and receive thread updates from them
 - Profile: Customise your bio, avatar and activity status
+- Conversations: Message other authors you meet privately, and make new friends
 
 ### Setup  
