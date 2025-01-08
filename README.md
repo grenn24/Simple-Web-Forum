@@ -16,10 +16,11 @@ Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com
 https://simple-web-forum.web.app (Backup)  
 Backend API Server: https://nus-gossips-6a2501962208.herokuapp.com/api
 
-### Backend API Endpoints  
-- /threads/:threadID  
+### API Endpoints 
+Protected routes require require jwt user token
+- /threads/:threadID (protected)  
 Perform CRUD operations on threads or thread-specific resources
-- /authors/:authorID   
+- /authors/:authorID (protected)   
 Perform CRUD operations on authors or author-specific resources
 
 ### Core Features
