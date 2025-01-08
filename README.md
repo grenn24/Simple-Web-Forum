@@ -2,9 +2,12 @@
 Creator: Hoo Di Heng  
 
 ### Tech Stack  
-Front-End: React DOM, TypeScript  
-Back-End: GoLang, Gin  
-Database: PostgreSQL
+***Front-End:***  
+React DOM, TypeScript  
+***Back-End:***  
+GoLang, Gin  
+***Database:***   
+PostgreSQL
 
 ### Hosting  
 Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com  
