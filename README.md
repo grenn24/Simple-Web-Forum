@@ -1,12 +1,12 @@
 # NUS Gossips
 Creator: Hoo Di Heng  
 
-**Tech Stack:**  
+### Tech Stack  
 Front-End: React DOM, TypeScript  
 Back-End: GoLang, Gin  
 Database: PostgreSQL
 
-**Hosting:**  
+### Hosting  
 Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com  
 https://simple-web-forum.web.app (Backup)  
 Backend Server: https://nus-gossips-6a2501962208.herokuapp.com/api
