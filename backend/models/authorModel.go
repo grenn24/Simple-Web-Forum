@@ -13,5 +13,7 @@ type Author struct {
 	PasswordHash string    `json:"password_hash" db:"password_hash"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	// Optional JSON Fields
-	AvatarIconLink *string `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
+	AvatarIconLink *string    `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
+	Faculty        *string    `json:"faculty,omitempty" db:"faculty"`
+	Birthday       *time.Time `json:"birthday,omitempty" db:"birthday"`
 }

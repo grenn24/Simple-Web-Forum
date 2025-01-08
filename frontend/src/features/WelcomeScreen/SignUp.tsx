@@ -13,6 +13,7 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	ArrowForwardIosRounded as ArrowForwardIosRoundedIcon,
 } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 
 interface Prop {
 	opacity: number;
@@ -25,10 +26,13 @@ const SignUp = ({ opacity, visibility, setFormStatus }: Prop) => {
 		handleSubmit,
 		formState: { errors },
 		setError,
+		watch,
 	} = useForm();
 	const navigate = useNavigate();
-	const handleFormSubmit = handleSubmit((data) => {
-		postJSON(
+	const [retypedPasswordIsCorrect, setRetypedPasswordIsCorrect] =
+		useState(false);
+	const handleFormSubmit = handleSubmit((data) =>
+		retypedPasswordIsCorrect && postJSON(
 			"/authentication/sign-up",
 			{
 				name: data.name,
@@ -61,8 +65,17 @@ const SignUp = ({ opacity, visibility, setFormStatus }: Prop) => {
 					});
 				}
 			}
-		);
-	});
+		)
+	);
+
+	useEffect(
+		() =>
+			setRetypedPasswordIsCorrect(
+				watch("password") === watch("retypedPassword") &&
+					watch("password") !== ""
+			),
+		[watch("password"), watch("retypedPassword")]
+	);
 
 	return (
 		<Box
@@ -156,6 +169,22 @@ const SignUp = ({ opacity, visibility, setFormStatus }: Prop) => {
 							})}
 							error={!!errors.password}
 							helperText={errors.password?.message as string}
+							fullWidth
+						/>
+						<br />
+						<br />
+						<TextField
+							label="Re-type Password"
+							type="password"
+							variant="outlined"
+							{...register("retypedPassword")}
+							disabled={watch("password") === ""}
+							error={!retypedPasswordIsCorrect && watch("retypedPassword") !== ""}
+							helperText={
+								!retypedPasswordIsCorrect &&
+								watch("retypedPassword") !== "" &&
+								"The re-typed password does not match"
+							}
 							fullWidth
 						/>
 						<Button type="submit" buttonStyle={{ display: "none" }}>

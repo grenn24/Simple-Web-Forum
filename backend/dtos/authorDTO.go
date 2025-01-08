@@ -16,4 +16,6 @@ type AuthorDTO struct {
 	AvatarIcon     *multipart.FileHeader `json:"avatar_icon,omitempty"`
 	IsUser         *bool                 `json:"is_user,omitempty"`
 	FollowStatus   *bool                 `json:"follow_status,omitempty"`
+	Faculty        *string               `json:"faculty,omitempty" db:"faculty"`
+	Birthday       *time.Time            `json:"birthday,omitempty" db:"birthday"`
 }

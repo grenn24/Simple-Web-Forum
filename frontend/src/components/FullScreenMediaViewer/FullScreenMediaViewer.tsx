@@ -3,9 +3,9 @@ import Button from "../Button";
 import {
 	NavigateBeforeRounded as NavigateBeforeRoundedIcon,
 	NavigateNextRounded as NavigateNextRoundedIcon,
-	ClearRounded as ClearRoundedIcon
+	ClearRounded as ClearRoundedIcon,
 } from "@mui/icons-material";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 interface Prop {
 	imageLinks: string[];
@@ -17,7 +17,6 @@ const FullScreenImage = ({
 	setFullScreenImage,
 	fullScreenImage,
 }: Prop) => {
-	
 	const imageViewerRef = useRef<HTMLDivElement>(null);
 	const scrollLeft = () => {
 		imageViewerRef.current?.scrollBy({
@@ -32,11 +31,21 @@ const FullScreenImage = ({
 			behavior: "auto",
 		});
 	};
-	window.onkeydown = (event) => {
-		event.key === "ArrowRight" && scrollRight();
-		event.key === "ArrowLeft" && scrollLeft();
-		event.key === "Escape" && setFullScreenImage(false);
-	};
+	useEffect(() => {
+		window.onkeydown = (event) => {
+			if (event.key === "ArrowRight") {
+				event.preventDefault();
+				scrollRight();
+			}
+			if (event.key === "ArrowLeft") {
+				event.preventDefault();
+				scrollLeft();
+			}
+			event.key === "Escape" && setFullScreenImage(false);
+		};
+		document.body.style.overflow = "hidden";
+	}, []);
+
 	return (
 		<Box
 			width="100vw"
@@ -56,7 +65,10 @@ const FullScreenImage = ({
 				alignItems="center"
 				position="absolute"
 				ref={imageViewerRef}
-				sx={{ backgroundColor: "rgba(0, 0, 0, 0.88)" }}
+				sx={{
+					backgroundColor: "rgba(0, 0, 0, 0.88)",
+				}}
+				zIndex={21}
 			>
 				{imageLinks.map((image: string) => (
 					<Box
@@ -99,7 +111,7 @@ const FullScreenImage = ({
 						buttonIcon={<NavigateBeforeRoundedIcon />}
 						buttonStyle={{
 							p: 0,
-							zIndex: 6,
+							zIndex: 22,
 						}}
 						backgroundColor="background.default"
 						handleButtonClick={(event) => {
@@ -112,7 +124,7 @@ const FullScreenImage = ({
 						buttonIcon={<NavigateNextRoundedIcon />}
 						buttonStyle={{
 							p: 0,
-							zIndex: 6,
+							zIndex: 22,
 						}}
 						backgroundColor="background.default"
 						handleButtonClick={(event) => {
@@ -126,7 +138,7 @@ const FullScreenImage = ({
 						buttonIcon={<ClearRoundedIcon />}
 						buttonStyle={{
 							p: 0.5,
-							zIndex: 6,
+							zIndex: 22,
 						}}
 						color="background.default"
 						handleButtonClick={() => setFullScreenImage(false)}

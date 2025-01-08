@@ -44,6 +44,7 @@ const CreateThread = () => {
 				setValue("title", "");
 				setValue("content", "");
 				setImagesSelected([]);
+				setTopicsSelected([]);
 				setIsUploading(false);
 				setOpenThreadPostedSnackbar(true);
 			},
@@ -52,7 +53,7 @@ const CreateThread = () => {
 				setOpenThreadPostErrorSnackbar(true);
 			}
 		);
-		setTopicsSelected([]);
+		
 	});
 
 	return (
