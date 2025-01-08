@@ -11,10 +11,10 @@ PostgreSQL
 **File Storage:**  
 AWS S3 Buckets
 
-### Hosting  
+### Deployment  
 Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com  
 https://simple-web-forum.web.app (Backup)  
-Backend Server: https://nus-gossips-6a2501962208.herokuapp.com/api
+Backend API Server: https://nus-gossips-6a2501962208.herokuapp.com/api
 
 ### Backend API Endpoints  
 - /threads/:threadID  
