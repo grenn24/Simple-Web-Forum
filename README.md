@@ -8,6 +8,8 @@ React DOM, TypeScript
 GoLang, Gin  
 **Database:**   
 PostgreSQL
+**File Storage:**  
+AWS S3 Buckets
 
 ### Hosting  
 Frontend Server: https://nus-gossips-6a2501962208.herokuapp.com  
