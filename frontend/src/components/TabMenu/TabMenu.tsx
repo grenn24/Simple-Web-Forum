@@ -59,7 +59,7 @@ export default function TabMenu({
 					"& .MuiTabs-indicator": {
 						border: 1.5,
 					},
-					marginBottom: 4,
+					marginBottom: 3,
 					
 				}}
 			>

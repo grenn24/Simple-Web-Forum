@@ -49,7 +49,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 				sx={{
 					bgcolor: "background.default",
 					height: "auto",
-					zIndex: 10,
+					zIndex: 1201,
 					width: "100%",
 					py: 1,
 					px: 1,

@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	NotificationsNoneRounded as NotificationsNoneRoundedIcon,
@@ -21,6 +21,7 @@ import {
 	CheckRounded as CheckRoundedIcon,
 	FileUploadRounded as FileUploadRoundedIcon,
 	DeleteRounded as DeleteRoundedIcon,
+	PhotoCameraRounded as PhotoCameraRoundedIcon,
 } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
@@ -33,8 +34,7 @@ import SimpleDialog from "../components/SimpleDialog";
 import List from "../components/List";
 import Snackbar from "../components/Snackbar";
 import FileInput from "../components/FileInput";
-
-
+import CameraInput from "../components/CameraInput";
 
 const Profile = () => {
 	const {
@@ -58,7 +58,8 @@ const Profile = () => {
 		useState(false);
 	const [openAvatarIconDeletedSnackbar, setOpenAvatarIconDeletedSnackbar] =
 		useState(false);
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [openFileInput, setOpenFileInput] = useState(false);
+	const [openCameraInput, setOpenCameraInput] = useState(false);
 
 	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
 	useEffect(
@@ -76,28 +77,38 @@ const Profile = () => {
 			),
 		[authorID, isEditing]
 	);
-	
 
 	const handleFollowAuthor = () => {
 		if (followStatus) {
 			setFollowStatus(false);
-			Delete("/follows/user", {
-				"followee_author_id": Number(authorID),
-			}, () => {}, (err) => console.log(err));
+			Delete(
+				"/follows/user",
+				{
+					followee_author_id: Number(authorID),
+				},
+				() => {},
+				(err) => console.log(err)
+			);
 		} else {
 			setFollowStatus(true);
-			postJSON("follows/user", {
-				followee_author_id: Number(authorID),
-			}, () => {}, (err) => console.log(err));
+			postJSON(
+				"follows/user",
+				{
+					followee_author_id: Number(authorID),
+				},
+				() => {},
+				(err) => console.log(err)
+			);
 		}
-	}
+	};
 
 	const handleEditProfileInfo = handleSubmit((data) => {
 		if (isEditing) {
 			setIsUploading(true);
-			const formData = new FormData;
+			const formData = new FormData();
 			formData.append("name", data.name);
 			formData.append("username", data.username);
+			formData.append("biography", data.biography);
 			putFormData(
 				"/authors/user",
 				formData,
@@ -129,24 +140,20 @@ const Profile = () => {
 		}
 	});
 
-	const handleUploadAvatarIcon = (
-		event: React.ChangeEvent<HTMLInputElement>
-	) => {
-		if (event.target.files) {
-			setOpenUploadAvatarDialog(false);
-			const avatarIcon = event.target.files[0];
-			if (avatarIcon.size > 20000000) {
-				setOpenFileSizeLimitSnackbar(true);
-			} else {
-				const formData = new FormData();
-				formData.append("avatar_icon", avatarIcon);
-				putFormData(
-					"/authors/user/avatar-icon-link",
-					formData,
-					() => {},
-					(err) => console.log(err)
-				);
-			}
+	const handleUploadAvatarIcon = (files: FileList) => {
+		setOpenUploadAvatarDialog(false);
+		const avatarIcon = files[0];
+		if (avatarIcon.size > 20000000) {
+			setOpenFileSizeLimitSnackbar(true);
+		} else {
+			const formData = new FormData();
+			formData.append("avatar_icon", avatarIcon);
+			putFormData(
+				"/authors/user/avatar-icon-link",
+				formData,
+				() => {},
+				(err) => console.log(err)
+			);
 		}
 	};
 
@@ -228,7 +235,8 @@ const Profile = () => {
 									color="white"
 									toolTipText="Change Avatar"
 									buttonStyle={{
-										display: (authorID !== "User" || isLoading) ? "none" : "inline-flex",
+										display:
+											authorID !== "User" || isLoading ? "none" : "inline-flex",
 									}}
 									buttonIcon={<EditRoundedIcon style={{ fontSize: 22 }} />}
 									handleButtonClick={() => setOpenUploadAvatarDialog(true)}
@@ -253,17 +261,20 @@ const Profile = () => {
 							<List
 								divider
 								listIconsArray={[
+									<PhotoCameraRoundedIcon sx={{ marginRight: 1 }} />,
 									<FileUploadRoundedIcon sx={{ marginRight: 1 }} />,
 									<DeleteRoundedIcon sx={{ marginRight: 1 }} />,
 									<></>,
 								]}
 								listItemsArray={[
+									"Take a Photo",
 									"Upload from File",
 									"Delete Avatar Icon",
 									"Cancel",
 								]}
 								handleListItemsClick={[
-									() => fileInputRef.current?.click(),
+									() => setOpenCameraInput(true),
+									() => setOpenFileInput(true),
 									handleDeleteAvatarIcon,
 									() => setOpenUploadAvatarDialog(false),
 								]}
@@ -394,6 +405,32 @@ const Profile = () => {
 						/>
 					)}
 				</Box>
+				<Box width="100%">
+					<Divider />
+				</Box>
+				<Box my={2} width="100%">
+					{isEditing ? (
+						<Controller
+							name="biography"
+							control={control}
+							defaultValue={author.biography}
+							render={() => (
+								<TextField
+									label="Bio"
+									size="small"
+									fullWidth
+									variant="outlined"
+									{...register("biography")}
+								/>
+							)}
+						/>
+					) : (
+						<Typography textAlign="center" sx={{ borderColor: "red" }}>
+							{author.biography}
+						</Typography>
+					)}
+				</Box>
+
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
@@ -406,10 +443,16 @@ const Profile = () => {
 			</Box>
 			{/*Hidden file input*/}
 			<FileInput
-				type="file"
-				onChange={handleUploadAvatarIcon}
-				ref={fileInputRef}
-				accept="image/jpeg, image/png, image/gif"
+				onFileSubmit={handleUploadAvatarIcon}
+				openFileInput={openFileInput}
+				setOpenFileInput={setOpenFileInput}
+				acceptedFileTypes="image/jpeg, image/png, image/gif"
+			/>
+			<CameraInput
+				onFileSubmit={handleUploadAvatarIcon}
+				openCameraInput={openCameraInput}
+				setOpenCameraInput={setOpenCameraInput}
+				acceptedFileTypes="image/jpeg, image/png"
 			/>
 			{/*File Size Limit exceeded snackbar*/}
 			<Snackbar

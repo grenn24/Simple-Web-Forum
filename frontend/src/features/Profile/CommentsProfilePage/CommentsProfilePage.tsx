@@ -31,30 +31,43 @@ const CommentsPage = () => {
 			{isLoading ? (
 				<CircularProgress size={70} />
 			) : comments.length !== 0 ? (
-				<List
-					listStyle={{ width: "100%" }}
-					listItemsArray={comments.map((comment, _) => {
-						return (
-							<ThreadCardMini
-								comment={comment}
-								setComments={setComments}
-								comments={comments}
-							/>
-						);
-					})}
-					listItemsDataValues={comments.map((comment, _) =>
-						String(comment.thread.threadID)
-					)}
-					handleListItemsClick={new Array(comments.length).fill(
-						(event: React.MouseEvent<HTMLElement>) =>
-							event.currentTarget.dataset &&
-							navigate(`../Thread/${event.currentTarget.dataset.value}`)
-					)}
-					listItemTextStyle={{ flexGrow: 1 }}
-					listItemPadding={1.4}
-					disableRipple
-					divider
-				/>
+				<>
+					<Box width="97%" marginBottom={0.5}>
+						<Typography
+							textAlign="left"
+							fontFamily="Open Sans"
+							fontSize={22}
+			
+						>
+							{comments.length} Comments
+						</Typography>
+					</Box>
+
+					<List
+						listStyle={{ width: "100%" }}
+						listItemsArray={comments.map((comment, _) => {
+							return (
+								<ThreadCardMini
+									comment={comment}
+									setComments={setComments}
+									comments={comments}
+								/>
+							);
+						})}
+						listItemsDataValues={comments.map((comment, _) =>
+							String(comment.thread.threadID)
+						)}
+						handleListItemsClick={new Array(comments.length).fill(
+							(event: React.MouseEvent<HTMLElement>) =>
+								event.currentTarget.dataset &&
+								navigate(`../Thread/${event.currentTarget.dataset.value}`)
+						)}
+						listItemTextStyle={{ flexGrow: 1 }}
+						listItemPadding={1.4}
+						disableRipple
+						divider
+					/>
+				</>
 			) : (
 				<Typography
 					marginTop={4}
@@ -62,7 +75,7 @@ const CommentsPage = () => {
 					fontFamily="Open Sans"
 					fontSize={17}
 				>
-					You have not commented on any threads yet
+					No comments yet
 				</Typography>
 			)}
 		</Box>

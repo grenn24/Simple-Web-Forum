@@ -122,11 +122,12 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
 					/>
 				</Box>
 			</Box>
-			<FullScreenImage
-				imageLinks={imageLinks}
-				setFullScreenImage={setFullScreenImage}
-				fullScreenImage={fullScreenImage}
-			/>
+			{fullScreenImage && (
+				<FullScreenImage
+					imageLinks={imageLinks}
+					setFullScreenImage={setFullScreenImage}
+				/>
+			)}
 		</Box>
 	);
 };

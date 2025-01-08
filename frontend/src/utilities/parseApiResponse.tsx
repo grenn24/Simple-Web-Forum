@@ -99,6 +99,9 @@ export function parseAuthor(author: any): AuthorDTO {
 		isUser: author.is_user,
 		username: author.username,
 		followStatus: author.follow_status,
+		faculty: author.faculty,
+		birthday: new Date(author.birthday),
+		biography: author.biography,
 	};
 }
 

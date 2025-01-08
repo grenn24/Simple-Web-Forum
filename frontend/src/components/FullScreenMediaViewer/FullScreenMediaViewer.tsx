@@ -9,15 +9,15 @@ import { useEffect, useRef } from "react";
 
 interface Prop {
 	imageLinks: string[];
-	fullScreenImage: boolean;
+
 	setFullScreenImage: (state: boolean) => void;
 }
 const FullScreenImage = ({
 	imageLinks,
 	setFullScreenImage,
-	fullScreenImage,
 }: Prop) => {
 	const imageViewerRef = useRef<HTMLDivElement>(null);
+	const imageViewerContainerRef = useRef<HTMLDivElement>(null);
 	const scrollLeft = () => {
 		imageViewerRef.current?.scrollBy({
 			left: -imageViewerRef.current.clientWidth,
@@ -43,18 +43,24 @@ const FullScreenImage = ({
 			}
 			event.key === "Escape" && setFullScreenImage(false);
 		};
-		document.body.style.overflow = "hidden";
+		 document.body.style.overflow = "hidden";
+		 imageViewerContainerRef.current?.requestFullscreen();
 	}, []);
+
+	const exitFullScreen = ()=> {
+		setFullScreenImage(false);
+		document.body.style.overflow = "visible";
+	}
 
 	return (
 		<Box
 			width="100vw"
 			height="100vh"
 			position="fixed"
-			zIndex={20}
+			zIndex={1202}
 			top={0}
 			left={0}
-			display={fullScreenImage ? "block" : "none"}
+			ref={imageViewerContainerRef}
 		>
 			<Box
 				width="100%"
@@ -78,7 +84,7 @@ const FullScreenImage = ({
 						display="flex"
 						flexDirection="row"
 						justifyContent="center"
-						onClick={() => setFullScreenImage(true)}
+						onClick={exitFullScreen}
 					>
 						<img
 							src={image}
@@ -88,6 +94,7 @@ const FullScreenImage = ({
 								objectFit: "contain",
 								width: "auto",
 							}}
+							onClick={(event)=>event.stopPropagation()}
 						/>
 					</Box>
 				))}
@@ -141,7 +148,7 @@ const FullScreenImage = ({
 							zIndex: 22,
 						}}
 						color="background.default"
-						handleButtonClick={() => setFullScreenImage(false)}
+						handleButtonClick={exitFullScreen}
 					/>
 				</Box>
 			</Box>

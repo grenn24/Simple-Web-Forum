@@ -175,7 +175,7 @@ const ThreadCard = ({
 						my={2}
 						display={thread.imageLink.length === 0 ? "none" : "block"}
 					>
-						<MediaViewer backgroundColor="grey" imageLinks={thread.imageLink} />
+						<MediaViewer backgroundColor="black" imageLinks={thread.imageLink} />
 					</Box>
 
 					<CardActions

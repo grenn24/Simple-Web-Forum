@@ -51,6 +51,7 @@ const CreateThread = () => {
 			(err) => {
 				console.log(err);
 				setOpenThreadPostErrorSnackbar(true);
+				setIsUploading(false);
 			}
 		);
 		

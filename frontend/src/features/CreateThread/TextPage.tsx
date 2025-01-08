@@ -76,11 +76,8 @@ const TextPage = ({ register, createThread, errors, control, topicsSelected, set
 						multiline
 						variant="outlined"
 						minRows={4}
-						required
 						fullWidth
-						{...register("content", { required: "Thread content is required" })}
-						error={!!errors.content}
-						helperText={errors.content?.message as string}
+						{...register("content")}
 					/>
 				)}
 			/>

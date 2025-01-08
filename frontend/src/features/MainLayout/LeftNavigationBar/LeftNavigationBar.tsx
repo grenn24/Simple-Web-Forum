@@ -94,8 +94,7 @@ const LeftNavigationBar = ({
 			id="leftNavigationBarContainer"
 			component="nav"
 			sx={{
-				width: { xs: "0px", sm: "0px", md: "250px", lg: "300px", xl: "300px" },
-				flexShrink: { md: 0 },
+				width: { xs: "0px", sm: "0px", md: "250px", lg: "300px" },
 			}}
 		>
 			<Drawer
@@ -122,9 +121,8 @@ const LeftNavigationBar = ({
 							xs: "250px",
 							sm: "300px",
 							md: "0px",
-							lg: "0px",
-							xl: "0px",
 						},
+						zIndex: 1200,
 					},
 				}}
 			>
@@ -148,9 +146,8 @@ const LeftNavigationBar = ({
 							sm: "0px",
 							md: "250px",
 							lg: "300px",
-							xl: "300px",
 						},
-						zIndex: 8,
+						zIndex: 1200,
 					},
 				}}
 				open

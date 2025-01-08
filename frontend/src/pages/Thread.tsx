@@ -407,7 +407,7 @@ const Thread = () => {
 										>
 											<MediaViewer
 												borderRadius={1.3}
-												backgroundColor="grey"
+												backgroundColor="black"
 												imageLinks={thread.imageLink}
 											/>
 										</Box>

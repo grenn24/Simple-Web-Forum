@@ -2,11 +2,11 @@ import { styled } from "@mui/material";
 import { useEffect, useRef } from "react";
 
 interface Prop {
-	openFileInput: boolean;
-	setOpenFileInput: (state: boolean) => void;
-	onFileSubmit: (files : FileList) => void;
+	openCameraInput: boolean;
+	setOpenCameraInput: (state: boolean) => void;
+	onFileSubmit: (files: FileList) => void;
 	acceptedFileTypes: string;
-	multiple?: boolean
+    multiple?: boolean
 }
 const Input = styled("input")({
 	clip: "rect(0 0 0 0)",
@@ -20,28 +20,29 @@ const Input = styled("input")({
 	width: 1,
 });
 
-export default function FileInput ({
-	openFileInput,
-	setOpenFileInput,
+export default function CameraInput ({
+	openCameraInput,
+	setOpenCameraInput,
 	onFileSubmit,
 	acceptedFileTypes,
-	multiple
+    multiple
 }: Prop) {
 	useEffect(() => {
-		if (openFileInput) {
-			fileInputRef.current?.click();
-			setOpenFileInput(false);
+		if (openCameraInput) {
+			cameraInputRef.current?.click();
+			setOpenCameraInput(false);
 		}
-	}, [openFileInput]);
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	}, [openCameraInput]);
+	const cameraInputRef = useRef<HTMLInputElement>(null);
 	return (
 		<Input
 			type="file"
-			ref={fileInputRef}
+			ref={cameraInputRef}
 			onChange={(event) => {
 				event.target.files && onFileSubmit(event.target.files);
 			}}
-			accept={acceptedFileTypes}
+			accept={acceptedFileTypes + ";capture=camera"}
+			capture="user"
 			multiple={multiple}
 		/>
 	);

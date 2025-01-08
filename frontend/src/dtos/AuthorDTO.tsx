@@ -7,4 +7,7 @@ export interface AuthorDTO {
 	createdAt: Date;
 	isUser: boolean;
 	followStatus: boolean
+	faculty: string;
+	birthday: Date;
+	biography: string;
 }

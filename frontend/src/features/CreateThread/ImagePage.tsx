@@ -1,7 +1,7 @@
 import { TextField } from "@mui/material";
 import { Controller, Control } from "react-hook-form";
 import FileInput from "../../components/FileInput";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Button from "../../components/Button";
 import Snackbar from "../../components/Snackbar";
 import UploadedImageList from "./UploadedImageList";
@@ -19,15 +19,13 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 	const [openImageDeletedSnackbar, setOpenImageDeletedSnackbar] =
 		useState(false);
 	const [imageDeleted, setImageDeleted] = useState<File>({} as File);
-	const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-		if (event.target.files) {
-			const newImages = Array.from(event.target.files);
-			newImages.forEach((image: File) => imagesSelected.push(image));
-			setImagesSelected(imagesSelected);
-			setOpenImageUploadedSnackbar(true);
-		}
+	const handleUploadImage = (files: FileList) => {
+		const newImages = Array.from(files);
+		newImages.forEach((image: File) => imagesSelected.push(image));
+		setImagesSelected(imagesSelected);
+		setOpenImageUploadedSnackbar(true);
 	};
-	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [openFileInput, setOpenFileInput] = useState(false);
 	return (
 		<>
 			<Controller
@@ -49,7 +47,7 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 			<br />
 			<Button
 				variant="outlined"
-				handleButtonClick={() => fileInputRef.current?.click()}
+				handleButtonClick={() => setOpenFileInput(true)}
 				fontSize={18}
 				color="primary.dark"
 				buttonStyle={{
@@ -72,10 +70,10 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 			/>
 			{/*Hidden file input*/}
 			<FileInput
-				type="file"
-				onChange={handleUploadImage}
-				ref={fileInputRef}
-				accept="image/jpeg, image/png, image/gif"
+				onFileSubmit={handleUploadImage}
+				openFileInput={openFileInput}
+				setOpenFileInput={setOpenFileInput}
+				acceptedFileTypes="image/jpeg, image/png, image/gif"
 				multiple
 			/>
 			{/*Image uploaded snackbar*/}

@@ -41,7 +41,7 @@ export default function MainBody({
 					closeLeftNavBar={closeLeftNavBar}
 					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 				/>
-				<Box width="100%">
+				<Box maxWidth="100%" flexGrow={1}>
 					<Outlet />
 				</Box>
 			</Box>
