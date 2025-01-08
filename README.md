@@ -2,11 +2,11 @@
 Creator: Hoo Di Heng  
 
 ### Tech Stack  
-***Front-End:***  
+**Front-End:**  
 React DOM, TypeScript  
-***Back-End:***  
+**Back-End:**  
 GoLang, Gin  
-***Database:***   
+**Database:**   
 PostgreSQL
 
 ### Hosting  
