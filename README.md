@@ -7,7 +7,7 @@ React DOM, TypeScript
 **Back-End:**  
 GoLang, Gin  
 **Database:**   
-PostgreSQL
+PostgreSQL  
 **File Storage:**  
 AWS S3 Buckets
 
