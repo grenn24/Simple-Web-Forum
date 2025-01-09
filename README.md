@@ -3,7 +3,7 @@ Creator: Hoo Di Heng
 
 ### Tech Stack  
 **Front-End:**  
-React, TypeScript, MUI  
+React, TypeScript, Redux, MUI  
 **Back-End:**  
 GoLang, Gin  
 **Database:**   
