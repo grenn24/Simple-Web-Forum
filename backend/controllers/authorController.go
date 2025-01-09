@@ -136,8 +136,10 @@ func (authorController *AuthorController) UpdateUser(context *gin.Context, db *s
 
 	author.Username = context.PostForm("username")
 	author.Name = context.PostForm("name")
+	biography :=  context.PostForm("biography")
+	author.Biography = &biography
 	avatarIcon, err := context.FormFile("avatar_icon")
-
+	// error either due to no avatar icon or internal server error
 	if err != nil {
 		// Check for internal server errors
 		if err.Error() != "http: no such file" {

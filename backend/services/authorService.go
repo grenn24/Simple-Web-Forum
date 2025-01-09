@@ -34,6 +34,7 @@ func (authorService *AuthorService) GetAllAuthors() ([]*dtos.AuthorDTO, *dtos.Er
 
 func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int) (*dtos.AuthorDTO, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	followRepository := &repositories.FollowRepository{DB: authorService.DB}
 
 	author, err := authorRepository.GetAuthorWithFollowStatusByID(authorID, userAuthorID)
 	if err != nil {
@@ -55,6 +56,18 @@ func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int
 	// Check if the author being requested is the current user
 	isUser := userAuthorID == author.AuthorID
 	author.IsUser = &isUser
+
+	// Get follower count
+	followerCount, err := followRepository.CountFollowersByAuthorID(authorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	author.FollowerCount = &followerCount
+
 	return author, nil
 }
 

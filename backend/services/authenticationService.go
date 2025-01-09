@@ -64,13 +64,44 @@ func (authenticationService *AuthenticationService) LogIn(email string, password
 	return jwtToken, refreshToken, nil
 }
 
-func (authenticationService *AuthenticationService) SignUp(name string, username string, email string, password string) (string, string, *dtos.Error) {
+func (authenticationService *AuthenticationService) SignUp(signUpRequest *dtos.SignUpRequest) (string, string, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authenticationService.DB}
 
-	passwordHash := utils.HashPassword(password)
 
 	// Declare a pointer to a new instance of an author struct
-	author := &models.Author{Name: name, Username: username, Email: email, PasswordHash: passwordHash}
+	author := new(models.Author)
+	author.Name = signUpRequest.Name
+	author.Username = signUpRequest.Username
+	author.Email = signUpRequest.Email
+	author.PasswordHash = utils.HashPassword(signUpRequest.Password)
+	author.Faculty = signUpRequest.Faculty
+	author.Biography = signUpRequest.Biography
+	author.Birthday = signUpRequest.Birthday
+
+	// Check if avatar icon file was uploaded
+	if signUpRequest.AvatarIcon != nil {
+		// Upload the avatar icon to s3 bucket and obtain the public link
+		filename, file, err := utils.ConvertFileHeaderToFile(signUpRequest.AvatarIcon)
+		if err != nil {
+			return "", "", &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		defer (*file).Close()
+
+		avatarIconLink, err := utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+		if err != nil {
+			return "","",&dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		// Assign the newly returned link to author model struct
+		author.AvatarIconLink = &avatarIconLink
+	}
 
 	userAuthorID, err := authorRepository.CreateAuthor(author)
 
@@ -133,6 +164,40 @@ func (authenticationService *AuthenticationService) SignUp(name string, username
 	return jwtToken, refreshToken, nil
 }
 
+func (authenticationService *AuthenticationService) SignUpCheckAvailability(name string, username string, email string, password string) *dtos.Error {
+	authorRepository := &repositories.AuthorRepository{DB: authenticationService.DB}
+
+	author := authorRepository.GetAuthorByName(name)
+	// Name already used
+	if author != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "NAME_ALREADY_EXISTS",
+			Message:   "The name provided has already been used. (case insensitive)",
+		}
+	}
+	author = authorRepository.GetAuthorByUsername(username)
+	// Username already used
+	if author != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "USERNAME_ALREADY_EXISTS",
+			Message:   "The username provided has already been used. (case insensitive)",
+		}
+	}
+	author = authorRepository.GetAuthorByEmail(email)
+	// Email already used
+	if author != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "EMAIL_ALREADY_EXISTS",
+			Message:   "The email provided has already been used. (case insensitive)",
+		}
+	}
+
+	return nil
+}
+
 // Generate a new jwt token using user author id
 func (authenticationService *AuthenticationService) GenerateJwtToken(userAuthorID int) (string, *dtos.Error) {
 	jwtToken, err := utils.GenerateJwtToken(userAuthorID, os.Getenv("JWT_TOKEN_MAX_AGE")+"s", "user")
@@ -149,7 +214,7 @@ func (authenticationService *AuthenticationService) GenerateJwtToken(userAuthorI
 	return jwtToken, nil
 }
 
-// Validate a jwt token 
+// Validate a jwt token
 func (authenticationService *AuthenticationService) ValidateJwtToken(jwtToken string) *dtos.Error {
 
 	jwtTokenSlice := strings.Split(jwtToken, ".")

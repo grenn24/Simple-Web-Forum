@@ -102,6 +102,7 @@ export function parseAuthor(author: any): AuthorDTO {
 		faculty: author.faculty,
 		birthday: new Date(author.birthday),
 		biography: author.biography,
+		followerCount: author.follower_count,
 	};
 }
 

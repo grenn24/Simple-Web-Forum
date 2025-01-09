@@ -139,7 +139,7 @@ const CreateThread = () => {
 			<Snackbar
 				openSnackbar={openThreadPostErrorSnackbar}
 				setOpenSnackbar={setOpenThreadPostErrorSnackbar}
-				message="An error has occured while posting the thread. Please try again in a moment"
+				message="An error occurred while posting the thread. Please try again."
 				duration={3000}
 				undoButton={false}
 			/>

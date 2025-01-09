@@ -19,7 +19,7 @@ import {
 	NotificationsActiveRounded as NotificationsActiveRoundedIcon,
 	EditRounded as EditRoundedIcon,
 	CheckRounded as CheckRoundedIcon,
-	FileUploadRounded as FileUploadRoundedIcon,
+	AttachFileRounded as AttachFileRoundedIcon,
 	DeleteRounded as DeleteRoundedIcon,
 	PhotoCameraRounded as PhotoCameraRoundedIcon,
 } from "@mui/icons-material";
@@ -58,6 +58,12 @@ const Profile = () => {
 		useState(false);
 	const [openAvatarIconDeletedSnackbar, setOpenAvatarIconDeletedSnackbar] =
 		useState(false);
+	const [openAvatarIconUploadedSnackbar, setOpenAvatarIconUploadedSnackbar] =
+		useState(false);
+	const [
+		openAvatarIconUploadErrorSnackbar,
+		setOpenAvatarIconUploadErrorSnackbar,
+	] = useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const [openCameraInput, setOpenCameraInput] = useState(false);
 
@@ -151,8 +157,11 @@ const Profile = () => {
 			putFormData(
 				"/authors/user/avatar-icon-link",
 				formData,
-				() => {},
-				(err) => console.log(err)
+				() => setOpenAvatarIconUploadedSnackbar(true),
+				(err) => {
+					console.log(err);
+					setOpenAvatarIconUploadErrorSnackbar(true);
+				}
 			);
 		}
 	};
@@ -262,7 +271,7 @@ const Profile = () => {
 								divider
 								listIconsArray={[
 									<PhotoCameraRoundedIcon sx={{ marginRight: 1 }} />,
-									<FileUploadRoundedIcon sx={{ marginRight: 1 }} />,
+									<AttachFileRoundedIcon sx={{ marginRight: 1 }} />,
 									<DeleteRoundedIcon sx={{ marginRight: 1 }} />,
 									<></>,
 								]}
@@ -441,7 +450,7 @@ const Profile = () => {
 					}
 				/>
 			</Box>
-			{/*Hidden file input*/}
+			{/*Hidden avatar icon input components*/}
 			<FileInput
 				onFileSubmit={handleUploadAvatarIcon}
 				openFileInput={openFileInput}
@@ -459,6 +468,22 @@ const Profile = () => {
 				openSnackbar={openFileSizeLimitSnackbar}
 				setOpenSnackbar={setOpenFileSizeLimitSnackbar}
 				message="File size exceeds 20mb limit"
+				duration={2000}
+				undoButton={false}
+			/>
+			{/*Avatar icon uploaded snackbar*/}
+			<Snackbar
+				openSnackbar={openAvatarIconUploadedSnackbar}
+				setOpenSnackbar={setOpenAvatarIconUploadedSnackbar}
+				message="Avatar icon uploaded successfully"
+				duration={2000}
+				undoButton={false}
+			/>
+			{/*Avatar icon upload error snackbar*/}
+			<Snackbar
+				openSnackbar={openAvatarIconUploadErrorSnackbar}
+				setOpenSnackbar={setOpenAvatarIconUploadErrorSnackbar}
+				message="An error occurred while uploading the avatar icon. Please try again."
 				duration={2000}
 				undoButton={false}
 			/>

@@ -32,22 +32,22 @@ import Snackbar from "../components/Snackbar/index.ts";
 import List from "../components/List/index.tsx";
 import { useState, useEffect } from "react";
 import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems.tsx";
-import playerGenerator from "../utilities/playerGenerator.tsx";
+import playerGenerator from "../utilities/playerGenerator.ts";
 import likeSound from "../assets/audio/like-sound.mp3";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
-import { Delete, get, postJSON, putJSON } from "../utilities/apiClient.tsx";
+import { Delete, get, postJSON, putJSON } from "../utilities/apiClient.ts";
 import { useForm, Controller } from "react-hook-form";
 import { ThreadDTO } from "../dtos/ThreadDTO.tsx";
-import { dateToTimeYear } from "../utilities/dateToString.tsx";
+import { dateToTimeYear } from "../utilities/dateToString.ts";
 import MenuExpandedIcons from "../features/Thread/TopRightMenu/MenuExpandedIcons.tsx";
 import handleMenuExpandedItemsClick from "../features/Thread/TopRightMenu/handleMenuExpandedItemsClick.tsx";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading.tsx";
 import { TopicDTO } from "../dtos/TopicDTO.tsx";
 import { CommentDTO } from "../dtos/CommentDTO.tsx";
 import commentSortOrder from "../features/Thread/commentSortOrder.tsx";
-import { parseThread } from "../utilities/parseApiResponse.tsx";
+import { parseThread } from "../utilities/parseApiResponse.ts";
 import MediaViewer from "../components/MediaViewer.tsx";
 
 const Thread = () => {

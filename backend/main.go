@@ -56,7 +56,10 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			email TEXT NOT NULL,
 			password_hash TEXT NOT NULL,
 			avator_icon_link TEXT,
-			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			biography TEXT NOT NULL DEFAULT '',
+			faculty TEXT,
+			birthday DATE
 		);
 		CREATE UNIQUE INDEX IF NOT EXISTS author_name_lowercase ON author(LOWER(name));
 		CREATE UNIQUE INDEX IF NOT EXISTS author_username_lowercase ON author(LOWER(username));
@@ -66,7 +69,7 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			thread_id SERIAL PRIMARY KEY,
 			title TEXT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-			content TEXT NOT NULL,
+			content TEXT DEFAULT '',
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
 			image_link TEXT[] DEFAULT '{}',

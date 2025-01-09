@@ -12,7 +12,7 @@ type AuthorRepository struct {
 }
 
 func (authorRepository *AuthorRepository) GetAllAuthors() ([]*dtos.AuthorDTO, error) {
-	rows, err := authorRepository.DB.Query("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author")
+	rows, err := authorRepository.DB.Query("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author")
 
 	if err != nil {
 		return nil, err
@@ -35,6 +35,7 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*dtos.AuthorDTO, er
 			&author.Email,
 			&author.AvatarIconLink,
 			&author.CreatedAt,
+			&author.Biography,
 		)
 
 		// Check for any scanning errors
@@ -50,10 +51,23 @@ func (authorRepository *AuthorRepository) GetAllAuthors() ([]*dtos.AuthorDTO, er
 
 }
 
+func (authorRepository *AuthorRepository) GetAuthorByName(name string) *models.Author {
+	author := new(models.Author)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author WHERE LOWER(name) = LOWER($1)", name)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography)
+
+	// No authors found
+	if err != nil || err == sql.ErrNoRows {
+
+		return nil
+	}
+	return author
+}
+
 func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) *models.Author {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(username) = LOWER($1)", username)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author WHERE LOWER(username) = LOWER($1)", username)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -65,8 +79,8 @@ func (authorRepository *AuthorRepository) GetAuthorByUsername(username string) *
 
 func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) *models.Author {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE LOWER(email) = LOWER($1)", email)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author WHERE LOWER(email) = LOWER($1)", email)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -78,8 +92,8 @@ func (authorRepository *AuthorRepository) GetAuthorByEmail(email string) *models
 
 func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash string) *models.Author {
 	author := new(models.Author)
-	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE password_hash = $1", passwordHash)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author WHERE password_hash = $1", passwordHash)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography)
 
 	// No authors found
 	if err != nil || err == sql.ErrNoRows {
@@ -91,8 +105,8 @@ func (authorRepository *AuthorRepository) GetAuthorByPasswordHash(passwordHash s
 
 func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*dtos.AuthorDTO, error) {
 	author := new(dtos.AuthorDTO)
-	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at FROM author WHERE author_id = $1", authorID)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt)
+	row := authorRepository.DB.QueryRow("SELECT author_id, name, username, email, avatar_icon_link, created_at, biography FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography)
 
 	// No authors found
 	if err != nil {
@@ -105,7 +119,7 @@ func (authorRepository *AuthorRepository) GetAuthorByID(authorID int) (*dtos.Aut
 func (authorRepository *AuthorRepository) GetAuthorWithFollowStatusByID(authorID int, userAuthorID int) (*dtos.AuthorDTO, error) {
 	author := new(dtos.AuthorDTO)
 	row := authorRepository.DB.QueryRow(`
-		SELECT author.author_id, author.name, author.username, author.email, author.avatar_icon_link, author.created_at,
+		SELECT author.author_id, author.name, author.username, author.email, author.avatar_icon_link, author.created_at, author.biography,
 		CASE 
 			WHEN follow.followee_author_id IS NOT NULL AND follow.follower_author_id IS NOT NULL 
 			THEN TRUE 
@@ -115,7 +129,7 @@ func (authorRepository *AuthorRepository) GetAuthorWithFollowStatusByID(authorID
 		LEFT JOIN follow ON follow.followee_author_id = author.author_id AND follow.follower_author_id = $1
 		WHERE author.author_id = $2
 	`, userAuthorID, authorID)
-	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.FollowStatus)
+	err := row.Scan(&author.AuthorID, &author.Name, &author.Username, &author.Email, &author.AvatarIconLink, &author.CreatedAt, &author.Biography, &author.FollowStatus)
 
 	// No authors found
 	if err != nil {
@@ -193,7 +207,11 @@ func (authorRepository *AuthorRepository) GetAvatarIconLinkByAuthorID(authorID i
 func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (int, error) {
 	var authorID int64
 
-	row := authorRepository.DB.QueryRow("INSERT INTO author (name, username, email, password_hash, avatar_icon_link) VALUES ($1, $2, $3, $4, $5) RETURNING author_id", author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink)
+	row := authorRepository.DB.QueryRow(`
+		INSERT INTO author (name, username, email, password_hash, avatar_icon_link, biography, birthday, faculty)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING author_id
+	`, author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink, author.Biography, author.Birthday, author.Faculty)
 	// Check for errors while returning author id
 	err := row.Scan(&authorID)
 
@@ -220,14 +238,18 @@ func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, a
 			return err
 		}
 	}
-	// Check if avatar icon field is nil
-	if author.AvatarIconLink != nil {
-		_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = $1 WHERE author_id = $2", author.AvatarIconLink, authorID)
+	_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = $1 WHERE author_id = $2", author.AvatarIconLink, authorID)
+	if err != nil {
+		return err
+	}
+	// Check if biography field is nil
+	if author.Biography != nil {
+		_, err := authorRepository.DB.Exec("UPDATE author SET biography = $1 WHERE author_id = $2", author.Biography, authorID)
 		if err != nil {
 			return err
 		}
 	} else {
-		_, err := authorRepository.DB.Exec("UPDATE author SET avatar_icon_link = NULL WHERE author_id = $1", authorID)
+		_, err := authorRepository.DB.Exec("UPDATE author SET biography = '' WHERE author_id = $1", authorID)
 		if err != nil {
 			return err
 		}

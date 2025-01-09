@@ -1,9 +1,9 @@
 import "./styles/App.css";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import WelcomeScreen from "./pages/WelcomeScreen";
+import WelcomeLayout from "./Layouts/WelcomeLayout/WelcomeLayout";
 import Following from "./pages/Following";
-import MainLayout from "./pages/MainLayout";
+import MainLayout from "./Layouts/MainLayout/MainLayout";
 //import Error from "./pages/Error";
 import Home from "./pages/Home";
 import Topics from "./pages/Topics";
@@ -19,6 +19,11 @@ import AutoScrollToTop from "./utilities/AutoScrollToTop";
 import Authentication from "./components/AuthenticationWrapper";
 import Error from "./pages/Error";
 import Profile from "./pages/Profile";
+import Welcome from "./features/Welcome/Welcome";
+import LogIn from "./features/Welcome/LogIn";
+import SignUpStage1 from "./features/Welcome/SignUpStage1";
+import SignUpStage2 from "./features/Welcome/SignUpStage2";
+import SignUpStage3 from "./features/Welcome/SignUpStage3";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -46,7 +51,7 @@ function App() {
 				<BrowserRouter>
 					<Routes>
 						{/*Protected Routes using Main Layout and require jwt token authentication*/}
-						<Route path="" element={<Authentication />}>
+						<Route path="/" element={<Authentication />}>
 							<Route
 								path=""
 								element={
@@ -76,7 +81,15 @@ function App() {
 						</Route>
 
 						{/*Non-protected routes*/}
-						<Route path="Welcome" element={<WelcomeScreen />} />
+						<Route path="/Welcome" element={<WelcomeLayout />}>
+							<Route index element={<Welcome />} />
+							<Route path="Log-In" element={<LogIn />} />
+							<Route path="Sign-Up">
+								<Route path="1" element={<SignUpStage1 />} />
+								<Route path="2" element={<SignUpStage2 />} />
+								<Route path="3" element={<SignUpStage3 />} />
+							</Route>
+						</Route>
 						{/*Missed Routes*/}
 						<Route path="*" element={<Error />} />
 					</Routes>

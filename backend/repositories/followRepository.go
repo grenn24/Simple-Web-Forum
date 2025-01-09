@@ -106,3 +106,10 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 
 	return followedThreads, err
 }
+
+func (followRepository *FollowRepository) CountFollowersByAuthorID (authorID int) (int, error) {
+	var followerCount int
+	row := followRepository.DB.QueryRow("SELECT COUNT(*) FROM follow WHERE followee_author_id = $1", authorID)
+	err := row.Scan(&followerCount)
+	return followerCount, err
+}

@@ -12,6 +12,7 @@ type Author struct {
 	Email        string    `json:"email" db:"email"`
 	PasswordHash string    `json:"password_hash" db:"password_hash"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
+	Biography    string    `json:"biography,omitempty" db:"biography"`
 	// Optional JSON Fields
 	AvatarIconLink *string    `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
 	Faculty        *string    `json:"faculty,omitempty" db:"faculty"`

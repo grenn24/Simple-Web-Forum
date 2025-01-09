@@ -20,6 +20,10 @@ func AuthenticationRoutes(router *gin.RouterGroup, db *sql.DB) {
 		authenticationController.LogIn(context, db)
 	})
 
+	authenticationRouter.POST("/sign-up/check-availability", func(context *gin.Context) {
+		authenticationController.SignUpCheckAvailability(context, db)
+	})
+
 	authenticationRouter.POST("/sign-up", func(context *gin.Context) {
 		authenticationController.SignUp(context, db)
 	})

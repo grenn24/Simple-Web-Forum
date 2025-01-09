@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, TextField } from "@mui/material";
+import { Box, Card, CardContent, TextField, Typography } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +8,8 @@ import {
 	ArrowForwardIosRounded as ArrowForwardIosRoundedIcon,
 } from "@mui/icons-material";
 
-interface Prop {
-	opacity: number;
-	visibility: string;
-	setFormStatus: (status: string) => void;
-}
-const LogIn = ({ opacity, visibility, setFormStatus }: Prop) => {
+
+const LogIn = () => {
 	const {
 		register,
 		handleSubmit,
@@ -29,7 +25,7 @@ const LogIn = ({ opacity, visibility, setFormStatus }: Prop) => {
 				password: data.password,
 			},
 			() => {
-				navigate("..");
+				navigate("/");
 			},
 			(err) => {
 				const responseBody = err.data;
@@ -49,32 +45,36 @@ const LogIn = ({ opacity, visibility, setFormStatus }: Prop) => {
 
 	return (
 		<Box
-			position="absolute"
-			top="50%"
-			left="50%"
 			display="flex"
 			flexDirection="column"
 			justifyContent="center"
 			alignItems="center"
-			sx={{
-				transform: "translate(-50%, -50%)",
-				opacity: opacity,
-				visibility: visibility,
-				transition: "all 1.0s ease-in-out",
-			}}
 			{...register("email", { required: true })}
 		>
-			<Box width="100%" display="flex" justifyContent="flex-start">
-				<Button
-					buttonIcon={<ArrowBackRoundedIcon />}
-					color="primary.dark"
-					handleButtonClick={() => setFormStatus("none")}
-				/>
-			</Box>
-
-			<Card elevation={4} sx={{ width: 300 }}>
+			<Card elevation={4} sx={{ width: 350 }}>
 				<form onSubmit={handleFormSubmit}>
 					<CardContent>
+						<Box
+							width="100%"
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+							marginBottom={1}
+						>
+							<Button
+								buttonIcon={<ArrowBackRoundedIcon />}
+								color="primary.dark"
+								handleButtonClick={() => navigate("/Welcome")}
+							/>
+							<Typography fontFamily="Open Sans" fontSize={20}>
+						
+							</Typography>
+							<Button
+								buttonIcon={<ArrowBackRoundedIcon />}
+								color="primary.dark"
+								buttonStyle={{ opacity: 0, cursor: "default" }}
+							/>
+						</Box>
 						<TextField
 							label="Email"
 							variant="outlined"

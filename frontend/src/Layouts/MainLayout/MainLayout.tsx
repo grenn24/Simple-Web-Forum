@@ -1,9 +1,8 @@
 import Box from "@mui/material/Box";
-import LeftNavigationBar from "../features/MainLayout/LeftNavigationBar";
-import { Outlet} from "react-router-dom";
-import TopHeader from "../features/MainLayout/TopHeader";
+import LeftNavigationBar from "./LeftNavigationBar";
+import { Outlet } from "react-router-dom";
+import TopHeader from "./TopHeader";
 import Divider from "@mui/material/Divider";
-
 
 interface Prop {
 	leftNavBarExpandedStatus: boolean;
@@ -19,7 +18,6 @@ export default function MainBody({
 	handleLeftBarCloseTransitionEnd,
 	openLeftNavBar,
 }: Prop) {
-
 	return (
 		<Box width="100vw" height="100vh">
 			<TopHeader
@@ -32,7 +30,7 @@ export default function MainBody({
 				sx={{
 					display: "flex",
 					marginTop: `80px`,
-					flexDirection: "row"
+					flexDirection: "row",
 				}}
 			>
 				<LeftNavigationBar
@@ -44,6 +42,7 @@ export default function MainBody({
 				<Box maxWidth="100%" flexGrow={1}>
 					<Outlet />
 				</Box>
+				
 			</Box>
 		</Box>
 	);

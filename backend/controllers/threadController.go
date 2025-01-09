@@ -172,7 +172,7 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 	}
 
 	// Check if the binded struct contains necessary fields
-	if thread.Title == "" || thread.Content == "" || thread.AuthorID == 0 {
+	if thread.Title == "" || thread.AuthorID == 0 {
 		context.JSON(http.StatusBadRequest, dtos.Error{
 			Status:    "error",
 			ErrorCode: "MISSING_REQUIRED_FIELDS",

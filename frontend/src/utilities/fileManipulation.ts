@@ -1,7 +1,7 @@
-export function generateFileURL(file: File) {
-    const url = URL.createObjectURL(file);
+export function generateFileURL(file: File | null, timeout  : number=2000) {
+    const url = file ? URL.createObjectURL(file) : "";
     // Release memory associated with url shortly after it is opened
-    setTimeout(()=>URL.revokeObjectURL(url),2000)
+    setTimeout(()=>URL.revokeObjectURL(url),timeout)
     return url
 }
 

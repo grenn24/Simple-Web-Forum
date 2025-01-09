@@ -10,4 +10,5 @@ export interface AuthorDTO {
 	faculty: string;
 	birthday: Date;
 	biography: string;
+	followerCount: number
 }

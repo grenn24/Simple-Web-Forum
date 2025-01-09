@@ -33,6 +33,7 @@ interface Prop {
 	iconPosition?: "start" | "end";
 	type?: string;
 	loadingStatus?: boolean;
+	fullWidth?:boolean
 }
 const Button = ({
 	role = "undefined",
@@ -59,6 +60,7 @@ const Button = ({
 	iconPosition = "start",
 	type,
 	loadingStatus,
+	fullWidth
 }: Prop) => {
 	const buttonWithoutTooltipText = (
 		<>
@@ -75,6 +77,7 @@ const Button = ({
 						disabled={disabled || loadingStatus}
 						size={size}
 						disableRipple={disableRipple}
+						fullWidth={fullWidth}
 						sx={{
 							...buttonStyle,
 							borderRadius: { borderRadius },

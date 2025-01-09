@@ -16,24 +16,12 @@ type AuthenticationController struct {
 	AuthenticationService *services.AuthenticationService
 }
 
-type LogInRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type SignUpRequest struct {
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 // Issue authentication tokens (jwt and refresh token)
 func (authenticationController *AuthenticationController) LogIn(context *gin.Context, db *sql.DB) {
 	authenticationService := authenticationController.AuthenticationService
 
 	// Declare a pointer to a new instance of a log-in request struct
-	logInRequest := new(LogInRequest)
+	logInRequest := new(dtos.LogInRequest)
 
 	err := context.ShouldBind(logInRequest)
 
@@ -79,12 +67,12 @@ func (authenticationController *AuthenticationController) LogIn(context *gin.Con
 	})
 }
 
-// Issue authentication tokens (jwt and refresh token)
-func (authenticationController *AuthenticationController) SignUp(context *gin.Context, db *sql.DB) {
+// Check availability of name, username, email before sign up
+func (authenticationController *AuthenticationController) SignUpCheckAvailability(context *gin.Context, db *sql.DB) {
 	authenticationService := authenticationController.AuthenticationService
 
 	// Declare a pointer to a new instance of a sign-up request struct
-	signUpRequest := new(SignUpRequest)
+	signUpRequest := new(dtos.SignUpRequest)
 
 	err := context.ShouldBind(signUpRequest)
 
@@ -108,7 +96,75 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 		return
 	}
 
-	jwtToken, refreshToken, responseErr := authenticationService.SignUp(signUpRequest.Name, signUpRequest.Username, signUpRequest.Email, signUpRequest.Password)
+	responseErr := authenticationService.SignUpCheckAvailability(signUpRequest.Name, signUpRequest.Username, signUpRequest.Email, signUpRequest.Password)
+
+	// Check for existing authors with same credentials
+	if responseErr != nil {
+		if responseErr.ErrorCode != "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusBadRequest, responseErr)
+		} else {
+			context.JSON(http.StatusInternalServerError, responseErr)
+		}
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "You're ready to create an account!",
+	})
+}
+
+// Issue authentication tokens (jwt and refresh token)
+func (authenticationController *AuthenticationController) SignUp(context *gin.Context, db *sql.DB) {
+	authenticationService := authenticationController.AuthenticationService
+
+	// Declare a pointer to a new instance of a sign-up request struct
+	signUpRequest := new(dtos.SignUpRequest)
+	signUpRequest.Name = context.PostForm("name")
+	signUpRequest.Username = context.PostForm("username")
+	signUpRequest.Password = context.PostForm("password")
+	signUpRequest.Email = context.PostForm("email")
+	signUpRequest.Biography = context.PostForm("biography")
+
+	// Convert empty strings to nil
+	if faculty := context.PostForm("faculty"); faculty == "" {
+		signUpRequest.Faculty = nil
+	} else {
+		signUpRequest.Faculty = &faculty
+	}
+	if birthday := context.PostForm("birthday"); birthday == "" {
+		signUpRequest.Birthday = nil
+	} else {
+		birthday := utils.DateStringToTime(birthday)
+		signUpRequest.Birthday = &birthday
+	}
+	// Check if avatar icon was uploaded
+	if avatarIcon, err := context.FormFile("avatar_icon"); err != nil {
+		// Check for internal server errors / no file uploaded error
+		if err.Error() != "http: no such file" {
+			context.JSON(http.StatusInternalServerError, dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			})
+			return
+		}
+		avatarIcon = nil
+	} else {
+		signUpRequest.AvatarIcon = avatarIcon
+	}
+
+	// Check if the binded struct contains necessary fields
+	if signUpRequest.Name == "" || signUpRequest.Email == "" || signUpRequest.Password == "" || signUpRequest.Username == "" {
+		context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:    "error",
+			ErrorCode: "MISSING_REQUIRED_FIELDS",
+			Message:   "Missing required sign-up fields",
+		})
+		return
+	}
+
+	jwtToken, refreshToken, responseErr := authenticationService.SignUp(signUpRequest)
 
 	// Check for existing authors with same credentials
 	if responseErr != nil {
@@ -121,8 +177,8 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 	}
 
 	// Return the newly created jwt token and refresh token in http response header as cookies
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=Strict", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=Strict", refreshToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("REFRESH_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
@@ -164,7 +220,7 @@ func (authenticationController *AuthenticationController) RefreshJwtToken(contex
 		return
 	}
 
-	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=Strict", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status:  "success",
