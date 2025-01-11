@@ -35,5 +35,6 @@ Keep track of upload progress
 ### Authentication
 - Short lived jwt tokens are needed for authentication with backend api protected routes
 - Longer lived refresh tokens are used to request for new jwt token from backend api once jwt token expires
+- Supports OAuth
 
 ### Setup  
