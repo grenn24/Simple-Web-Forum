@@ -21,7 +21,7 @@ Protected routes require jwt user token
 - /threads/:threadID (protected)  
 Perform CRUD operations on threads or thread-specific resources
 - /authors/:authorID (protected)   
-Perform CRUD operations on authors or author-specific resources
+Perform CRUD operations on authors or author-specific resources (e.g. likes, comments, bookmarks, follows)
 
 ### Core Features
 - Thread Creation: start a thread on any topic  
