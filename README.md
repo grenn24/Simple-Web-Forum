@@ -24,7 +24,9 @@ Perform CRUD operations on threads or thread-specific resources
 Perform CRUD operations on authors or author-specific resources
 
 ### Core Features
-- Thread Creation: start a thread on any topic
+- Thread Creation: start a thread on any topic  
+Post up to 30 images/gifs for each thread
+Keep track of upload progress
 - Discussions: Join discussion groups to share threads with trusted friends
 - Follow: Follow topics or authors whom you are interested in, and receive thread updates from them
 - Profile: Customise your bio, avatar and activity status
