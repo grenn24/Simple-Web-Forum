@@ -30,4 +30,8 @@ Perform CRUD operations on authors or author-specific resources
 - Profile: Customise your bio, avatar and activity status
 - Conversations: Message other authors you meet privately, and make new friends
 
+### Authentication
+- Short lived jwt tokens are needed for authentication with backend api protected routes
+- Longer lived refresh tokens are used to request for new jwt token from backend api once jwt token expires
+
 ### Setup  
