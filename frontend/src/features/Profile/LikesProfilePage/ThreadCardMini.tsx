@@ -5,7 +5,7 @@ import { useState } from "react";
 import playerGenerator from "../../../utilities/playerGenerator";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../../components/Button";
-import { Delete, postJSON } from "../../../utilities/apiClient";
+import { Delete, postJSON } from "../../../utilities/api";
 import likeSound from "../../../assets/audio/like-sound.mp3";
 
 import {
@@ -14,7 +14,7 @@ import {
 } from "@mui/icons-material";
 
 interface Prop {
-	like: LikeDTO
+	like: LikeDTO;
 }
 const ThreadCardMini = ({ like }: Prop) => {
 	const [likeStatus, setLikestatus] = useState(like.thread.likeStatus);
@@ -26,15 +26,11 @@ const ThreadCardMini = ({ like }: Prop) => {
 		"default"
 	);
 	const navigate = useNavigate();
-	const {authorID} = useParams();
+	const { authorID } = useParams();
 
 	return (
 		<Box key={like.likeID}>
-			<Box
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-			>
+			<Box display="flex" justifyContent="space-between" alignItems="center">
 				<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600}>
 					{like.thread.title}
 				</Typography>
@@ -111,7 +107,7 @@ const ThreadCardMini = ({ like }: Prop) => {
 						py: 0,
 						px: 0.6,
 					}}
-					disabled={authorID!=="User"}
+					disabled={authorID !== "User"}
 					handleButtonClick={(event) => {
 						event.stopPropagation();
 						setLikestatus(!likeStatus);

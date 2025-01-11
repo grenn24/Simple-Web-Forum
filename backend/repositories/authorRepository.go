@@ -204,6 +204,19 @@ func (authorRepository *AuthorRepository) GetAvatarIconLinkByAuthorID(authorID i
 	return avatarIconLink
 }
 
+func (authorRepository *AuthorRepository) GetBiographyByAuthorID(authorID int) string {
+	var biography string
+	row := authorRepository.DB.QueryRow("SELECT biography FROM author WHERE author_id = $1", authorID)
+	err := row.Scan(&biography)
+
+	// No authors found
+	if err != nil || err == sql.ErrNoRows {
+
+		return ""
+	}
+	return biography
+}
+
 func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (int, error) {
 	var authorID int64
 
@@ -218,7 +231,7 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 	return int(authorID), err
 }
 
-// Skip name, username and email fields if they are assigned to empty strings
+// Update fields in author model (for non null db columns check if the field is null or empty string first)
 func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, authorID int) error {
 	if author.Name != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET name = $1 WHERE author_id = $2", author.Name, authorID)
@@ -232,7 +245,7 @@ func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, a
 			return err
 		}
 	}
-	if author.Email != nil {
+	if author.Email != nil && *author.Email != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET email = $1 WHERE author_id = $2", author.Email, authorID)
 		if err != nil {
 			return err
@@ -242,14 +255,8 @@ func (authorRepository *AuthorRepository) UpdateAuthor(author *dtos.AuthorDTO, a
 	if err != nil {
 		return err
 	}
-	// Check if biography field is nil
-	if author.Biography != nil {
+	if author.Biography != nil && *author.Biography != "" {
 		_, err := authorRepository.DB.Exec("UPDATE author SET biography = $1 WHERE author_id = $2", author.Biography, authorID)
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err := authorRepository.DB.Exec("UPDATE author SET biography = '' WHERE author_id = $1", authorID)
 		if err != nil {
 			return err
 		}

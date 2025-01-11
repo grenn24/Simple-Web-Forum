@@ -69,7 +69,7 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			thread_id SERIAL PRIMARY KEY,
 			title TEXT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-			content TEXT DEFAULT '',
+			content TEXT NOT NULL DEFAULT '',
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
 			image_link TEXT[] DEFAULT '{}',
@@ -176,7 +176,8 @@ func main() {
 
 	//Attach cors middleware to router (doesn't work with router groups)
 	router.Use(middlewares.CORS)
-
+	router.MaxMultipartMemory = 512 << 20
+	
 	//Set up routes for serving static html files
 	router.Static("/assets", "./dist/assets")
 	HandleMissedRoutes(router)

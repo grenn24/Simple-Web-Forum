@@ -12,7 +12,7 @@ import MenuExpandedDataValues from "./MenuExpandedDataValues";
 import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
 import { useWindowSize } from "@uidotdev/usehooks";
-import { get } from "../../../utilities/apiClient";
+import { get } from "../../../utilities/api";
 import SimpleDialog from "../../../components/SimpleDialog";
 import List from "../../../components/List";
 import { useEffect, useState } from "react";
@@ -26,14 +26,14 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 	const location = useLocation();
 	const screenWidth = useWindowSize().width as number;
 	const [openLogOutDialog, setOpenLogOutDialog] = useState(false);
-	const [avatarIconLink, setAvatarIconLink] = useState("")
-	
+	const [avatarIconLink, setAvatarIconLink] = useState("");
+
 	useEffect(
 		() =>
 			get(
 				"/authors/user/avatar-icon-link",
 				(res) => {
-					const avatarIconLink = res.data.data
+					const avatarIconLink = res.data.data;
 					setAvatarIconLink(avatarIconLink);
 				},
 				(err) => console.log(err)
@@ -112,7 +112,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							)
 						}
 					></Button>
-					<SearchBar placeholder="Search for a thread" />
+					<SearchBar placeholder="Search for anything" />
 					<Box display="flex" alignItems="center">
 						<Button
 							variant="text"
@@ -138,7 +138,11 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							menuExpandedItemsArray={MenuExpandedItems}
 							menuExpandedIconsArray={MenuExpandedIcons}
 							menuIcon={
-								<Avatar alt="Remy Sharp" src={avatarIconLink} sx={{width: 40, height: 40}}/>
+								<Avatar
+									alt="Remy Sharp"
+									src={avatarIconLink}
+									sx={{ width: 40, height: 40 }}
+								/>
 							}
 							handleMenuExpandedItemsClick={[
 								(event: React.MouseEvent<HTMLElement>) =>

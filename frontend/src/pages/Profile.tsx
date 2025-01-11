@@ -26,7 +26,7 @@ import {
 import TabMenu from "../components/TabMenu/TabMenu";
 import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
 import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
-import { Delete, get, postJSON, putFormData } from "../utilities/apiClient";
+import { Delete, get, postJSON, putFormData } from "../utilities/api";
 import { Controller, useForm } from "react-hook-form";
 import { parseAuthor } from "../utilities/parseApiResponse";
 import { AuthorDTO } from "../dtos/AuthorDTO";
@@ -64,6 +64,8 @@ const Profile = () => {
 		openAvatarIconUploadErrorSnackbar,
 		setOpenAvatarIconUploadErrorSnackbar,
 	] = useState(false);
+	const [openProfileEditErrorSnackbar, setOpenProfileEditErrorSnackbar] =
+		useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const [openCameraInput, setOpenCameraInput] = useState(false);
 
@@ -138,6 +140,12 @@ const Profile = () => {
 							type: "custom",
 							message: errBody.message,
 						});
+					}
+					if (
+						errBody.error_code !== "USERNAME_ALREADY_EXISTS" &&
+						errBody.error_code !== "NAME_ALREADY_EXISTS"
+					) {
+						setOpenProfileEditErrorSnackbar(true);
 					}
 				}
 			);
@@ -269,24 +277,44 @@ const Profile = () => {
 						>
 							<List
 								divider
-								listIconsArray={[
-									<PhotoCameraRoundedIcon sx={{ marginRight: 1 }} />,
-									<AttachFileRoundedIcon sx={{ marginRight: 1 }} />,
-									<DeleteRoundedIcon sx={{ marginRight: 1 }} />,
-									<></>,
-								]}
-								listItemsArray={[
-									"Take a Photo",
-									"Upload from File",
-									"Delete Avatar Icon",
-									"Cancel",
-								]}
-								handleListItemsClick={[
-									() => setOpenCameraInput(true),
-									() => setOpenFileInput(true),
-									handleDeleteAvatarIcon,
-									() => setOpenUploadAvatarDialog(false),
-								]}
+								listIconsArray={
+									author.avatarIconLink
+										? [
+												<PhotoCameraRoundedIcon sx={{ marginRight: 1 }} />,
+												<AttachFileRoundedIcon sx={{ marginRight: 1 }} />,
+												<DeleteRoundedIcon sx={{ marginRight: 1 }} />,
+												<></>,
+										  ]
+										: [
+												<PhotoCameraRoundedIcon sx={{ marginRight: 1 }} />,
+												<AttachFileRoundedIcon sx={{ marginRight: 1 }} />,
+												<></>,
+										  ]
+								}
+								listItemsArray={
+									author.avatarIconLink
+										? [
+												"Take a Photo",
+												"Upload from File",
+												"Delete Avatar Icon",
+												"Cancel",
+										  ]
+										: ["Take a Photo", "Upload from File", "Cancel"]
+								}
+								handleListItemsClick={
+									author.avatarIconLink
+										? [
+												() => setOpenCameraInput(true),
+												() => setOpenFileInput(true),
+												handleDeleteAvatarIcon,
+												() => setOpenUploadAvatarDialog(false),
+										  ]
+										: [
+												() => setOpenCameraInput(true),
+												() => setOpenFileInput(true),
+												() => setOpenUploadAvatarDialog(false),
+										  ]
+								}
 							/>
 						</SimpleDialog>
 						<Box
@@ -296,7 +324,7 @@ const Profile = () => {
 							justifyContent="space-evenly"
 							marginLeft={2}
 						>
-							<Typography fontSize={28} fontWeight={600}>
+							<Typography fontSize={27} fontWeight={600}>
 								{isLoading ? (
 									<Skeleton
 										variant="rounded"
@@ -328,7 +356,7 @@ const Profile = () => {
 								)}
 							</Typography>
 
-							<Typography fontSize={18} fontWeight={300}>
+							<Typography fontSize={16} fontWeight={300}>
 								{isLoading ? (
 									<Skeleton
 										variant="rounded"
@@ -375,7 +403,7 @@ const Profile = () => {
 							<Button
 								buttonStyle={{ py: 0 }}
 								borderRadius={40}
-								fontSize={20}
+								fontSize={18}
 								buttonIcon={
 									followStatus ? (
 										<NotificationsActiveRoundedIcon />
@@ -395,7 +423,7 @@ const Profile = () => {
 								backgroundColor="rgba(69, 69, 69, 0.68)"
 								buttonStyle={{ py: 0 }}
 								borderRadius={40}
-								fontSize={20}
+								fontSize={18}
 								buttonIcon={
 									isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
 								}
@@ -434,7 +462,11 @@ const Profile = () => {
 							)}
 						/>
 					) : (
-						<Typography textAlign="center" sx={{ borderColor: "red" }}>
+						<Typography
+							textAlign="center"
+							sx={{ borderColor: "red" }}
+							whiteSpace="pre-wrap"
+						>
 							{author.biography}
 						</Typography>
 					)}
@@ -492,6 +524,14 @@ const Profile = () => {
 				openSnackbar={openAvatarIconDeletedSnackbar}
 				setOpenSnackbar={setOpenAvatarIconDeletedSnackbar}
 				message="Avatar icon deleted"
+				duration={2000}
+				undoButton={false}
+			/>
+			{/*Profile edit error snackbar*/}
+			<Snackbar
+				openSnackbar={openProfileEditErrorSnackbar}
+				setOpenSnackbar={setOpenProfileEditErrorSnackbar}
+				message="An error occurred while updating your profile. Please try again."
 				duration={2000}
 				undoButton={false}
 			/>

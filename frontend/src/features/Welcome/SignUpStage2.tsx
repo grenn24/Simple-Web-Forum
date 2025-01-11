@@ -23,6 +23,7 @@ import {
 	changeFaculty,
 	changeNusStudent,
 } from "./signUpSlice";
+import { motion } from "motion/react";
 
 const SignUpStage2 = () => {
 	const navigate = useNavigate();
@@ -60,101 +61,107 @@ const SignUpStage2 = () => {
 		dispatch(changeFaculty(faculty));
 	};
 	return (
-		<Box
-			display="flex"
-			flexDirection="column"
-			justifyContent="center"
-			alignItems="center"
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: 1.4 }}
 		>
-			<Box marginBottom={3} width={350}>
-				<Typography textAlign="center">
-					Share with others your birthday 🎂 and the faculty you are in 🏫
-				</Typography>
-			</Box>
+			<Box
+				display="flex"
+				flexDirection="column"
+				justifyContent="center"
+				alignItems="center"
+			>
+				<Box marginBottom={3} width={350}>
+					<Typography textAlign="center">
+						Share with others your birthday 🎂 and the faculty you are in 🏫
+					</Typography>
+				</Box>
 
-			<Card elevation={4} sx={{ width: 350, marginBottom: 10 }}>
-				<CardContent>
-					<Box
-						width="100%"
-						display="flex"
-						justifyContent="space-between"
-						alignItems="center"
-						marginBottom={1}
-					>
-						<Button
-							buttonIcon={<ArrowBackRoundedIcon />}
-							color="primary.dark"
-							handleButtonClick={() => navigate("../1")}
-							toolTipText="Return"
-						/>
-						<Typography fontFamily="Open Sans" fontSize={20}>
-							Step 2
-						</Typography>
-						<Button
-							buttonIcon={<ArrowForwardRoundedIcon />}
-							color="primary.dark"
-							handleButtonClick={() => {
-								dispatch(incrementStage());
-								navigate("../3");
-							}}
-							toolTipText="Skip"
-						/>
-					</Box>
-					<DatePicker
-						label="Birthday"
-						handleDateSelect={handleBirthdaySelect}
-						defaultValue={birthday}
-						width="100%"
-					/>
-					<br />
-					<br />
-					<Select
-						label="Faculty"
-						defaultValue={faculty}
-						handleSelect={handleFacultySelect}
-						values={[
-							"Computing",
-							"Business",
-							"Dentistry",
-							"Law",
-							"Medicine",
-							"Science",
-							"Arts and Social Sciences",
-							"Public Health",
-							"Engineering",
-						]}
-						disabled={disableFacultySelect}
-					/>
-					<br />
-					<br />
-					<FormControlLabel
-						control={<Checkbox />}
-						label="I am currently not a NUS student"
-						onChange={(_, checked) => {
-							setDisableFacultySelect(!disableFacultySelect);
-							if (checked) {
-								
-								dispatch(changeFaculty(undefined));
-								dispatch(changeNusStudent(false));
-							}
-						}}
-					/>
-					<br />
-					<br />
-					<Box display="flex" justifyContent="center">
-						<Button
-							variant="outlined"
-							buttonIcon={<ArrowForwardIosRoundedIcon />}
-							iconPosition="end"
-							color="primary.dark"
-							handleButtonClick={() => navigate("../3")}
+				<Card elevation={4} sx={{ width: 350, marginBottom: 10 }}>
+					<CardContent>
+						<Box
+							width="100%"
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+							marginBottom={1}
 						>
-							Next
-						</Button>
-					</Box>
-				</CardContent>
-			</Card>
-		</Box>
+							<Button
+								buttonIcon={<ArrowBackRoundedIcon />}
+								color="primary.dark"
+								handleButtonClick={() => navigate("../1")}
+								toolTipText="Return"
+							/>
+							<Typography fontFamily="Open Sans" fontSize={20}>
+								Step 2
+							</Typography>
+							<Button
+								buttonIcon={<ArrowForwardRoundedIcon />}
+								color="primary.dark"
+								handleButtonClick={() => {
+									dispatch(incrementStage());
+									navigate("../3");
+								}}
+								toolTipText="Skip"
+							/>
+						</Box>
+						<DatePicker
+							label="Birthday"
+							handleDateSelect={handleBirthdaySelect}
+							defaultValue={birthday}
+							width="100%"
+						/>
+						<br />
+						<br />
+						<Select
+							label="Faculty"
+							defaultValue={faculty}
+							handleSelect={handleFacultySelect}
+							values={[
+								"Computing",
+								"Business",
+								"Dentistry",
+								"Law",
+								"Medicine",
+								"Science",
+								"Arts and Social Sciences",
+								"Public Health",
+								"Engineering",
+							]}
+							disabled={disableFacultySelect}
+						/>
+						<br />
+						<br />
+						<FormControlLabel
+							control={<Checkbox />}
+							label="I am currently not a NUS student"
+							onChange={(_, checked) => {
+								setDisableFacultySelect(!disableFacultySelect);
+								if (checked) {
+									dispatch(changeFaculty(undefined));
+									dispatch(changeNusStudent(false));
+								}
+							}}
+						/>
+						<br />
+						<br />
+						<Box display="flex" justifyContent="center">
+							<Button
+								variant="outlined"
+								buttonIcon={<ArrowForwardIosRoundedIcon />}
+								iconPosition="end"
+								color="primary.dark"
+								handleButtonClick={() => navigate("../3")}
+							>
+								Next
+							</Button>
+						</Box>
+					</CardContent>
+				</Card>
+			</Box>
+		</motion.div>
 	);
 };
 

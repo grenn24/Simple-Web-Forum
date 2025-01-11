@@ -5,19 +5,32 @@ import { Box, Typography } from "@mui/material";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import { dateToTimeYear } from "../../../utilities/dateToString";
 import { useNavigate, useParams } from "react-router-dom";
-import { Delete } from "../../../utilities/apiClient";
+import { Delete } from "../../../utilities/api";
+import SimpleDialog from "../../../components/SimpleDialog";
+import List from "../../../components/List";
+import { useState } from "react";
+import Snackbar from "../../../components/Snackbar";
 
 interface Prop {
 	thread: ThreadDTO;
-    threads: ThreadDTO[];
-    setThreads: (threads: ThreadDTO[]) => void
+	threads: ThreadDTO[];
+	setThreads: (threads: ThreadDTO[]) => void;
 }
 const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 	const navigate = useNavigate();
+	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
+	const [openDeleteThreadSnackbar, setOpenDeleteThreadSnackbar] =
+		useState(false);
 	const { authorID } = useParams();
+
 	return (
 		<Box key={thread.threadID}>
-			<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600} marginBottom={1.7}>
+			<Typography
+				fontFamily="Open Sans"
+				fontSize={22}
+				fontWeight={600}
+				marginBottom={1.7}
+			>
 				{thread.title}
 			</Typography>
 
@@ -68,21 +81,53 @@ const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 							buttonIcon={<DeleteForeverRoundedIcon sx={{ fontSize: 27 }} />}
 							handleButtonClick={(event) => {
 								event.stopPropagation();
-								setThreads(
-									threads.filter((t) => t.threadID !== thread.threadID)
-								);
-								Delete(
-									`/threads/${thread.threadID}`,
-									{},
-									() => {},
-									(err) => console.log(err)
-								);
+								setOpenDeleteThreadDialog(true);
 							}}
 							buttonStyle={{ marginLeft: 1, p: 0 }}
 						/>
 					)}
 				</Box>
 			</Box>
+			{/*Confirm Delete Thread Dialog*/}
+			<SimpleDialog
+				openDialog={openDeleteThreadDialog}
+				setOpenDialog={setOpenDeleteThreadDialog}
+				title="Confirm Thread Deletion"
+				backdropBlur={5}
+				borderRadius={1.3}
+				dialogTitleHeight={55}
+				width={400}
+			>
+				<List
+					listItemsArray={["Yes", "No"]}
+					divider
+					handleListItemsClick={[
+						(event) => {
+							event.stopPropagation();
+							setThreads(threads.filter((t) => t.threadID !== thread.threadID));
+							Delete(
+								`/threads/${thread.threadID}`,
+								{},
+								() => {},
+								(err) => console.log(err)
+							);
+							setOpenDeleteThreadDialog(false);
+						},
+						(event) => {
+							event.stopPropagation();
+							setOpenDeleteThreadDialog(false);
+						},
+					]}
+				/>
+			</SimpleDialog>
+			{/*Thread deleted snackbar*/}
+			<Snackbar
+				openSnackbar={openDeleteThreadSnackbar}
+				setOpenSnackbar={setOpenDeleteThreadSnackbar}
+				message="Thread deleted"
+				duration={2000}
+				undoButton={false}
+			/>
 		</Box>
 	);
 };

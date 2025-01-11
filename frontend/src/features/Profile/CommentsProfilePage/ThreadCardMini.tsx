@@ -1,22 +1,22 @@
-import { Box, Divider, Typography } from '@mui/material';
-import React from 'react'
+import { Box, Divider, Typography } from "@mui/material";
+import React from "react";
 import Button from "../../../components/Button";
-import { CommentDTO } from '../../../dtos/CommentDTO';
-import { dateToTimeYear, dateToYear } from '../../../utilities/dateToString';
-import { useNavigate, useParams } from 'react-router-dom';
-import { DeleteForeverRounded as DeleteForeverRoundedIcon} from '@mui/icons-material';
-import { Delete } from '../../../utilities/apiClient';
+import { CommentDTO } from "../../../dtos/CommentDTO";
+import { dateToTimeYear, dateToYear } from "../../../utilities/dateToString";
+import { useNavigate, useParams } from "react-router-dom";
+import { DeleteForeverRounded as DeleteForeverRoundedIcon } from "@mui/icons-material";
+import { Delete } from "../../../utilities/api";
 
 interface Prop {
-    comment: CommentDTO;
-    setComments: (comments : CommentDTO[]) => void;
-    comments: CommentDTO[]
+	comment: CommentDTO;
+	setComments: (comments: CommentDTO[]) => void;
+	comments: CommentDTO[];
 }
 
-const ThreadCardMini = ({ comment, setComments, comments}: Prop) => {
-    const navigate = useNavigate();
+const ThreadCardMini = ({ comment, setComments, comments }: Prop) => {
+	const navigate = useNavigate();
 	const { authorID } = useParams();
-  return (
+	return (
 		<Box key={comment.commentID}>
 			<Box display="flex" justifyContent="space-between">
 				<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600}>
@@ -123,6 +123,6 @@ const ThreadCardMini = ({ comment, setComments, comments}: Prop) => {
 			</Box>
 		</Box>
 	);
-}
+};
 
-export default ThreadCardMini
+export default ThreadCardMini;

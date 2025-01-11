@@ -2,17 +2,25 @@ package routes
 
 import (
 	"database/sql"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/controllers"
+	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/middlewares"
 	"github.com/grenn24/simple-web-forum/services"
+)
+
+// Share thread upload progress with thread and websocket controllers
+var (
+	progressChannels = make(map[string]chan float64)
+	errorChannels = make(map[string]chan *dtos.Error)
+	mutex               sync.Mutex
 )
 
 func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter := router.Group("/threads")
 	threadRouter.Use(middlewares.Authenticate)
-
 	// Initialise controller handlers
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{
 		DB: db,
@@ -32,6 +40,7 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	archiveController := &controllers.ArchiveController{ArchiveService: &services.ArchiveService{
 		DB: db,
 	}}
+	websocketController := controllers.MakeWebsocketController()
 
 	// Thread CRUD
 	threadRouter.GET("", func(context *gin.Context) {
@@ -44,7 +53,10 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 		threadController.GetThreadExpandedByID(context, db)
 	})
 	threadRouter.POST("/user", func(context *gin.Context) {
-		threadController.CreateUserThread(context, db)
+		threadController.CreateUserThread(context, db, progressChannels, errorChannels, &mutex )
+	})
+	threadRouter.GET("/upload-progress", func(context *gin.Context) {
+		websocketController.GetThreadUploadProgress(context, progressChannels, errorChannels, &mutex)
 	})
 	threadRouter.DELETE("", func(context *gin.Context) {
 		threadController.DeleteAllThreads(context, db)

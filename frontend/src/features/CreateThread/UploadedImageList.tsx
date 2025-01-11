@@ -18,9 +18,15 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDel
 	return (
 		imageFiles.length !== 0 && (
 			<>
-				<Typography fontFamily="Open Sans" color="text.primary">
-					{imageFiles.length} Images
-				</Typography>
+				<Box width="100%" display="flex" justifyContent="space-between">
+					<Typography fontFamily="Open Sans" color="text.primary">
+						{imageFiles.length} Images
+					</Typography>
+					<Button buttonStyle={{py:0}} handleButtonClick={()=>setImagesSelected([])}>
+						Clear All
+					</Button>
+				</Box>
+
 				<Divider sx={{ my: 1.2 }} />
 				{imageFiles.map((image, index) => (
 					<Box
@@ -75,7 +81,6 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDel
 						</Box>
 					</Box>
 				))}
-				
 			</>
 		)
 	);

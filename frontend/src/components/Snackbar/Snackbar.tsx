@@ -4,7 +4,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 interface Prop {
 	openSnackbar: boolean;
-	setOpenSnackbar: (state: boolean) => void;
+	setOpenSnackbar?: (state: boolean) => void;
 	handleSnackbarClose?: () => void;
 	message: string;
 	duration: number;
@@ -26,7 +26,9 @@ const Snackbar = ({
 				<Button
 					color="secondary"
 					size="small"
-					handleButtonClick={() => {setOpenSnackbar(false);
+					handleButtonClick={(event: React.MouseEvent<HTMLElement>) => {
+						event.stopPropagation();
+						setOpenSnackbar && setOpenSnackbar(false);
 						handleUndoButtonClick && handleUndoButtonClick();
 					}}
 				>
@@ -38,9 +40,10 @@ const Snackbar = ({
 				size="small"
 				aria-label="close"
 				color="inherit"
-				handleButtonClick={() => {
+				handleButtonClick={(event: React.MouseEvent<HTMLElement>) => {
+					event.stopPropagation();
 					handleSnackbarClose && handleSnackbarClose();
-					setOpenSnackbar(false);
+					setOpenSnackbar && setOpenSnackbar(false);
 				}}
 				buttonIcon={<CloseRoundedIcon fontSize="small" />}
 			/>
@@ -53,7 +56,7 @@ const Snackbar = ({
 				autoHideDuration={duration}
 				onClose={() => {
 					handleSnackbarClose && handleSnackbarClose();
-					setOpenSnackbar(false);
+					setOpenSnackbar && setOpenSnackbar(false);
 				}}
 				message={message}
 				action={action}

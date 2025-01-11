@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -41,3 +45,23 @@ func TruncateString(content string, wordLimit int) string {
 	}
 	return content
 }
+
+// Converts a javascript date object represented as string into time.Time
+func DateStringToTime(dateString string) time.Time {
+	format := "Mon Jan 2 2006 15:04:05 GMT-0700"
+	timeString := strings.Split(dateString, " (")[0]
+	time, _ := time.Parse(format, timeString)
+	return time
+}
+
+// Hash a raw password using hmac
+func HashPassword(password string) (string) {
+	// Create Hashed Password using HMAC SHA-256
+	secretKey := []byte("my secret key")
+	hmac := hmac.New(sha256.New, secretKey)
+	hmac.Write([]byte(password))
+	passwordHash := hmac.Sum(nil)
+
+	return base64.StdEncoding.EncodeToString(passwordHash)
+}
+

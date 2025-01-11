@@ -10,7 +10,7 @@ import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortIcons from "../features/Liked/sortIcons";
 import sortOrder from "../features/Liked/sortOrder";
-import { get } from "../utilities/apiClient";
+import { get } from "../utilities/api";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import LikeDTO from "../dtos/LikeDTO";
 import { parseLikes } from "../utilities/parseApiResponse";

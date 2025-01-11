@@ -1,13 +1,11 @@
-import { Box, CircularProgress, Typography} from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../../components/List";
 import { useNavigate, useParams } from "react-router-dom";
 import ThreadCardMini from "./ThreadCardMini";
 import { useState, useEffect } from "react";
-import { get } from "../../../utilities/apiClient";
+import { get } from "../../../utilities/api";
 import ArchiveDTO from "../../../dtos/ArchiveDTO";
 import { parseArchives } from "../../../utilities/parseApiResponse";
-
-
 
 const RemovedPage = () => {
 	const navigate = useNavigate();

@@ -3,9 +3,9 @@ Creator: Hoo Di Heng
 
 ### Tech Stack  
 **Front-End:**  
-React, TypeScript, Redux, MUI  
+React, TypeScript, Axios, Redux, MUI, Framer Motion  
 **Back-End:**  
-GoLang, Gin  
+GoLang, Gin, Gorilla/Websocket  
 **Database:**   
 PostgreSQL  
 **File Storage:**  

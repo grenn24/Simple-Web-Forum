@@ -11,7 +11,7 @@ import Menu from "../components/Menu";
 import sortIcons from "../features/Bookmarked/sortIcons";
 import sortOrder from "../features/Bookmarked/sortOrder";
 import { ThreadDTO } from "../dtos/ThreadDTO";
-import { get } from "../utilities/apiClient";
+import { get } from "../utilities/api";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";

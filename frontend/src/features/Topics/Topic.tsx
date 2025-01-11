@@ -7,12 +7,12 @@ import {
 	NotificationsActiveRounded as NotificationsActiveRoundedIcon,
 	NotificationsNoneRounded as NotificationsNoneRoundedIcon,
 } from "@mui/icons-material";
-import { Delete, postJSON } from "../../utilities/apiClient";
+import { Delete, postJSON } from "../../utilities/api";
 import ThreadGridCard from "../../components/ThreadGridCard/ThreadGridCard";
 import { TopicDTO } from "../../dtos/TopicDTO";
 
 interface Prop {
-	topic: TopicDTO
+	topic: TopicDTO;
 }
 
 const Topic = ({ topic }: Prop) => {

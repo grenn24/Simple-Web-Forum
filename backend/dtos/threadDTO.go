@@ -27,3 +27,8 @@ type ThreadDTO struct {
 	ImageTitle     *string                 `json:"image_title,omitempty"`
 	Image          []*multipart.FileHeader `json:"image,omitempty"`
 }
+
+type UploadDTO struct {
+	Status   string  `json:"status"`
+	Progress float64 `json:"progress"`
+}

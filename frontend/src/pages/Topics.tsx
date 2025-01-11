@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Button from "../components/Button";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import { useState, useEffect } from "react";
-import { get } from "../utilities/apiClient";
+import { get } from "../utilities/api.ts";
 import ThreadGridCardsLoading from "../features/Topics/ThreadGridCardsLoading";
 import { TopicDTO } from "../dtos/TopicDTO";
 import { parseTopic, parseTopics } from "../utilities/parseApiResponse";

@@ -1,8 +1,8 @@
-import { Box, CircularProgress, Typography} from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../../components/List";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { get } from "../../../utilities/apiClient";
+import { get } from "../../../utilities/api";
 import { CommentDTO } from "../../../dtos/CommentDTO";
 import { parseComments } from "../../../utilities/parseApiResponse";
 import ThreadCardMini from "./ThreadCardMini";
@@ -12,7 +12,7 @@ const CommentsPage = () => {
 	const [comments, setComments] = useState<CommentDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const { authorID } = useParams();
-	
+
 	useEffect(() => {
 		get<CommentDTO[]>(
 			`/authors/${authorID === "User" ? "user" : authorID}/comments`,
@@ -33,12 +33,7 @@ const CommentsPage = () => {
 			) : comments.length !== 0 ? (
 				<>
 					<Box width="97%" marginBottom={0.5}>
-						<Typography
-							textAlign="left"
-							fontFamily="Open Sans"
-							fontSize={22}
-			
-						>
+						<Typography textAlign="left" fontFamily="Open Sans" fontSize={22}>
 							{comments.length} Comments
 						</Typography>
 					</Box>

@@ -6,18 +6,31 @@ import TabMenu from "../components/TabMenu";
 import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
-import { postFormData } from "../utilities/apiClient";
+import { postFormData } from "../utilities/api";
 import { useState } from "react";
 import Snackbar from "../components/Snackbar";
+import LinearProgressWithLabel from "../components/LinearProgressWithLabel/LinearProgressWithLabel";
+import { closeWebsocket, createWebsocket } from "../utilities/websocket";
+import { v4 as uuidv4 } from "uuid";
+import { useAppDispatch, useAppSelector } from "../utilities/reduxHooks";
+import {
+	changeUploadID,
+	changeProgress,
+	changeUploadStatus,
+	reset as resetSlice
+} from "../features/CreateThread/createThreadSlice";
 
 const CreateThread = () => {
 	const navigate = useNavigate();
 	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
 	const [imagesSelected, setImagesSelected] = useState<File[]>([]);
-	const [openThreadPostedSnackbar, setOpenThreadPostedSnackbar] =
+
+	const [openThreadUploadStartedSnackbar, setOpenThreadUploadStartedSnackbar] =
 		useState(false);
-	const [openThreadPostErrorSnackbar, setOpenThreadPostErrorSnackbar] =
+	const [openThreadUploadErrorSnackbar, setOpenThreadUploadErrorSnackbar] =
+		useState(false);
+	const [openThreadTitleMissingSnackbar, setOpenThreadTitleMissingSnackbar] =
 		useState(false);
 	const {
 		register,
@@ -26,35 +39,70 @@ const CreateThread = () => {
 		reset,
 		control,
 		setValue,
+		watch,
 	} = useForm();
+	const dispatch = useAppDispatch();
 
 	const createThread = handleSubmit((data) => {
-		setIsUploading(true);
-		const formData = new FormData();
-		formData.append("title", data.title);
-		formData.append("content", data.content);
-		formData.append("image_title", data.imageTitle);
-		imagesSelected.forEach((image: File) => formData.append("images", image));
-		topicsSelected.forEach((topic) => formData.append("topics_tagged", topic));
-		postFormData(
-			"/threads/user",
-			formData,
-			() => {
-				reset();
-				setValue("title", "");
-				setValue("content", "");
-				setImagesSelected([]);
-				setTopicsSelected([]);
-				setIsUploading(false);
-				setOpenThreadPostedSnackbar(true);
-			},
-			(err) => {
-				console.log(err);
-				setOpenThreadPostErrorSnackbar(true);
-				setIsUploading(false);
-			}
-		);
-		
+		const uploadID = uuidv4();
+		if (watch("title") !== "") {
+			setIsUploading(true);
+			const formData = new FormData();
+			formData.append("upload_id", uploadID);
+			formData.append("title", data.title);
+			formData.append("content", data.content);
+			formData.append("image_title", data.imageTitle);
+			imagesSelected.forEach((image: File) => formData.append("images", image));
+			topicsSelected.forEach((topic) =>
+				formData.append("topics_tagged", topic)
+			);
+			postFormData(
+				"/threads/user",
+				formData,
+				() => {
+					reset();
+					setValue("title", "");
+					setValue("content", "");
+					setImagesSelected([]);
+					setTopicsSelected([]);
+					setIsUploading(false);
+					setOpenThreadUploadStartedSnackbar(true);
+					const websocket = createWebsocket("/threads/upload-progress");
+					websocket.onopen = () => {
+						websocket.send(
+							JSON.stringify({
+								upload_id: uploadID,
+							})
+						);
+						dispatch(changeUploadStatus(true));
+					};
+
+					websocket.onmessage = (event) => {
+						console.log(event);
+						const upload = JSON.parse(event.data);
+						if (upload.status === "INCOMPLETE") {
+							dispatch(changeProgress(upload.progress));
+						}
+						if (upload.status === "COMPLETE") {
+							dispatch(changeProgress(upload.progress));
+						}
+					};
+
+					websocket.onclose = () => {
+						websocket.close();
+						dispatch(changeUploadStatus(false));
+						dispatch(resetSlice());
+					}
+				},
+				(err) => {
+					console.log(err);
+					setOpenThreadUploadErrorSnackbar(true);
+					setIsUploading(false);
+				}
+			);
+		} else {
+			setOpenThreadTitleMissingSnackbar(true);
+		}
 	});
 
 	return (
@@ -125,21 +173,42 @@ const CreateThread = () => {
 						/>,
 					]}
 				/>
+				<Box textAlign="right">
+					<Button
+						color="primary.dark"
+						variant="outlined"
+						fontSize={17}
+						fontWeight={600}
+						handleButtonClick={createThread}
+						loadingStatus={isUploading}
+					>
+						Upload Thread
+					</Button>
+				</Box>
 			</Container>
+			
 
-			{/*Thread posted snackbar*/}
+			{/*Thread Upload Started snackbar*/}
 			<Snackbar
-				openSnackbar={openThreadPostedSnackbar}
-				setOpenSnackbar={setOpenThreadPostedSnackbar}
-				message="Thread has been posted successfully"
-				duration={2000}
+				openSnackbar={openThreadUploadStartedSnackbar}
+				setOpenSnackbar={setOpenThreadUploadStartedSnackbar}
+				message="Thread will be uploaded in the background"
+				duration={1000}
 				undoButton={false}
 			/>
-			{/*Thread post error snackbar*/}
+			{/*Thread Upload error snackbar*/}
 			<Snackbar
-				openSnackbar={openThreadPostErrorSnackbar}
-				setOpenSnackbar={setOpenThreadPostErrorSnackbar}
-				message="An error occurred while posting the thread. Please try again."
+				openSnackbar={openThreadUploadErrorSnackbar}
+				setOpenSnackbar={setOpenThreadUploadErrorSnackbar}
+				message="An error occurred while Uploading the thread. Please try again."
+				duration={3000}
+				undoButton={false}
+			/>
+			{/*Thread missing snackbar*/}
+			<Snackbar
+				openSnackbar={openThreadTitleMissingSnackbar}
+				setOpenSnackbar={setOpenThreadTitleMissingSnackbar}
+				message="Please add a title for your thread before Uploading."
 				duration={3000}
 				undoButton={false}
 			/>

@@ -53,7 +53,7 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			thread_id SERIAL PRIMARY KEY,
 			title TEXT NOT NULL,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-			content TEXT DEFAULT '',
+			content TEXT NOT NULL DEFAULT '',
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
 			image_title TEXT,
 			image_link TEXT[] DEFAULT '{}',

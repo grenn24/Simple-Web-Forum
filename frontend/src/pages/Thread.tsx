@@ -37,7 +37,7 @@ import likeSound from "../assets/audio/like-sound.mp3";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
-import { Delete, get, postJSON, putJSON } from "../utilities/apiClient.ts";
+import { Delete, get, postJSON, putJSON } from "../utilities/api.ts";
 import { useForm, Controller } from "react-hook-form";
 import { ThreadDTO } from "../dtos/ThreadDTO.tsx";
 import { dateToTimeYear } from "../utilities/dateToString.ts";
@@ -204,7 +204,6 @@ const Thread = () => {
 										handleMenuIconClick={() =>
 											navigate(`../Profile/${thread.author.authorID}`)
 										}
-										
 									/>
 								}
 								action={
@@ -254,6 +253,7 @@ const Thread = () => {
 											render={() => (
 												<TextField
 													label="Thread Title"
+													required
 													fullWidth
 													{...register("title", {
 														required: "Thread title is required",
@@ -301,11 +301,7 @@ const Thread = () => {
 												<TextField
 													label="Thread Content"
 													fullWidth
-													{...register("content", {
-														required: "Thread content is required",
-													})}
-													helperText={errors.content?.message as string}
-													error={!!errors.content}
+													{...register("content")}
 													multiline
 													minRows={10}
 												/>
@@ -397,7 +393,7 @@ const Thread = () => {
 												</Button>
 											))}
 										</Typography>
-										<Typography textAlign="left" my={2}>
+										<Typography textAlign="left" my={2} whiteSpace="pre-wrap">
 											{thread.content}
 										</Typography>
 										<Box

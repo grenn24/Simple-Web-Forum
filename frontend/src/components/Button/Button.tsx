@@ -124,7 +124,7 @@ const Button = ({
 							borderColor: borderColor,
 						},
 						"&:hover": {
-							backgroundColor: backgroundColor, 
+							backgroundColor: backgroundColor,
 						},
 						backgroundColor: backgroundColor,
 						fontSize: { fontSize },

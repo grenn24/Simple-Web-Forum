@@ -32,7 +32,7 @@ import SimpleDialog from "../SimpleDialog";
 import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
-import { Delete, postJSON } from "../../utilities/apiClient";
+import { Delete, postJSON } from "../../utilities/api";
 import { dateToYear } from "../../utilities/dateToString";
 import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
 import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
@@ -68,12 +68,10 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 interface Prop {
-	thread: ThreadDTO
+	thread: ThreadDTO;
 }
 
-const ThreadCard = ({
-	thread,
-}: Prop) => {
+const ThreadCard = ({ thread }: Prop) => {
 	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -175,7 +173,11 @@ const ThreadCard = ({
 						my={2}
 						display={thread.imageLink.length === 0 ? "none" : "block"}
 					>
-						<MediaViewer backgroundColor="black" imageLinks={thread.imageLink} />
+						<MediaViewer
+							backgroundColor="black"
+							imageLinks={thread.imageLink}
+							fullScreenMode={false}
+						/>
 					</Box>
 
 					<CardActions
@@ -266,62 +268,7 @@ const ThreadCard = ({
 								event.stopPropagation();
 							}}
 						/>
-						<SimpleDialog
-							openDialog={openShareDialog}
-							setOpenDialog={setOpenShareDialog}
-							title="Share"
-							backdropBlur={5}
-							borderRadius={1.3}
-							handleCloseDialog={(event) => event.stopPropagation()}
-							dialogTitleHeight={55}
-							width={400}
-						>
-							<List
-								listItemsArray={["Copy Link", "Share to WhatsApp", "Cancel"]}
-								listIconsArray={[
-									<LinkRoundedIcon sx={{ marginRight: 1 }} />,
-									<WhatsAppIcon sx={{ marginRight: 1 }} />,
-								]}
-								divider
-								handleListItemsClick={[
-									(event) => {
-										setOpenSnackbar(true);
-										setOpenShareDialog(false);
-										event.stopPropagation();
-									},
-									(event) => {
-										setOpenShareDialog(false);
-										const currentPathObject = new URL(window.location.href);
-										const parentPathRelative =
-											currentPathObject.pathname.substring(
-												0,
-												currentPathObject.pathname.lastIndexOf("/")
-											);
-										const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-										window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
-										event.stopPropagation();
-									},
-									() => setOpenShareDialog(false),
-								]}
-							/>
-						</SimpleDialog>
-						<Snackbar
-							openSnackbar={openSnackbar}
-							setOpenSnackbar={setOpenSnackbar}
-							message="Link copied to clipboard"
-							handleSnackbarClose={() => {
-								const currentPathObject = new URL(window.location.href);
-								const parentPathRelative = currentPathObject.pathname.substring(
-									0,
-									currentPathObject.pathname.lastIndexOf("/")
-								);
-								const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-								navigator.clipboard.writeText(
-									`${parentPathAbsolute}/Thread/${thread.threadID}`
-								);
-							}}
-							duration={1500}
-						/>
+
 						<ExpandMore
 							expand={expandCardContent}
 							onClick={(event) => {
@@ -329,13 +276,15 @@ const ThreadCard = ({
 								event?.stopPropagation();
 							}}
 						>
-							<ExpandMoreIcon sx={{ color: "primary.dark" }} />
+							<ExpandMoreIcon sx={{ color: "primary.dark", display:thread.content ? "block" : "none"}} />
 						</ExpandMore>
 					</CardActions>
 
 					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
 						<CardContent>
-							<Typography sx={{ marginBottom: 2 }}>{thread.content}</Typography>
+							<Typography sx={{ marginBottom: 2 }} whiteSpace="pre-wrap">
+								{thread.content}
+							</Typography>
 						</CardContent>
 					</Collapse>
 				</CardActionArea>
@@ -371,6 +320,62 @@ const ThreadCard = ({
 					]}
 				/>
 			</SimpleDialog>
+			{/*Share Thread Dialog*/}
+			<SimpleDialog
+				openDialog={openShareDialog}
+				setOpenDialog={setOpenShareDialog}
+				title="Share"
+				backdropBlur={5}
+				borderRadius={1.3}
+				handleCloseDialog={(event) => event.stopPropagation()}
+				dialogTitleHeight={55}
+				width={400}
+			>
+				<List
+					listItemsArray={["Copy Link", "Share to WhatsApp", "Cancel"]}
+					listIconsArray={[
+						<LinkRoundedIcon sx={{ marginRight: 1 }} />,
+						<WhatsAppIcon sx={{ marginRight: 1 }} />,
+					]}
+					divider
+					handleListItemsClick={[
+						(event) => {
+							setOpenSnackbar(true);
+							setOpenShareDialog(false);
+							event.stopPropagation();
+						},
+						(event) => {
+							setOpenShareDialog(false);
+							const currentPathObject = new URL(window.location.href);
+							const parentPathRelative = currentPathObject.pathname.substring(
+								0,
+								currentPathObject.pathname.lastIndexOf("/")
+							);
+							const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
+							window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
+							event.stopPropagation();
+						},
+						() => setOpenShareDialog(false),
+					]}
+				/>
+			</SimpleDialog>
+			<Snackbar
+				openSnackbar={openSnackbar}
+				setOpenSnackbar={setOpenSnackbar}
+				message="Link copied to clipboard"
+				handleSnackbarClose={() => {
+					const currentPathObject = new URL(window.location.href);
+					const parentPathRelative = currentPathObject.pathname.substring(
+						0,
+						currentPathObject.pathname.lastIndexOf("/")
+					);
+					const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
+					navigator.clipboard.writeText(
+						`${parentPathAbsolute}/Thread/${thread.threadID}`
+					);
+				}}
+				duration={1500}
+			/>
 		</>
 	);
 };

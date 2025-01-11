@@ -126,7 +126,7 @@ func (authorController *AuthorController) CreateAuthor(context *gin.Context, db 
 	})
 }
 
-// Can update avatar icon link (but wont delete it undefined)
+// Can update avatar icon link
 func (authorController *AuthorController) UpdateUser(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 	userAuthorID := utils.GetUserAuthorID(context)

@@ -5,17 +5,16 @@ import {
 	NavigateNextRounded as NavigateNextRoundedIcon,
 	ClearRounded as ClearRoundedIcon,
 } from "@mui/icons-material";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Prop {
 	imageLinks: string[];
 
 	setFullScreenImage: (state: boolean) => void;
 }
-const FullScreenImage = ({
-	imageLinks,
-	setFullScreenImage,
-}: Prop) => {
+const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
+	const [imageZoom, setImageZoom] = useState(false);
+	const imageRef = useRef<HTMLDivElement>(null);
 	const imageViewerRef = useRef<HTMLDivElement>(null);
 	const imageViewerContainerRef = useRef<HTMLDivElement>(null);
 	const scrollLeft = () => {
@@ -32,6 +31,7 @@ const FullScreenImage = ({
 		});
 	};
 	useEffect(() => {
+		document.body.style.overflow = "hidden";
 		window.onkeydown = (event) => {
 			if (event.key === "ArrowRight") {
 				event.preventDefault();
@@ -43,14 +43,20 @@ const FullScreenImage = ({
 			}
 			event.key === "Escape" && setFullScreenImage(false);
 		};
-		 document.body.style.overflow = "hidden";
-		 imageViewerContainerRef.current?.requestFullscreen();
+
+		imageViewerContainerRef.current?.requestFullscreen
+			? imageViewerContainerRef.current?.requestFullscreen()
+			: (
+					imageViewerContainerRef.current as HTMLDivElement & {
+						webkitRequestFullscreen: () => void;
+					}
+			  ).webkitRequestFullscreen();
 	}, []);
 
-	const exitFullScreen = ()=> {
+	const exitFullScreen = () => {
 		setFullScreenImage(false);
 		document.body.style.overflow = "visible";
-	}
+	};
 
 	return (
 		<Box
@@ -85,16 +91,20 @@ const FullScreenImage = ({
 						flexDirection="row"
 						justifyContent="center"
 						onClick={exitFullScreen}
+						ref={imageRef}
 					>
 						<img
 							src={image}
 							style={{
-								maxWidth: "100%",
-								maxHeight: "100%",
 								objectFit: "contain",
-								width: "auto",
+								maxWidth:"100%",
+								maxHeight:"100%",
+								cursor: imageZoom ? "zoom-out" : "zoom-in",
 							}}
-							onClick={(event)=>event.stopPropagation()}
+							onClick={(event) => {
+								event.stopPropagation();
+								setImageZoom(!imageZoom);
+							}}
 						/>
 					</Box>
 				))}

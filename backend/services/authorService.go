@@ -138,17 +138,8 @@ func (authorService *AuthorService) UpdateAuthor(author *dtos.AuthorDTO, authorI
 		}
 
 		// Upload the avatar icon to s3 bucket and obtain the public link
-		filename, file, err := utils.ConvertFileHeaderToFile(author.AvatarIcon)
-		if err != nil {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		defer (*file).Close()
 
-		avatarIconLink, err = utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+		avatarIconLink, err := utils.PostFileHeaderToS3Bucket(author.AvatarIcon, "avatar_icon")
 		if err != nil {
 			return &dtos.Error{
 				Status:    "error",
@@ -196,6 +187,8 @@ func (authorService *AuthorService) UpdateAuthorAvatarIconLink(avatarIcon *multi
 	author.Username = authorRepository.GetAuthorUsernameByAuthorID(authorID)
 	email := authorRepository.GetAuthorEmailByAuthorID(authorID)
 	author.Email = &email
+	biography := authorRepository.GetBiographyByAuthorID(authorID)
+	author.Biography = &biography
 
 	// Check if existing icon link exists in db, and delete if it exists
 	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
@@ -211,17 +204,8 @@ func (authorService *AuthorService) UpdateAuthorAvatarIconLink(avatarIcon *multi
 	}
 
 	// Upload the avatar icon to s3 bucket and obtain the public link
-	filename, file, err := utils.ConvertFileHeaderToFile(avatarIcon)
-	if err != nil {
-		return &dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		}
-	}
-	defer (*file).Close()
 
-	avatarIconLink, err = utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+	avatarIconLink, err := utils.PostFileHeaderToS3Bucket(avatarIcon, "avatar_icon")
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",

@@ -50,8 +50,9 @@ function App() {
 			<ThemeProvider theme={Theme}>
 				<BrowserRouter>
 					<Routes>
-						{/*Protected Routes using Main Layout and require jwt token authentication*/}
+						{/*Protected Routes that require jwt token authentication*/}
 						<Route path="/" element={<Authentication />}>
+							{/*Using Main Layout*/}
 							<Route
 								path=""
 								element={

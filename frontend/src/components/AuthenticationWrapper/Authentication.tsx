@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { get } from "../../utilities/apiClient";
+import { get } from "../../utilities/api";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 // A wrapper for making jwt validation request to api server (for protected routes)

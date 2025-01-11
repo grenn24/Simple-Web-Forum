@@ -1,5 +1,5 @@
 import React from "react";
-import { Delete, postJSON } from "../../../utilities/apiClient";
+import { Delete, postJSON } from "../../../utilities/api";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
 
 const handleMenuExpandedItemsClick = (

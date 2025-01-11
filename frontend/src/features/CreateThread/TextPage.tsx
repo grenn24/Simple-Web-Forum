@@ -1,5 +1,4 @@
-import { Box, TextField } from "@mui/material";
-import Button from "../../components/Button";
+import { TextField } from "@mui/material";
 import EditorBar from "./EditorBar";
 import { FieldErrors, Control, Controller } from "react-hook-form";
 import SelectChip from "../../components/SelectChip";
@@ -15,7 +14,7 @@ interface Prop {
 	isUploading: boolean
 }
 
-const TextPage = ({ register, createThread, errors, control, topicsSelected, setTopicsSelected, isUploading }: Prop) => {
+const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected }: Prop) => {
 
 	return (
 		<>
@@ -69,7 +68,6 @@ const TextPage = ({ register, createThread, errors, control, topicsSelected, set
 				name="content"
 				control={control}
 				defaultValue=""
-				
 				render={() => (
 					<TextField
 						label="Content"
@@ -81,22 +79,9 @@ const TextPage = ({ register, createThread, errors, control, topicsSelected, set
 					/>
 				)}
 			/>
-
 			<br />
 			<br />
 			<br />
-			<Box textAlign="right">
-				<Button
-					color="primary.dark"
-					variant="outlined"
-					fontSize={17}
-					fontWeight={600}
-					handleButtonClick={createThread}
-					loadingStatus={isUploading}
-				>
-					Post
-				</Button>
-			</Box>
 		</>
 	);
 };

@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { AuthorDTO } from "../../../dtos/AuthorDTO";
 import { parseAuthor } from "../../../utilities/parseApiResponse";
 import { useParams } from "react-router-dom";
-import { get } from "../../../utilities/apiClient";
+import { get } from "../../../utilities/api";
 import { dateToYear } from "../../../utilities/dateToString";
 import { Box, CircularProgress, Typography } from "@mui/material";
 
 const OverviewPage = () => {
-    const { authorID} = useParams();
-    const [isLoading, setIsLoading] = useState(true);
+	const { authorID } = useParams();
+	const [isLoading, setIsLoading] = useState(true);
 	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
 	useEffect(
 		() =>
@@ -26,7 +26,7 @@ const OverviewPage = () => {
 	);
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
-		{isLoading && <CircularProgress size={70} />}
+			{isLoading && <CircularProgress size={70} />}
 			<Typography>
 				{!isLoading && "User since " + dateToYear(author.createdAt, "short")}
 			</Typography>

@@ -1,4 +1,5 @@
 import { Dialog, DialogTitle} from "@mui/material";
+import {AnimatePresence, motion} from "motion/react"
 
 interface Prop {
 	children?: React.ReactNode;
@@ -38,18 +39,37 @@ const SimpleDialog = ({
 			open={openDialog}
 			BackdropProps={{
 				sx: {
-					backdropFilter: `blur(${backdropBlur}px)`
+					backdropFilter: `blur(${backdropBlur}px)`,
 				},
 			}}
-			sx={{ "& .MuiPaper-root": { borderRadius: borderRadius, width: width } }}
-			onClick={(event)=>event.stopPropagation()}
-			fullWidth = {fullWidth}
-			
+			sx={{
+				"& .MuiPaper-root": { borderRadius: borderRadius, width: width },
+			}}
+			onClick={(event) => event.stopPropagation()}
+			fullWidth={fullWidth}
+		
 		>
-			<DialogTitle sx={{ textAlign: "center" }} fontSize={dialogTitleFontSize} fontFamily={dialogTitleFontFamily} height={dialogTitleHeight} display="flex" justifyContent="center" alignItems="center">
-				{title}
-			</DialogTitle>
-			{children}
+			<AnimatePresence>
+				<motion.div
+					initial={{ opacity: 0}}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					transition={{ duration: 0.6 }}
+				>
+					<DialogTitle
+						sx={{ textAlign: "center" }}
+						fontSize={dialogTitleFontSize}
+						fontFamily={dialogTitleFontFamily}
+						height={dialogTitleHeight}
+						display="flex"
+						justifyContent="center"
+						alignItems="center"
+					>
+						{title}
+					</DialogTitle>
+					{children}
+				</motion.div>
+			</AnimatePresence>
 		</Dialog>
 	);
 };

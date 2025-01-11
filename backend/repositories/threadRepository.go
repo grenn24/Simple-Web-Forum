@@ -237,13 +237,19 @@ func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (i
 	return int(threadID), err
 }
 
+// Update fields in thread model (for non null db columns check if the field is empty first)
 func (threadRepository *ThreadRepository) UpdateThread(thread *models.Thread, threadID int) error {
-	_, err := threadRepository.DB.Exec(`
-		UPDATE thread
-		SET title = $1, content = $2
-		WHERE thread_id = $3
-	`, thread.Title, thread.Content, threadID)
-	return err
+	if thread.Title != "" {
+		_, err := threadRepository.DB.Exec(`UPDATE thread SET title = $1 WHERE thread_id = $2`, thread.Title, threadID)
+		if err != nil {
+			return err
+		}
+	}
+	_, err := threadRepository.DB.Exec(`UPDATE thread SET content = $1 WHERE thread_id = $2`, thread.Content, threadID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (threadRepository *ThreadRepository) DeleteAllThreads() error {

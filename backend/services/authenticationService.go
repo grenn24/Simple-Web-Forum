@@ -81,17 +81,7 @@ func (authenticationService *AuthenticationService) SignUp(signUpRequest *dtos.S
 	// Check if avatar icon file was uploaded
 	if signUpRequest.AvatarIcon != nil {
 		// Upload the avatar icon to s3 bucket and obtain the public link
-		filename, file, err := utils.ConvertFileHeaderToFile(signUpRequest.AvatarIcon)
-		if err != nil {
-			return "", "", &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		defer (*file).Close()
-
-		avatarIconLink, err := utils.PostFileToS3Bucket(filename, "avatar_icon", file)
+		avatarIconLink, err := utils.PostFileHeaderToS3Bucket(signUpRequest.AvatarIcon, "avatar_icon")
 		if err != nil {
 			return "","",&dtos.Error{
 				Status:    "error",

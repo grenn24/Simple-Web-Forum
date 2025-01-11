@@ -3,7 +3,7 @@ import List from "../../../components/List";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
-import { get } from "../../../utilities/apiClient";
+import { get } from "../../../utilities/api";
 import { parseThreads } from "../../../utilities/parseApiResponse";
 import ThreadCardMini from "./ThreadCardMini";
 
@@ -11,6 +11,7 @@ const PostsPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+
 	const { authorID } = useParams();
 	useEffect(
 		() =>
@@ -34,12 +35,7 @@ const PostsPage = () => {
 			) : threads.length !== 0 ? (
 				<>
 					<Box width="97%" marginBottom={0.5}>
-						<Typography
-							textAlign="left"
-							fontFamily="Open Sans"
-							fontSize={22}
-							
-						>
+						<Typography textAlign="left" fontFamily="Open Sans" fontSize={22}>
 							{threads.length} Posts
 						</Typography>
 					</Box>

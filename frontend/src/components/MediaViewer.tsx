@@ -10,9 +10,10 @@ interface Prop {
 	imageLinks: string[];
 	borderRadius?: number;
 	backgroundColor?: string;
+	fullScreenMode?: boolean;
 }
 
-const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
+const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode = true }: Prop) => {
 	const [isScrolling, setIsScrolling] = useState(false);
 	const [fullScreenImage, setFullScreenImage] = useState(false);
 	const mediaViewerRef = useRef<HTMLDivElement>(null);
@@ -66,7 +67,7 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
 						display="flex"
 						flexDirection="row"
 						justifyContent="center"
-						onClick={() => setFullScreenImage(true)}
+						onClick={() => fullScreenMode && setFullScreenImage(true)}
 					>
 						<img
 							src={image}
@@ -126,6 +127,7 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor }: Prop) => {
 				<FullScreenImage
 					imageLinks={imageLinks}
 					setFullScreenImage={setFullScreenImage}
+					
 				/>
 			)}
 		</Box>

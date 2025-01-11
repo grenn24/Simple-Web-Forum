@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import signUpSliceReducer from "./features/Welcome/signUpSlice";
+import createThreadSliceReducer from "./features/CreateThread/createThreadSlice";
 
 const store = configureStore({
 	reducer: {
 		signUp: signUpSliceReducer,
+		createThread: createThreadSliceReducer
 	},
 });
 

@@ -10,19 +10,15 @@ import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded
 import { CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { dateToYear } from "../../utilities/dateToString";
-import { Delete, postJSON } from "../../utilities/apiClient";
+import { Delete, postJSON } from "../../utilities/api";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
 
 interface Prop {
-	thread: ThreadDTO
+	thread: ThreadDTO;
 }
 
-const ThreadGridCard = ({
-	thread
-}: Prop) => {
-	const [bookmarkStatus, setBookmarkStatus] = useState(
-		thread.bookmarkStatus
-	);
+const ThreadGridCard = ({ thread }: Prop) => {
+	const [bookmarkStatus, setBookmarkStatus] = useState(thread.bookmarkStatus);
 	const navigate = useNavigate();
 
 	const handleBookmarkIconClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -101,7 +97,7 @@ const ThreadGridCard = ({
 						sx={{ paddingBottom: 0.5 }}
 					/>
 
-					<CardContent sx={{ py: 0, my: 0 }}>
+					<CardContent sx={{ py: 0, marginTop:1, marginBottom:2 }}>
 						<Typography
 							fontSize={20}
 							color="text.primary"
@@ -110,11 +106,10 @@ const ThreadGridCard = ({
 						>
 							{thread.title}
 						</Typography>
-					</CardContent>
-
-					<CardContent sx={{ py: 0, marginBottom: 1 }}>
 						<Typography fontSize={14}>{thread.content}</Typography>
 					</CardContent>
+
+
 				</CardActionArea>
 			</Card>
 		</>

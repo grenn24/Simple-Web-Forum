@@ -4,7 +4,7 @@ import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import { Box, Typography } from "@mui/material";
 import Button from "../../../components/Button";
 import { dateToTimeYear } from "../../../utilities/dateToString";
-import { Delete } from "../../../utilities/apiClient";
+import { Delete } from "../../../utilities/api";
 import UnarchiveRoundedIcon from "@mui/icons-material/UnarchiveRounded";
 
 interface Prop {
