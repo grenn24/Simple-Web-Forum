@@ -52,6 +52,9 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter.GET("/:threadID/expanded", func(context *gin.Context) {
 		threadController.GetThreadExpandedByID(context, db)
 	})
+	threadRouter.GET("/search", func(context *gin.Context) {
+		threadController.SearchThreads(context, db)
+	})
 	threadRouter.POST("/user", func(context *gin.Context) {
 		threadController.CreateUserThread(context, db, progressChannels, errorChannels, &mutex )
 	})

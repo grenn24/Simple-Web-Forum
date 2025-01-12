@@ -176,7 +176,7 @@ func main() {
 
 	//Attach cors middleware to router (doesn't work with router groups)
 	router.Use(middlewares.CORS)
-	router.MaxMultipartMemory = 512 << 20
+	router.MaxMultipartMemory = 2000 << 20
 	
 	//Set up routes for serving static html files
 	router.Static("/assets", "./dist/assets")

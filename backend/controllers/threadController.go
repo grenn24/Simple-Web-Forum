@@ -102,6 +102,25 @@ func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Cont
 	})
 }
 
+func (threadController *ThreadController) SearchThreads(context *gin.Context, db *sql.DB) {
+	threadService := threadController.ThreadService
+	userAuthorID := utils.GetUserAuthorID(context)
+	query := context.Query("query")
+	page := utils.ConvertStringToInt(context.Query("page"), context)
+	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+
+	threads, responseErr := threadService.SearchThreads(userAuthorID, query, page, limit)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   threads,
+	})
+}
+
 func (threadController *ThreadController) GetThreadsByUser(context *gin.Context, db *sql.DB) {
 
 	threadService := threadController.ThreadService
@@ -146,38 +165,6 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 func (threadController *ThreadController) CreateUserThread(context *gin.Context, db *sql.DB, progressChannels map[string]chan float64, errorChannels map[string]chan *dtos.Error, mutex *sync.Mutex) {
 	threadService := threadController.ThreadService
 
-	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)
-	// Assign the necessary fields
-	authorID := utils.GetUserAuthorID(context)
-	thread.AuthorID = authorID
-	thread.Title = context.PostForm("title")
-	thread.Content = context.PostForm("content")
-	imageTitle := context.PostForm("image_title")
-	thread.ImageTitle = &imageTitle
-
-	thread.TopicsTagged = context.PostFormArray("topics_tagged")
-	formData, err := context.MultipartForm()
-	images := formData.File["images"]
-
-	// If no images are uploaded, images will be an empty file array
-	if len(images) == 0 {
-		thread.Image = nil
-	} else {
-		thread.Image = images
-		fmt.Println(("images added"))
-	}
-
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		})
-		return
-	}
-	fmt.Println(("no errors"))
-
 	// Create the progress and error channels
 	uploadID := context.PostForm("upload_id")
 	if uploadID == "" {
@@ -196,7 +183,18 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 	errorChannel := make(chan *dtos.Error)
 	errorChannels[uploadID] = errorChannel
 	mutex.Unlock()
-	
+
+	// Declare a pointer to a new instance of a thread struct
+	thread := new(models.Thread)
+	// Assign the necessary fields
+	authorID := utils.GetUserAuthorID(context)
+	thread.AuthorID = authorID
+	thread.Title = context.PostForm("title")
+	thread.Content = context.PostForm("content")
+	imageTitle := context.PostForm("image_title")
+	thread.ImageTitle = &imageTitle
+
+	fmt.Println(("no errors"))
 
 	// Check if the binded struct contains necessary fields
 	if thread.Title == "" || thread.AuthorID == 0 {
@@ -207,12 +205,27 @@ func (threadController *ThreadController) CreateUserThread(context *gin.Context,
 		})
 		return
 	}
-	fmt.Println(("fields are correct"))
 
 	context.JSON(http.StatusCreated, dtos.Success{
 		Status:  "success",
 		Message: "Thread upload has started",
 	})
+
+	// Extract images and topics tagged from http request multipart form
+	thread.TopicsTagged = context.PostFormArray("topics_tagged")
+	formData, err := context.MultipartForm()
+	images := formData.File["images"]
+	// If no images are uploaded, images will be an empty file array
+	if err != nil {
+		errorChannel <- &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+		return
+	}
+	thread.Image = images
+
 	fmt.Println(("thread upload started"))
 	// Create new thread, subsequent errors sent using websocket
 	go threadService.CreateThread(thread, progressChannel, errorChannel)

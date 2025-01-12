@@ -76,6 +76,19 @@ func (authorService *AuthorService) GetAvatarIconLinkByAuthorID(authorID int) st
 	return authorRepository.GetAvatarIconLinkByAuthorID(authorID)
 }
 
+func (authorService *AuthorService) SearchAuthors(userAuthorID int, query string, page int, limit int) ([]*dtos.AuthorDTO, *dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+	authors, err := authorRepository.SearchAuthors(userAuthorID, query, page, limit)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return authors, nil
+}
+
 func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 

@@ -43,14 +43,8 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 			}
 			event.key === "Escape" && setFullScreenImage(false);
 		};
-
-		imageViewerContainerRef.current?.requestFullscreen
-			? imageViewerContainerRef.current?.requestFullscreen()
-			: (
-					imageViewerContainerRef.current as HTMLDivElement & {
-						webkitRequestFullscreen: () => void;
-					}
-			  ).webkitRequestFullscreen();
+		imageViewerContainerRef.current?.requestFullscreen();
+		return () => window.removeEventListener("keydown", () => {});
 	}, []);
 
 	const exitFullScreen = () => {
@@ -97,8 +91,8 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 							src={image}
 							style={{
 								objectFit: "contain",
-								maxWidth:"100%",
-								maxHeight:"100%",
+								maxWidth: "100%",
+								maxHeight: "100%",
 								cursor: imageZoom ? "zoom-out" : "zoom-in",
 							}}
 							onClick={(event) => {
@@ -113,7 +107,7 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 				position="absolute"
 				width="100%"
 				height="100%"
-				display="flex"
+				display={{ xs: "none", md: "flex" }}
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"

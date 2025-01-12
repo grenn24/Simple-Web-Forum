@@ -84,9 +84,9 @@ const List = ({
 									padding: listItemPadding,
 								}}
 							>
-								<Box display="flex" width="100%" justifyContent="center">
+								<Box display="flex" width="100%" justifyContent="center" >
 									{listIconsArray && listIconsArray[index]}
-									<Typography sx={{ ...listItemTextStyle }}>{item}</Typography>
+									<Typography sx={{ ...listItemTextStyle}}>{item}</Typography>
 								</Box>
 							</ListItemText>
 						)}

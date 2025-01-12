@@ -106,6 +106,10 @@ export function parseAuthor(author: any): AuthorDTO {
 	};
 }
 
+export function parseAuthors(authors: any): AuthorDTO[] {
+	return authors ? authors.map((author: any) => parseAuthor(author)) : [];
+}
+
 export function parseComments(comments: any): CommentDTO[] {
 	return comments ? comments.map((comment: any) => parseComment(comment)) : [];
 }

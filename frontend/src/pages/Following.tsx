@@ -5,7 +5,7 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortOrder from "../features/Following/sortOrder";
@@ -18,7 +18,14 @@ import cryingCat from "../assets/image/crying-cat.png";
 
 const Following = () => {
 	const [isLoading, setIsLoading] = useState(true);
-	const [sortIndex, setSortIndex] = useState(0);
+	const [searchParams, _] = useSearchParams();
+	const sort = searchParams.get("sort");
+	let currentSortIndex = 0;
+	sortOrder.forEach((value, index) => {
+		if (value === sort) {
+			currentSortIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	const [followedThreads, setFollowedThreads] = useState<ThreadDTO[]>([]);
 
@@ -26,7 +33,7 @@ const Following = () => {
 	useEffect(
 		() =>
 			get<ThreadDTO[]>(
-				"./authors/user/follows?sort=" + sortIndex,
+				"./authors/user/follows?sort=" + currentSortIndex,
 				(res) => {
 					const responseBody = res.data.data;
 					const threads = parseThreads(responseBody);
@@ -35,7 +42,7 @@ const Following = () => {
 				},
 				(err) => console.log(err)
 			),
-		[sortIndex]
+		[sort]
 	);
 
 	return (
@@ -90,7 +97,7 @@ const Following = () => {
 					<Menu
 						menuExpandedItemsArray={sortOrder}
 						menuExpandedIconsArray={sortIcons}
-						menuExpandedDataValuesArray={sortOrder.map((_, index) => index)}
+						menuExpandedDataValuesArray={sortOrder.map((value) => value)}
 						menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 						menuStyle={{
 							borderRadius: 30,
@@ -102,12 +109,11 @@ const Following = () => {
 						}}
 						handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 							(event: React.MouseEvent<HTMLElement>) =>
-								event.currentTarget.dataset.value &&
-								setSortIndex(Number(event.currentTarget.dataset.value))
+								navigate(`?sort=${event.currentTarget.dataset?.value}`)
 						)}
 						toolTipText="Sort Options"
 					>
-						{sortOrder[sortIndex]}
+						{sortOrder[currentSortIndex]}
 					</Menu>
 				</Box>
 				<Box

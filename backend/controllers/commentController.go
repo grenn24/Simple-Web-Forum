@@ -32,7 +32,7 @@ func (commentController *CommentController) GetAllComments(context *gin.Context,
 }
 
 func (commentController *CommentController) GetCommentsByThreadID(context *gin.Context, db *sql.DB) {
-	threadID :=  utils.ConvertStringToInt(context.Param("threadID"), context)
+	threadID := utils.ConvertStringToInt(context.Param("threadID"), context)
 	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
 	commentService := commentController.CommentService
@@ -52,7 +52,7 @@ func (commentController *CommentController) GetCommentsByThreadID(context *gin.C
 }
 
 func (commentController *CommentController) GetCommentsByAuthorID(context *gin.Context, db *sql.DB) {
-	
+
 	authorID := utils.ConvertStringToInt(context.Param("authorID"), context)
 
 	commentService := commentController.CommentService
@@ -64,7 +64,6 @@ func (commentController *CommentController) GetCommentsByAuthorID(context *gin.C
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
-		
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
@@ -84,6 +83,22 @@ func (commentController *CommentController) GetCommentsByUser(context *gin.Conte
 		return
 	}
 
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   comments,
+	})
+}
+
+func (commentController *CommentController) SearchComments(context *gin.Context, db *sql.DB) {
+	commentService := commentController.CommentService
+	query := context.Query("query")
+	page := utils.ConvertStringToInt(context.Query("page"), context)
+	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+
+	comments, responseErr := commentService.SearchComments(query, page, limit)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+	}
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
 		Data:   comments,

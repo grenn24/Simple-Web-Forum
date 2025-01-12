@@ -1,4 +1,4 @@
-import { Box, Typography, Divider, Container } from "@mui/material";
+import { Box, Typography, Divider } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import Button from "../components/Button";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
@@ -44,7 +44,11 @@ const Topics = () => {
 					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
+			
 				flexGrow={1}
+				display="flex"
+				flexDirection="column"
+				alignItems="center"
 			>
 				<Box
 					sx={{
@@ -54,6 +58,7 @@ const Topics = () => {
 						justifyContent: "center",
 						alignContent: "center",
 					}}
+					width="100%"
 				>
 					<Typography
 						textAlign={"left"}
@@ -65,8 +70,15 @@ const Topics = () => {
 						Explore Topics
 					</Typography>
 				</Box>
-				<Divider />
-				<Box marginTop={2}>
+				<Box width="100%">
+					<Divider />
+				</Box>
+				<Box
+					marginTop={2}
+					width="100%"
+					display="flex"
+					justifyContent="space-between"
+				>
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
 						color="primary.dark"
@@ -75,19 +87,18 @@ const Topics = () => {
 						toolTipText="Back"
 					/>
 				</Box>
-				<Container
+				<Box
 					sx={{
 						width: { xs: "100%", sm: "100%", md: "90%", lg: "80%", xl: "70%" },
 						marginBottom: 3,
 					}}
-					disableGutters
 				>
 					{/*If website is still fetching data from api, display loading skeleton grid cards instead*/}
 					{isLoading && <ThreadGridCardsLoading />}
 					{topicsWithThreads.map((topic) => (
 						<Topic key={topic.topicID} topic={topic} />
 					))}
-				</Container>
+				</Box>
 			</Box>
 		</>
 	);

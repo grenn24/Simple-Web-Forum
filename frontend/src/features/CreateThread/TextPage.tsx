@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import EditorBar from "./EditorBar";
 import { FieldErrors, Control, Controller } from "react-hook-form";
 import SelectChip from "../../components/SelectChip";
@@ -17,7 +17,7 @@ interface Prop {
 const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected }: Prop) => {
 
 	return (
-		<>
+		<Box >
 			<Controller
 				name="title"
 				control={control}
@@ -79,10 +79,7 @@ const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected 
 					/>
 				)}
 			/>
-			<br />
-			<br />
-			<br />
-		</>
+		</Box>
 	);
 };
 

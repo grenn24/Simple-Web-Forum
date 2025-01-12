@@ -4,8 +4,9 @@ import {
 	NavigateNextRounded as NavigateNextRoundedIcon,
 } from "@mui/icons-material";
 import Button from "./Button";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FullScreenImage from "./FullScreenMediaViewer";
+import { AnimatePresence, motion } from "motion/react";
 interface Prop {
 	imageLinks: string[];
 	borderRadius?: number;
@@ -13,10 +14,17 @@ interface Prop {
 	fullScreenMode?: boolean;
 }
 
-const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode = true }: Prop) => {
-	const [isScrolling, setIsScrolling] = useState(false);
+const MediaViewer = ({
+	imageLinks,
+	borderRadius,
+	backgroundColor,
+	fullScreenMode = true,
+}: Prop) => {
 	const [fullScreenImage, setFullScreenImage] = useState(false);
 	const mediaViewerRef = useRef<HTMLDivElement>(null);
+	const buttonBoxRef = useRef<HTMLDivElement>(null);
+	const [isScrolling, setIsScrolling] = useState(false);
+	const [showScrollButtons, setShowScrollButtons] = useState(false);
 	const scrollLeft = () => {
 		if (!isScrolling) {
 			setIsScrolling(true);
@@ -39,6 +47,23 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode
 		}
 	};
 
+	useEffect(() => {
+		if (buttonBoxRef.current) {
+			buttonBoxRef.current.onmouseenter = () => setShowScrollButtons(true);
+			buttonBoxRef.current.onmouseleave = () => setShowScrollButtons(false);
+		}
+		return () => {
+			buttonBoxRef.current &&
+				buttonBoxRef.current.removeEventListener("mouseenter", () =>
+					setShowScrollButtons(true)
+				);
+			buttonBoxRef.current &&
+				buttonBoxRef.current.removeEventListener("mouseleave", () =>
+					setShowScrollButtons(true)
+				);
+		};
+	}, []);
+
 	return (
 		<Box width="100%" height="100%" position="relative">
 			<Box
@@ -56,7 +81,6 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode
 				}}
 				position="absolute"
 				ref={mediaViewerRef}
-				zIndex={5}
 				borderRadius={borderRadius}
 			>
 				{imageLinks.map((image: string) => (
@@ -67,7 +91,6 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode
 						display="flex"
 						flexDirection="row"
 						justifyContent="center"
-						onClick={() => fullScreenMode && setFullScreenImage(true)}
 					>
 						<img
 							src={image}
@@ -76,19 +99,23 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode
 								maxHeight: "100%",
 								objectFit: "contain",
 								width: "auto",
+								zIndex: 1,
 							}}
+							onClick={() => fullScreenMode && setFullScreenImage(true)}
 						/>
 					</Box>
 				))}
 			</Box>
+			{/*Box for left and right scroll buttons (only show on medium or larger screens)*/}
 			<Box
 				position="absolute"
 				width="100%"
 				height="100%"
-				display="flex"
+				display={{ xs: "none", md: "flex" }}
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"
+				ref={buttonBoxRef}
 			>
 				<Box
 					display="flex"
@@ -96,38 +123,60 @@ const MediaViewer = ({ imageLinks, borderRadius, backgroundColor, fullScreenMode
 					justifyContent="space-between"
 					alignItems="center"
 				>
-					<Button
-						buttonIcon={<NavigateBeforeRoundedIcon />}
-						buttonStyle={{
-							p: 0,
-							zIndex: 6,
-						}}
-						backgroundColor="background.default"
-						handleButtonClick={(event) => {
-							event.stopPropagation();
-							scrollLeft();
-						}}
-					/>
-
-					<Button
-						buttonIcon={<NavigateNextRoundedIcon />}
-						buttonStyle={{
-							p: 0,
-							zIndex: 6,
-						}}
-						backgroundColor="background.default"
-						handleButtonClick={(event) => {
-							event.stopPropagation();
-							scrollRight();
-						}}
-					/>
+					<AnimatePresence>
+						{showScrollButtons && (
+							<>
+								<Box zIndex={2}>
+									<motion.div
+										whileHover={{ scale: 1.2 }}
+										initial={{ x: -40, opacity: 0 }}
+										animate={{ x: 0, opacity: 1 }}
+										exit={{ x: -40, opacity: 0 }}
+										transition={{ duration: 0.4, ease: "easeOut" }}
+									>
+										<Button
+											buttonIcon={<NavigateBeforeRoundedIcon />}
+											buttonStyle={{
+												p: 0,
+											}}
+											backgroundColor="background.default"
+											handleButtonClick={(event) => {
+												event.stopPropagation();
+												scrollLeft();
+											}}
+										/>
+									</motion.div>
+								</Box>
+								<Box zIndex={2}>
+									<motion.div
+										whileHover={{ scale: 1.2 }}
+										initial={{ x: 40, opacity: 0 }}
+										animate={{ x: 0, opacity: 1 }}
+										exit={{ x: 40, opacity: 0 }}
+										transition={{ duration: 0.4, ease: "easeOut" }}
+									>
+										<Button
+											buttonIcon={<NavigateNextRoundedIcon />}
+											buttonStyle={{
+												p: 0,
+											}}
+											backgroundColor="background.default"
+											handleButtonClick={(event) => {
+												event.stopPropagation();
+												scrollRight();
+											}}
+										/>
+									</motion.div>
+								</Box>
+							</>
+						)}
+					</AnimatePresence>
 				</Box>
 			</Box>
 			{fullScreenImage && (
 				<FullScreenImage
 					imageLinks={imageLinks}
 					setFullScreenImage={setFullScreenImage}
-					
 				/>
 			)}
 		</Box>

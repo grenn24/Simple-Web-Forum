@@ -4,7 +4,8 @@ import { Outlet } from "react-router-dom";
 import TopHeader from "./TopHeader";
 import Divider from "@mui/material/Divider";
 import { useAppSelector } from "../../utilities/reduxHooks";
-import LinearProgressWithLabel from "../../components/LinearProgressWithLabel/LinearProgressWithLabel";
+import CircularProgressWithLabel from "../../components/CircularProgressWithLabel/CircularProgressWithLabel";
+import { Typography } from "@mui/material";
 import Snackbar from "../../components/Snackbar";
 
 interface Prop {
@@ -21,10 +22,8 @@ export default function MainBody({
 	handleLeftBarCloseTransitionEnd,
 	openLeftNavBar,
 }: Prop) {
-	const { uploadID, uploadStatus, progress } = useAppSelector((state) => ({
-		uploadID: state.createThread.uploadID,
-		uploadStatus: state.createThread.uploadStatus,
-		progress: state.createThread.progress,
+	const { uploads } = useAppSelector((state) => ({
+		uploads: state.createThread.uploads,
 	}));
 	return (
 		<Box width="100vw" height="100vh">
@@ -49,20 +48,61 @@ export default function MainBody({
 					handleLeftBarCloseTransitionEnd={handleLeftBarCloseTransitionEnd}
 				/>
 				<Box maxWidth="100%" flexGrow={1} position="relative">
-					<Box width="100%" position="fixed"  top={70}>
-						{!uploadStatus && <LinearProgressWithLabel progress={progress} />}
+					<Box
+						width="auto"
+						height="auto"
+						position="fixed"
+						right={20}
+						bottom={20}
+					>
+						{uploads.size !== 0 &&
+							Array.from(uploads.values()).map((upload, index) => (
+								<Box
+									display="flex"
+									flexDirection="row"
+									justifyContent="flex-end"
+									alignItems="center"
+								>
+									<Typography marginRight={2}>{upload.title}</Typography>
+									<CircularProgressWithLabel
+										key={index}
+										progress={upload.progress}
+									/>
+									<Box position="fixed">
+										{/*Upload success snackbar*/}
+										<Snackbar
+											openSnackbar={
+												(upload.uploadStatus as string) === "complete"
+											}
+											message="Upload completed"
+											duration={2000}
+											undoButton={false}
+											anchorOrigin={{
+												vertical: "bottom",
+												horizontal: "center",
+											}}
+										/>
+										{/*Upload error snackbar*/}
+										<Snackbar
+											openSnackbar={
+												(upload.uploadStatus as string) === "error"
+											}
+											message="An error occurred during the upload, please try again."
+											duration={2000}
+											undoButton={false}
+											anchorOrigin={{
+												vertical: "bottom",
+												horizontal: "center",
+											}}
+										/>
+									</Box>
+								</Box>
+							))}
 					</Box>
+
 					<Outlet />
 				</Box>
 			</Box>
-
-			{/*Thread Upload Started snackbar*/}
-			<Snackbar
-				openSnackbar={progress === 100}
-				message="Thread has been uploaded successfully"
-				duration={1000}
-				undoButton={false}
-			/>
 		</Box>
 	);
 }

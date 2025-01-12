@@ -1,7 +1,8 @@
-import { useState } from "react";
+
 import SearchIcon from "@mui/icons-material/Search";
 import { styled, alpha } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
+import { useNavigate } from "react-router-dom";
 
 interface Prop {
 	placeholder: string;
@@ -52,7 +53,7 @@ const SearchBar = ({ placeholder }: Prop) => {
 		},
 	}));
 
-	const setSearchBarInput = useState("")[1];
+	const navigate = useNavigate();
 
 	return (
 		<Search sx={{ border: "5px" }}>
@@ -64,8 +65,9 @@ const SearchBar = ({ placeholder }: Prop) => {
 				inputProps={{ "aria-label": "search" }}
 				defaultValue=""
 				onKeyDown={(e) =>
-					e.key === "Enter" ? setSearchBarInput(e.currentTarget.value) : null
+					e.key === "Enter" && navigate("/Search?query=" + e.currentTarget.value)
 				}
+				
 			/>
 		</Search>
 	);

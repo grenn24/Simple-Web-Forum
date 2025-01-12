@@ -114,6 +114,7 @@ const LogIn = () => {
 							</Box>
 							<TextField
 								label="Email"
+								autoComplete="email"
 								variant="outlined"
 								{...register("email", {
 									required: "The email field is required",

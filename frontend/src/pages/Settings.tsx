@@ -6,8 +6,8 @@ import {
 	useMediaQuery,
 } from "@mui/material";
 import TabMenu from "../components/TabMenu/TabMenu";
-import settingsTabMenuLabels from "../features/Settings/settingsTabMenuLabels";
-import settingsTabMenuPages from "../features/Settings/settingsTabMenuPages";
+import settingsTabMenuLabels from "../features/Settings/tabMenuLabels";
+import settingsTabMenuPages from "../features/Settings/tabMenuPages";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";

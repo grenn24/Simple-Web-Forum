@@ -11,7 +11,7 @@ import {
 	useMediaQuery,
 } from "@mui/material";
 import Button from "../components/Button";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
@@ -24,8 +24,8 @@ import {
 	PhotoCameraRounded as PhotoCameraRoundedIcon,
 } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu/TabMenu";
-import profileTabMenuLabels from "../features/Profile/profileTabMenuLabels";
-import profileTabMenuPages from "../features/Profile/profileTabMenuPages";
+import profileTabMenuLabels from "../features/Profile/tabMenuLabels";
+import profileTabMenuPages from "../features/Profile/tabMenuPages";
 import { Delete, get, postJSON, putFormData } from "../utilities/api";
 import { Controller, useForm } from "react-hook-form";
 import { parseAuthor } from "../utilities/parseApiResponse";
@@ -44,7 +44,16 @@ const Profile = () => {
 		control,
 		formState: { errors },
 		setError,
+		watch,
 	} = useForm();
+	const [searchParams, _] = useSearchParams();
+	const type = searchParams.get("type");
+	let currentTabIndex = 0;
+	profileTabMenuLabels.forEach((label, index) => {
+		if (label === type) {
+			currentTabIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
@@ -64,6 +73,7 @@ const Profile = () => {
 		openAvatarIconUploadErrorSnackbar,
 		setOpenAvatarIconUploadErrorSnackbar,
 	] = useState(false);
+
 	const [openProfileEditErrorSnackbar, setOpenProfileEditErrorSnackbar] =
 		useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
@@ -83,7 +93,7 @@ const Profile = () => {
 				},
 				(err) => console.log(err)
 			),
-		[authorID, isEditing]
+		[authorID, isEditing, type]
 	);
 
 	const handleFollowAuthor = () => {
@@ -110,7 +120,7 @@ const Profile = () => {
 		}
 	};
 
-	const handleEditProfileInfo = handleSubmit((data) => {
+	const handleEditButtonClick = handleSubmit((data) => {
 		if (isEditing) {
 			setIsUploading(true);
 			const formData = new FormData();
@@ -428,7 +438,7 @@ const Profile = () => {
 									isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
 								}
 								type="submit"
-								handleButtonClick={handleEditProfileInfo}
+								handleButtonClick={handleEditButtonClick}
 							>
 								{isEditing ? "Confirm" : "Edit"}
 							</Button>
@@ -447,20 +457,35 @@ const Profile = () => {
 				</Box>
 				<Box my={2} width="100%">
 					{isEditing ? (
-						<Controller
-							name="biography"
-							control={control}
-							defaultValue={author.biography}
-							render={() => (
-								<TextField
-									label="Bio"
-									size="small"
-									fullWidth
-									variant="outlined"
-									{...register("biography")}
-								/>
-							)}
-						/>
+						<>
+							<Controller
+								name="biography"
+								control={control}
+								defaultValue={author.biography}
+								render={() => (
+									<TextField
+										label="Bio"
+										size="small"
+										fullWidth
+										variant="outlined"
+										{...register("biography", {
+											validate: {
+												validBio: (x) => /^.{0,149}$/.test(x),
+											},
+										})}
+										error={!!errors.biography}
+									/>
+								)}
+							/>
+							<Typography
+								fontSize={15}
+								marginLeft={1}
+								fontWeight={500}
+								color={errors.biography ? "red" : "inherit"}
+							>
+								{watch("biography")?.length}/150 Characters
+							</Typography>
+						</>
 					) : (
 						<Typography
 							textAlign="center"
@@ -479,6 +504,10 @@ const Profile = () => {
 						useMediaQuery(theme.breakpoints.up("sm"))
 							? "fullWidth"
 							: "scrollable"
+					}
+					defaultPageIndex={currentTabIndex}
+					handleTabLabelClick={(newTabIndex) =>
+						navigate("?type=" + profileTabMenuLabels[newTabIndex])
 					}
 				/>
 			</Box>
@@ -535,6 +564,7 @@ const Profile = () => {
 				duration={2000}
 				undoButton={false}
 			/>
+		
 		</Box>
 	);
 };

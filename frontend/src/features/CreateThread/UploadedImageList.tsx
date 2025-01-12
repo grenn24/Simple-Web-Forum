@@ -3,18 +3,19 @@ import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import Button from "../../components/Button";
 import { removeFromArray } from "../../utilities/arrayManipulation";
 import { openFileInNewWindow } from "../../utilities/fileManipulation";
+import Snackbar from "../../components/Snackbar";
+import { useState } from "react";
 
 interface Prop {
 	imagesSelected: File[];
 	setImagesSelected: (images: File[]) => void;
-	setOpenImageDeletedSnackbar: (state: boolean) => void;
-	setImageDeleted: (image: File) => void;
 }
 
-const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDeletedSnackbar, setImageDeleted}: Prop) => {
-
-	
+const UploadedImageList = ({ imagesSelected, setImagesSelected}: Prop) => {
 	const imageFiles = Array.from(imagesSelected).map((image: File) => image);
+	const [imageDeleted, setImageDeleted] = useState<File>({} as File);
+	const [openImageDeletedSnackbar, setOpenImageDeletedSnackbar] =
+		useState(false);
 	return (
 		imageFiles.length !== 0 && (
 			<>
@@ -22,7 +23,10 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDel
 					<Typography fontFamily="Open Sans" color="text.primary">
 						{imageFiles.length} Images
 					</Typography>
-					<Button buttonStyle={{py:0}} handleButtonClick={()=>setImagesSelected([])}>
+					<Button
+						buttonStyle={{ py: 0 }}
+						handleButtonClick={() => setImagesSelected([])}
+					>
 						Clear All
 					</Button>
 				</Box>
@@ -79,6 +83,17 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected , setOpenImageDel
 								}}
 							/>
 						</Box>
+						{/*Image Deleted Snackbar*/}
+						<Snackbar
+							openSnackbar={openImageDeletedSnackbar}
+							setOpenSnackbar={setOpenImageDeletedSnackbar}
+							message="Image deleted"
+							duration={3000}
+							undoButton
+							handleUndoButtonClick={() =>
+								setImagesSelected([...imagesSelected, imageDeleted])
+							}
+						/>
 					</Box>
 				))}
 			</>

@@ -1,10 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-	uploadID:"",
-	uploadStatus: false,
-	progress: 0,
+export interface UploadDTO {
+	title: "";
+	uploadStatus: "";
+	progress: 0;
+}
 
+const initialState = {
+	// key is the upload id
+	uploads: new Map() as Map<string, UploadDTO>,
 };
 export const createThreadSlice = createSlice({
 	// Name of slice
@@ -15,25 +19,28 @@ export const createThreadSlice = createSlice({
 	// Immer provides safe mutation of state fields directly
 	reducers: {
 		reset: () => initialState,
-		changeUploadID: (state, action) => {
-			state.uploadID = action.payload;
+		addUpload: (state, action) => {
+			const uploads = new Map(state.uploads);
+			uploads.set(action.payload.uploadID, action.payload.upload);
+			state.uploads = uploads;
 		},
-		changeProgress: (state, action) => {
-			state.progress = action.payload;
+		deleteUpload: (state, action) => {
+			const newUploads = new Map(state.uploads);
+			// delete upload using upload id
+			newUploads.delete(action.payload);
+			state.uploads = newUploads;
 		},
-		changeUploadStatus: (state, action) => {
-			state.uploadStatus = action.payload;
+		editUpload: (state, action) => {
+			const uploads = new Map(state.uploads);
+			uploads.set(action.payload.uploadID, action.payload.upload);
+			state.uploads = uploads;
 		},
 	},
 });
 
 // Action creators are generated for each reducer function using create slice
-export const {
-	reset,
-	changeUploadID,
-	changeProgress,
-	changeUploadStatus
-} = createThreadSlice.actions;
+export const { reset, addUpload, deleteUpload, editUpload } =
+	createThreadSlice.actions;
 
 const createThreadSliceReducer = createThreadSlice.reducer;
 

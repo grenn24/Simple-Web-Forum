@@ -49,6 +49,9 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter.GET("/user", func(context *gin.Context) {
 		authorController.GetUser(context, db)
 	})
+	authorRouter.GET("/search", func(context *gin.Context) {
+		authorController.SearchAuthors(context, db)
+	})
 	authorRouter.POST("", func(context *gin.Context) {
 		authorController.CreateAuthor(context, db)
 	})

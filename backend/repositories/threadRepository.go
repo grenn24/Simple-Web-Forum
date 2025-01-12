@@ -135,6 +135,7 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			thread.title,
 			thread.created_at,
 			thread.content,
+			thread.like_count,
 			thread.author_id,
 			author.name,
 			author.username,
@@ -168,6 +169,7 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			&thread.Title,
 			&thread.CreatedAt,
 			&thread.Content,
+			&thread.LikeCount,
 			&thread.Author.AuthorID,
 			&thread.Author.Name,
 			&thread.Author.Username,
@@ -226,6 +228,81 @@ func (threadRepository *ThreadRepository) GetImageLinkByThreadID(threadID int) [
 		return []string{}
 	}
 	return imageLink
+}
+
+// User author id needed to acquire archive status
+func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query string, page int, limit int) ([]*dtos.ThreadDTO, error) {
+	var limitOffset string
+	if page != 0 && limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	}
+
+	rows, err := threadRepository.DB.Query(`
+		SELECT DISTINCT
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread.author_id,
+			author.name,
+			author.username,
+			author.avatar_icon_link,
+			thread.image_title,
+			thread.image_link,
+			thread.like_count,
+			CASE 
+				WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE 
+		END AS archive_status
+		FROM thread
+		INNER JOIN author ON thread.author_id = author.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
+		LEFT JOIN threadTopicJunction ON threadTopicJunction.thread_id = thread.thread_id
+		LEFT JOIN topic ON threadTopicJunction.topic_id = topic.topic_id
+		WHERE thread.title ILIKE $2 OR thread.content ILIKE $2 OR topic.name ILIKE $2
+	`+limitOffset, userAuthorID, "%"+query+"%")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	threads := make([]*dtos.ThreadDTO, 0)
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(dtos.ThreadDTO)
+
+		thread.Author = new(dtos.AuthorDTO)
+
+		// Scan the current row into the thread struct
+		err := rows.Scan(
+			&thread.ThreadID,
+			&thread.Title,
+			&thread.CreatedAt,
+			&thread.Content,
+			&thread.Author.AuthorID,
+			&thread.Author.Name,
+			&thread.Author.Username,
+			&thread.Author.AvatarIconLink,
+			&thread.ImageTitle,
+			pq.Array(&thread.ImageLink),
+			&thread.LikeCount,
+			&thread.ArchiveStatus,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned thread to threads slice
+		threads = append(threads, thread)
+	}
+	return threads, err
 }
 
 func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {

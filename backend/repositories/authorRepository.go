@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -215,6 +216,54 @@ func (authorRepository *AuthorRepository) GetBiographyByAuthorID(authorID int) s
 		return ""
 	}
 	return biography
+}
+
+func (authorRepository *AuthorRepository) SearchAuthors(userAuthorID int, query string, page int, limit int) ([]*dtos.AuthorDTO, error) {
+	var limitOffset string
+	if page != 0 && limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	}
+	rows, err := authorRepository.DB.Query(`
+		SELECT author.author_id, author.name, author.username, author.email, author.avatar_icon_link, author.created_at, author.biography,
+		CASE 
+			WHEN follow.followee_author_id IS NOT NULL AND follow.follower_author_id IS NOT NULL 
+			THEN TRUE 
+		ELSE FALSE 
+    	END AS follow_status
+		FROM author
+		LEFT JOIN follow ON follow.followee_author_id = author.author_id AND follow.follower_author_id = $1
+		WHERE (author.name ILIKE $2 OR author.username ILIKE $2) AND author.author_id != $1
+	`+limitOffset, userAuthorID, "%"+query+"%")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	authors := make([]*dtos.AuthorDTO, 0)
+
+	for rows.Next() {
+		author := new(dtos.AuthorDTO)
+
+		err := rows.Scan(
+			&author.AuthorID,
+			&author.Name,
+			&author.Username,
+			&author.Email,
+			&author.AvatarIconLink,
+			&author.CreatedAt,
+			&author.Biography,
+			&author.FollowStatus,
+		)
+		if err != nil {
+			return nil, err
+		}
+		authors = append(authors, author)
+	}
+	return authors, err
+
 }
 
 func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (int, error) {

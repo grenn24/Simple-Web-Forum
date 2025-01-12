@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -159,6 +160,71 @@ func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) 
 			&comment.Thread.CreatedAt,
 			&comment.Thread.Author.AuthorID,
 			&comment.Thread.Author.Name,
+			&comment.Thread.Author.AvatarIconLink,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned comment to comments slice
+		comments = append(comments, comment)
+	}
+
+	return comments, err
+}
+
+func (commentRepository *CommentRepository) SearchComments(query string, page int, limit int) ([]*dtos.CommentDTO, error) {
+	var limitOffset string
+	if page != 0 && limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	}
+
+
+	rows, err := commentRepository.DB.Query(`
+		SELECT comment.comment_id, comment.content, comment.created_at, comment_author.author_id, comment_author.name, comment_author.username, comment_author.avatar_icon_link, thread.thread_id, thread.title,
+		thread.content, thread.created_at, thread.like_count, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link
+		FROM comment 
+		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
+		INNER JOIN thread ON comment.thread_id = thread.thread_id
+		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
+		WHERE comment.content ILIKE $1
+	`+limitOffset,  "%"+query+"%")
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	comments := make([]*dtos.CommentDTO, 0)
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a comment struct
+		comment := new(dtos.CommentDTO)
+		comment.Author = new(dtos.AuthorDTO)
+		comment.Thread = new(dtos.ThreadDTO)
+		comment.Thread.Author = new(dtos.AuthorDTO)
+
+		// Scan the current row into the comment struct
+		err := rows.Scan(
+			&comment.CommentID,
+			&comment.Content,
+			&comment.CreatedAt,
+			&comment.Author.AuthorID,
+			&comment.Author.Name,
+			&comment.Author.Username,
+			&comment.Author.AvatarIconLink,
+			&comment.Thread.ThreadID,
+			&comment.Thread.Title,
+			&comment.Thread.Content,
+			&comment.Thread.CreatedAt,
+			&comment.Thread.LikeCount,
+			&comment.Thread.Author.AuthorID,
+			&comment.Thread.Author.Name,
+			&comment.Thread.Author.Username,
 			&comment.Thread.Author.AvatarIconLink,
 		)
 

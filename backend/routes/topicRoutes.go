@@ -34,6 +34,9 @@ func TopicRoutes(router *gin.RouterGroup, db *sql.DB) {
 	topicRouter.GET("/threads", func(context *gin.Context) {
 		topicController.GetAllTopicsWithThreads(context, db)
 	})
+	topicRouter.GET("/search", func(context *gin.Context) {
+		topicController.SearchTopics(context, db)
+	})
 	topicRouter.POST("/threads", func(context *gin.Context) {
 		threadController.AddThreadToTopic(context, db)
 	})

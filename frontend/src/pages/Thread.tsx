@@ -34,7 +34,7 @@ import { useState, useEffect } from "react";
 import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems.tsx";
 import playerGenerator from "../utilities/playerGenerator.ts";
 import likeSound from "../assets/audio/like-sound.mp3";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON, putJSON } from "../utilities/api.ts";
@@ -62,7 +62,14 @@ const Thread = () => {
 	const location = useLocation();
 	const { threadID } = useParams();
 
-	const [commentSortIndex, setCommentSortIndex] = useState(0);
+	const [searchParams, _] = useSearchParams();
+	const commentSort = searchParams.get("comment-sort");
+	let currentSortIndex = 0;
+	commentSortOrder.forEach((value, index) => {
+		if (value === commentSort) {
+			currentSortIndex = index;
+		}
+	});
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
 	const [archiveStatus, setArchiveStatus] = useState(false);
@@ -84,7 +91,7 @@ const Thread = () => {
 	useEffect(
 		() =>
 			get<ThreadDTO>(
-				`/threads/${threadID}/expanded?comment-sort=` + commentSortIndex,
+				`/threads/${threadID}/expanded?comment-sort=` + currentSortIndex,
 				(res) => {
 					const responseBody = res.data.data;
 					const thread = parseThread(responseBody);
@@ -100,7 +107,7 @@ const Thread = () => {
 				},
 				(err) => console.log(err)
 			),
-		[isUploadingThread, isUploadingComment, commentSortIndex]
+		[isUploadingThread, isUploadingComment, commentSort]
 	);
 
 	const {
@@ -624,19 +631,17 @@ const Thread = () => {
 									<Menu
 										menuExpandedItemsArray={commentSortOrder}
 										menuExpandedDataValuesArray={commentSortOrder.map(
-											(_, index) => index
+											(value) => value
 										)}
 										menuIcon={<SortRoundedIcon />}
 										variant="text"
-										handleMenuExpandedItemsClick={Array(3).fill(
+										handleMenuExpandedItemsClick={Array(commentSortOrder.length).fill(
 											(event: React.MouseEvent<HTMLElement>) =>
-												setCommentSortIndex(
-													Number(event.currentTarget.dataset?.value)
-												)
+												navigate(`?comment-sort=${event.currentTarget.dataset?.value}`)
 										)}
 										menuStyle={{ fontFamily: "Open Sans" }}
 									>
-										{commentSortOrder[commentSortIndex]}
+										{commentSortOrder[currentSortIndex]}
 									</Menu>
 								</Box>
 								<List

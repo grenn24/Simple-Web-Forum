@@ -94,7 +94,7 @@ const LeftNavigationBar = ({
 			id="leftNavigationBarContainer"
 			component="nav"
 			sx={{
-				width: { xs: "0px", sm: "0px", md: "250px", lg: "300px" },
+				minWidth: { xs: "0px", sm: "0px", md: "250px", lg: "300px" },
 			}}
 		>
 			<Drawer

@@ -167,3 +167,21 @@ func (topicController *TopicController) GetAllTopics(context *gin.Context, db *s
 		Data:   topicsWithFollowStatus,
 	})
 }
+
+func (topicController *TopicController) SearchTopics(context *gin.Context, db *sql.DB) {
+	topicService := topicController.TopicService
+	userAuthorID := utils.GetUserAuthorID(context)
+	query := context.Query("query")
+	page := utils.ConvertStringToInt(context.Query("page"), context)
+	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+
+	topics, responseErr := topicService.SearchTopics(userAuthorID, query, page, limit)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   topics,
+	})
+}

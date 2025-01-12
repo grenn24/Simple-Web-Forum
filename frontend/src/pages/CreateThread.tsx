@@ -7,17 +7,15 @@ import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
 import { postFormData } from "../utilities/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Snackbar from "../components/Snackbar";
-import LinearProgressWithLabel from "../components/LinearProgressWithLabel/LinearProgressWithLabel";
-import { closeWebsocket, createWebsocket } from "../utilities/websocket";
+import { createWebsocket } from "../utilities/websocket";
 import { v4 as uuidv4 } from "uuid";
 import { useAppDispatch, useAppSelector } from "../utilities/reduxHooks";
 import {
-	changeUploadID,
-	changeProgress,
-	changeUploadStatus,
-	reset as resetSlice
+	editUpload,
+	addUpload,
+	deleteUpload,
 } from "../features/CreateThread/createThreadSlice";
 
 const CreateThread = () => {
@@ -42,6 +40,9 @@ const CreateThread = () => {
 		watch,
 	} = useForm();
 	const dispatch = useAppDispatch();
+	const { uploads } = useAppSelector((state) => ({
+		uploads: state.createThread.uploads,
+	}));
 
 	const createThread = handleSubmit((data) => {
 		const uploadID = uuidv4();
@@ -51,7 +52,7 @@ const CreateThread = () => {
 			formData.append("upload_id", uploadID);
 			formData.append("title", data.title);
 			formData.append("content", data.content);
-			formData.append("image_title", data.imageTitle);
+			data.imageTitle && formData.append("image_title", data.imageTitle);
 			imagesSelected.forEach((image: File) => formData.append("images", image));
 			topicsSelected.forEach((topic) =>
 				formData.append("topics_tagged", topic)
@@ -68,31 +69,68 @@ const CreateThread = () => {
 					setIsUploading(false);
 					setOpenThreadUploadStartedSnackbar(true);
 					const websocket = createWebsocket("/threads/upload-progress");
+
 					websocket.onopen = () => {
 						websocket.send(
 							JSON.stringify({
 								upload_id: uploadID,
 							})
 						);
-						dispatch(changeUploadStatus(true));
+						dispatch(
+							addUpload({
+								uploadID: uploadID,
+								upload: {
+									title: data.title,
+									uploadStatus: "incomplete",
+									progress: 0,
+								},
+							})
+						);
 					};
-
 					websocket.onmessage = (event) => {
-						console.log(event);
-						const upload = JSON.parse(event.data);
-						if (upload.status === "INCOMPLETE") {
-							dispatch(changeProgress(upload.progress));
-						}
-						if (upload.status === "COMPLETE") {
-							dispatch(changeProgress(upload.progress));
-						}
-					};
 
+						const upload = JSON.parse(event.data);
+						if (upload.status === "incomplete") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									upload: {
+										title: data.title,
+										uploadStatus: upload.status,
+										progress: upload.progress,
+									},
+								})
+							);
+						}
+						if (upload.status === "complete") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									upload: {
+										title: data.title,
+										uploadStatus: upload.status,
+										progress: upload.progress,
+									},
+								})
+							);
+						}
+						if (upload.status === "error") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									upload: {
+										title: data.title,
+										uploadStatus: upload.status
+									},
+								})
+							);
+						}
+
+					};
 					websocket.onclose = () => {
 						websocket.close();
-						dispatch(changeUploadStatus(false));
-						dispatch(resetSlice());
-					}
+						setTimeout(()=>dispatch(deleteUpload(uploadID)), 2000)
+					};
 				},
 				(err) => {
 					console.log(err);
@@ -104,6 +142,10 @@ const CreateThread = () => {
 			setOpenThreadTitleMissingSnackbar(true);
 		}
 	});
+
+	useEffect(() => {
+		console.log("Uploads state changed:", uploads);
+	}, [uploads]);
 
 	return (
 		<Box
@@ -173,7 +215,7 @@ const CreateThread = () => {
 						/>,
 					]}
 				/>
-				<Box textAlign="right">
+				<Box textAlign="right" marginTop={5}>
 					<Button
 						color="primary.dark"
 						variant="outlined"
@@ -186,7 +228,6 @@ const CreateThread = () => {
 					</Button>
 				</Box>
 			</Container>
-			
 
 			{/*Thread Upload Started snackbar*/}
 			<Snackbar
@@ -208,7 +249,7 @@ const CreateThread = () => {
 			<Snackbar
 				openSnackbar={openThreadTitleMissingSnackbar}
 				setOpenSnackbar={setOpenThreadTitleMissingSnackbar}
-				message="Please add a title for your thread before Uploading."
+				message="Please add a title for your thread before uploading."
 				duration={3000}
 				undoButton={false}
 			/>

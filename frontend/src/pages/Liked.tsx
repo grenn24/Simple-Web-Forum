@@ -5,7 +5,7 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortIcons from "../features/Liked/sortIcons";
@@ -18,7 +18,14 @@ import cryingCat from "../assets/image/crying-cat.png";
 
 const Liked = () => {
 	const [isLoading, setIsLoading] = useState(true);
-	const [sortIndex, setSortIndex] = useState(0);
+	const [searchParams, _] = useSearchParams();
+	const sort = searchParams.get("sort");
+	let currentSortIndex = 0;
+	sortOrder.forEach((value, index) => {
+		if (value === sort) {
+			currentSortIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	const [likes, setLikes] = useState<LikeDTO[]>([]);
 
@@ -26,7 +33,7 @@ const Liked = () => {
 	useEffect(
 		() =>
 			get(
-				"/authors/user/likes?sort=" + sortIndex,
+				"/authors/user/likes?sort=" + currentSortIndex,
 				(res) => {
 					const responseBody = res.data.data;
 					const likes = parseLikes(responseBody, true);
@@ -35,7 +42,7 @@ const Liked = () => {
 				},
 				(err) => console.log(err)
 			),
-		[sortIndex]
+		[sort]
 	);
 
 	return (
@@ -90,7 +97,7 @@ const Liked = () => {
 				<Menu
 					menuExpandedItemsArray={sortOrder}
 					menuExpandedIconsArray={sortIcons}
-					menuExpandedDataValuesArray={sortOrder.map((_, index) => index)}
+					menuExpandedDataValuesArray={sortOrder.map((sort) => sort)}
 					menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 					menuStyle={{
 						borderRadius: 30,
@@ -102,12 +109,12 @@ const Liked = () => {
 					}}
 					handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 						(event: React.MouseEvent<HTMLElement>) =>
-							setSortIndex(Number(event.currentTarget.dataset?.value))
+							navigate(`?sort=${event.currentTarget.dataset?.value}`)
 					)}
 					toolTipText="Sort Options"
 					menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 				>
-					{sortOrder[sortIndex]}
+					{sortOrder[currentSortIndex]}
 				</Menu>
 			</Box>
 			<Box

@@ -80,6 +80,24 @@ func (authorController *AuthorController) GetUserAvatarIconLink(context *gin.Con
 	})
 }
 
+func (authorController *AuthorController) SearchAuthors(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+	userAuthorID := utils.GetUserAuthorID(context)
+	query := context.Query("query")
+	page := utils.ConvertStringToInt(context.Query("page"), context)
+	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+
+	authors, responseErr := authorService.SearchAuthors(userAuthorID, query, page, limit)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   authors,
+	})
+}
+
 func (authorController *AuthorController) CreateAuthor(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 
@@ -136,7 +154,7 @@ func (authorController *AuthorController) UpdateUser(context *gin.Context, db *s
 
 	author.Username = context.PostForm("username")
 	author.Name = context.PostForm("name")
-	biography :=  context.PostForm("biography")
+	biography := context.PostForm("biography")
 	author.Biography = &biography
 	avatarIcon, err := context.FormFile("avatar_icon")
 	// error either due to no avatar icon or internal server error

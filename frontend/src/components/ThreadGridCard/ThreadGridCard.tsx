@@ -7,17 +7,20 @@ import Typography from "@mui/material/Typography";
 import Menu from "../Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
 import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
-import { CardActionArea } from "@mui/material";
+import { CardActionArea, SxProps, Theme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { dateToYear } from "../../utilities/dateToString";
+
 import { Delete, postJSON } from "../../utilities/api";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
+import { formatDistanceToNow } from "date-fns";
 
 interface Prop {
 	thread: ThreadDTO;
+	style?: SxProps<Theme>;
+	showAvatarTooltipText?: boolean;
 }
 
-const ThreadGridCard = ({ thread }: Prop) => {
+const ThreadGridCard = ({ thread, style, showAvatarTooltipText=true }: Prop) => {
 	const [bookmarkStatus, setBookmarkStatus] = useState(thread.bookmarkStatus);
 	const navigate = useNavigate();
 
@@ -42,10 +45,12 @@ const ThreadGridCard = ({ thread }: Prop) => {
 	};
 	return (
 		<>
-			<Card sx={{ borderRadius: 0.7 }} elevation={3}>
+			<Card sx={{ borderRadius: 0.7 , ...style}} elevation={3}>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${thread.threadID}`)}
+					onClick={(event) => {
+						event.stopPropagation();
+						navigate(`../Thread/${thread.threadID}`);}}
 					disableRipple
 				>
 					<CardHeader
@@ -65,7 +70,7 @@ const ThreadGridCard = ({ thread }: Prop) => {
 									horizontal: "right",
 								}}
 								menuExpandedDataValuesArray={[]}
-								toolTipText="View Profile"
+								toolTipText={showAvatarTooltipText ? "View Profile" : undefined}
 								handleMenuIconClick={(event) => {
 									event.stopPropagation();
 									navigate(`../Profile/${thread.author.authorID}`);
@@ -92,24 +97,32 @@ const ThreadGridCard = ({ thread }: Prop) => {
 							/>
 						}
 						title={thread.author.username}
-						subheader={dateToYear(thread.createdAt, "short")}
+						subheader={formatDistanceToNow(thread.createdAt, { addSuffix: true })}
 						titleTypographyProps={{ fontWeight: 750 }}
 						sx={{ paddingBottom: 0.5 }}
 					/>
 
-					<CardContent sx={{ py: 0, marginTop:1, marginBottom:2 }}>
+					<CardContent sx={{ py: 0, marginTop: 1, marginBottom: 1 }}>
 						<Typography
 							fontSize={20}
 							color="text.primary"
 							fontFamily="Open Sans"
 							fontWeight={600}
+							lineHeight={1.3}
+							
 						>
 							{thread.title}
 						</Typography>
-						<Typography fontSize={14}>{thread.content}</Typography>
+						<Typography fontSize={17} my={1} >{thread.content}</Typography>
+						<Typography
+							fontSize={15}
+							fontFamily="Open Sans"
+							fontWeight={400}
+							whiteSpace="pre-wrap"
+						>
+							{thread.likeCount} Likes • {thread.commentCount} Comments
+						</Typography>
 					</CardContent>
-
-
 				</CardActionArea>
 			</Card>
 		</>

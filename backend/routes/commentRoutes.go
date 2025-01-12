@@ -24,6 +24,9 @@ func CommentRoutes(router *gin.RouterGroup, db *sql.DB) {
 	commentRouter.GET("/count", func(context *gin.Context) {
 		commentController.CountAllComments(context, db)
 	})
+	commentRouter.GET("/search", func(context *gin.Context) {
+		commentController.SearchComments(context, db)
+	})
 	commentRouter.DELETE("", func(context *gin.Context) {
 		commentController.DeleteAllComments(context, db)
 	})

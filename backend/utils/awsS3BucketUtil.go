@@ -46,7 +46,7 @@ func PostFileToS3Bucket(filename string, folder string, file io.Reader) (string,
 	}
 	// Upload with custom option params
 	result, err := uploader.Upload(uploadInput, func(uploader *s3manager.Uploader) {
-		//uploader.Concurrency = 20            // Max no. of goroutines used to send each part
+		uploader.Concurrency = 10            // Max no. of goroutines used to send each part
 		uploader.PartSize = 10 * 1024 * 1024 // Buffer size of 10mb for each part
 		uploader.LeavePartsOnError = true
 	})

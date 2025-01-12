@@ -24,6 +24,7 @@ import LogIn from "./features/Welcome/LogIn";
 import SignUpStage1 from "./features/Welcome/SignUpStage1";
 import SignUpStage2 from "./features/Welcome/SignUpStage2";
 import SignUpStage3 from "./features/Welcome/SignUpStage3";
+import Search from "./pages/Search";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -78,6 +79,7 @@ function App() {
 								<Route path="Profile/:authorID" element={<Profile />} />
 								<Route path="Thread/:threadID" element={<Thread />} />
 								<Route path="Create-Thread" element={<CreateThread />} />
+								<Route path="Search" element={<Search />} />
 							</Route>
 						</Route>
 

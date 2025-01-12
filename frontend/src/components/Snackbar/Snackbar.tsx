@@ -1,4 +1,4 @@
-import { Snackbar as SnackbarBase } from "@mui/material";
+import { Snackbar as SnackbarBase, SxProps, Theme } from "@mui/material";
 import Button from "../Button";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
@@ -9,7 +9,13 @@ interface Prop {
 	message: string;
 	duration: number;
 	undoButton?: boolean;
-	handleUndoButtonClick?: ()=>void
+	handleUndoButtonClick?: () => void;
+	style?: SxProps<Theme>;
+
+	anchorOrigin?: {
+		vertical: "top" | "bottom";
+		horizontal: "left" | "center" | "right";
+	};
 }
 const Snackbar = ({
 	openSnackbar,
@@ -19,6 +25,9 @@ const Snackbar = ({
 	duration,
 	undoButton = true,
 	handleUndoButtonClick,
+	style,
+	anchorOrigin
+
 }: Prop) => {
 	const action = (
 		<>
@@ -52,6 +61,7 @@ const Snackbar = ({
 	return (
 		<>
 			<SnackbarBase
+				anchorOrigin={anchorOrigin}
 				open={openSnackbar}
 				autoHideDuration={duration}
 				onClose={() => {
@@ -67,6 +77,7 @@ const Snackbar = ({
 					"& .MuiSnackbarContent-message": {
 						color: "text.primary",
 					},
+					...style,
 				}}
 			/>
 		</>

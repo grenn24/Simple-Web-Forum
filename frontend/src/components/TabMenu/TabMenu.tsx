@@ -32,18 +32,25 @@ interface TabMenuProp {
 	tabPageArray?: JSX.Element[];
 	variant?: "standard" | "scrollable" | "fullWidth";
 	padding?: number | object;
+	defaultPageIndex?: number;
+	handleTabLabelClick?: (index:number)=>void
 }
 
 export default function TabMenu({
 	tabLabelArray,
 	tabPageArray,
+	defaultPageIndex,
 	padding = 0,
-	variant = "fullWidth"
+	variant = "fullWidth",
+	handleTabLabelClick,
 }: TabMenuProp) {
-	const [currentTabIndex, setCurrentTabIndex] = useState(0);
+	const [currentTabIndex, setCurrentTabIndex] = useState(
+		defaultPageIndex ? defaultPageIndex : 0
+	);
 
-	const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-		setCurrentTabIndex(newValue);
+	const handleTabChange = (event: React.SyntheticEvent, newTabIndex: number) => {
+		setCurrentTabIndex(newTabIndex);
+		handleTabLabelClick && handleTabLabelClick(newTabIndex);
 		event.preventDefault();
 	};
 
@@ -60,7 +67,6 @@ export default function TabMenu({
 						border: 1.5,
 					},
 					marginBottom: 3,
-					
 				}}
 			>
 				{tabLabelArray.map((label) => (

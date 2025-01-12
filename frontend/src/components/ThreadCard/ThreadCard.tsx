@@ -33,7 +33,7 @@ import List from "../List";
 import { useNavigate } from "react-router-dom";
 import playerGenerator from "../../utilities/playerGenerator";
 import { Delete, postJSON } from "../../utilities/api";
-import { dateToYear } from "../../utilities/dateToString";
+import { formatDistanceToNow } from "date-fns";
 import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
 import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
@@ -159,7 +159,7 @@ const ThreadCard = ({ thread }: Prop) => {
 						}
 						title={thread.author.username}
 						titleTypographyProps={{ fontWeight: 750 }}
-						subheader={dateToYear(thread.createdAt, "long")}
+						subheader={formatDistanceToNow(thread.createdAt, { addSuffix: true })}
 					/>
 
 					<CardContent>

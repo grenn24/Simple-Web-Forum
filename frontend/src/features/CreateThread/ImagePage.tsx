@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { TextField, Typography } from "@mui/material";
 import { Controller, Control } from "react-hook-form";
 import FileInput from "../../components/FileInput";
 import { useState } from "react";
@@ -16,12 +16,16 @@ interface Prop {
 const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 	const [openImageUploadedSnackbar, setOpenImageUploadedSnackbar] =
 		useState(false);
-	const [openImageDeletedSnackbar, setOpenImageDeletedSnackbar] =
-		useState(false);
-	const [imageDeleted, setImageDeleted] = useState<File>({} as File);
+
+	const [openImageLimitSnackbar, setOpenImageLimitSnackbar] = useState(false);
+
 	const handleUploadImage = (files: FileList) => {
 		const newImages = Array.from(files);
-		newImages.forEach((image: File) => imagesSelected.push(image));
+		newImages.forEach((image: File) =>
+			imagesSelected.length < 30
+				? imagesSelected.push(image)
+				: setOpenImageLimitSnackbar(true)
+		);
 		setImagesSelected(imagesSelected);
 		setOpenImageUploadedSnackbar(true);
 	};
@@ -58,15 +62,22 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 			>
 				Upload Image
 			</Button>
-			<br />
+
+			<Typography
+				fontSize={15}
+				marginLeft={1}
+				fontWeight={500}
+				color="primary.dark"
+			>
+				{imagesSelected.length}/30 Images Attached
+			</Typography>
+
 			<br />
 			<br />
 
 			<UploadedImageList
 				imagesSelected={imagesSelected}
 				setImagesSelected={setImagesSelected}
-				setImageDeleted={setImageDeleted}
-				setOpenImageDeletedSnackbar={setOpenImageDeletedSnackbar}
 			/>
 			{/*Hidden file input*/}
 			<FileInput
@@ -84,16 +95,13 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 				duration={2000}
 				undoButton={false}
 			/>
-			{/*Image Deleted Snackbar*/}
+
+			{/*Image Number Limit Snackbar*/}
 			<Snackbar
-				openSnackbar={openImageDeletedSnackbar}
-				setOpenSnackbar={setOpenImageDeletedSnackbar}
-				message="Image deleted"
+				openSnackbar={openImageLimitSnackbar}
+				setOpenSnackbar={setOpenImageLimitSnackbar}
+				message="A maximum of 30 images can be attached"
 				duration={3000}
-				undoButton
-				handleUndoButtonClick={() =>
-					setImagesSelected([...imagesSelected, imageDeleted])
-				}
 			/>
 		</>
 	);

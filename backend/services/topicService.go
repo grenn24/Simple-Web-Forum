@@ -48,14 +48,15 @@ func (topicService *TopicService) GetTopicByName(name string) (*models.Topic, *d
 }
 
 // Get all topics with threads tagged to it (author id used to retrieve follow, bookmark, archive status)
-func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos.TopicDTO, *dtos.Error) {
+func (topicService *TopicService) GetAllTopicsWithThreads(userAuthorID int) ([]*dtos.TopicDTO, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
 	archiveRepository := &repositories.ArchiveRepository{DB: topicService.DB}
+	commentRepository := &repositories.CommentRepository{DB: topicService.DB}
 
 	// Retrieve all topics
-	topicsWithThreads, err := topicRepository.GetAllTopics(authorID)
+	topics, err := topicRepository.GetAllTopics(userAuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -65,9 +66,9 @@ func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos
 	}
 
 	// For each topic, retrieve the threads associated with it
-	for _, topicWithThreads := range topicsWithThreads {
+	for _, topic := range topics {
 
-		threads, err := threadRepository.GetThreadsByTopicID(topicWithThreads.TopicID)
+		threads, err := threadRepository.GetThreadsByTopicID(topic.TopicID)
 
 		if err != nil {
 			return nil, &dtos.Error{
@@ -82,21 +83,75 @@ func (topicService *TopicService) GetAllTopicsWithThreads(authorID int) ([]*dtos
 			// Truncate content
 			thread.Content = utils.TruncateString(thread.Content, 10)
 			// Get bookmark and archive status
-			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, authorID)
+			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
 			thread.BookmarkStatus = &bookmarkStatus
-			archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(thread.ThreadID, authorID)
+			archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
 			thread.ArchiveStatus = &archiveStatus
-		}
+			// Get comment count
+			commentCount, err := commentRepository.CountCommentsByThreadID(thread.ThreadID)
+			if err != nil {
+				return nil, &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 
-		topicWithThreads.Threads = threads
+			}
+			thread.CommentCount = &commentCount
+		}
+		topic.Threads = threads
 	}
 
-	return topicsWithThreads, nil
+	return topics, nil
 }
 
 func (topicService *TopicService) GetAllTopics(authorID int) ([]*dtos.TopicDTO, error) {
 	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
 	return topicRepository.GetAllTopics(authorID)
+}
+
+func (topicService *TopicService) SearchTopics(userAuthorID int, query string, page int, limit int) ([]*dtos.TopicDTO, *dtos.Error) {
+	topicRepository := &repositories.TopicRepository{DB: topicService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: topicService.DB}
+	bookmarkRepository := &repositories.BookmarkRepository{DB: topicService.DB}
+	archiveRepository := &repositories.ArchiveRepository{DB: topicService.DB}
+
+	topics, err := topicRepository.SearchTopics(userAuthorID, query, page, limit)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	// For each topic, retrieve the threads associated with it
+	for _, topic := range topics {
+
+		threads, err := threadRepository.GetThreadsByTopicID(topic.TopicID)
+
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+
+		// For each thread, retrieve other necessary fields
+		for _, thread := range threads {
+			// Truncate content
+			thread.Content = utils.TruncateString(thread.Content, 10)
+			// Get bookmark and archive status
+			bookmarkStatus := bookmarkRepository.GetBookmarkStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+			thread.BookmarkStatus = &bookmarkStatus
+			archiveStatus := archiveRepository.GetArchiveStatusByThreadIDAuthorID(thread.ThreadID, userAuthorID)
+			thread.ArchiveStatus = &archiveStatus
+		}
+
+		topic.Threads = threads
+	}
+	return topics, nil
 }
 
 func (topicService *TopicService) CreateTopic(topic *models.Topic) *dtos.Error {

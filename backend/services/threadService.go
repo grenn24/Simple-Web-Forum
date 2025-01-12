@@ -205,18 +205,54 @@ func (threadService *ThreadService) GetThreadsByTopicID(topicID int, userAuthorI
 	return topic, nil
 }
 
+func (threadService *ThreadService) SearchThreads(userAuthorID int, query string, page int, limit int) ([]*dtos.ThreadDTO, *dtos.Error) {
+	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
+	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
+	commentRepository := &repositories.CommentRepository{DB: threadService.DB}
+
+	threads, err := threadRepository.SearchThreads(userAuthorID, query, page, limit)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	for _, thread := range threads {
+		// Retrieve topics for each thread
+		topics, err := topicRepository.GetTopicsByThreadID(thread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		thread.TopicsTagged = topics
+		// Retrieve comment count for each thread
+		commentCount, err := commentRepository.CountCommentsByThreadID(thread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		thread.CommentCount = &commentCount
+	}
+	return threads, nil
+}
+
 // Create a new thread and add it to the topics tagged (if any)
-func (threadService *ThreadService) CreateThread(thread *models.Thread, progressChannel chan float64, errorChannel chan *dtos.Error)  {
+func (threadService *ThreadService) CreateThread(thread *models.Thread, progressChannel chan float64, errorChannel chan *dtos.Error) {
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
 	progressChannel <- 0
 	fmt.Println("progress channel 0")
-	// Check if images were uploaded
-	if thread.Image != nil || len(thread.Image) != 0 {
-		urls := utils.PostFileHeadersToS3Bucket(thread.Image, "thread_image", progressChannel, errorChannel)
-		thread.ImageLink = urls
-	}
+
+	urls := utils.PostFileHeadersToS3Bucket(thread.Image, "thread_image", progressChannel, errorChannel)
+	thread.ImageLink = urls
 
 	threadID, err := threadRepository.CreateThread(thread)
 
@@ -236,8 +272,9 @@ func (threadService *ThreadService) CreateThread(thread *models.Thread, progress
 	// For each topic listed, check if it exists in the db and then match it to the thread being created
 	topicNames := thread.TopicsTagged
 	for _, topicName := range topicNames {
+
 		topic, err := topicRepository.GetTopicByName(topicName)
-		// If there is no topic with matching name found, create it
+		// If there is no topic with matching name found, create it, and retrieve it again
 		if topic == nil || err == sql.ErrNoRows {
 			topicRepository.CreateTopic(&models.Topic{Name: topicName})
 		}
@@ -248,6 +285,7 @@ func (threadService *ThreadService) CreateThread(thread *models.Thread, progress
 			fmt.Println(responseErr)
 			errorChannel <- responseErr
 		}
+
 	}
 
 	progressChannel <- 100
@@ -292,23 +330,21 @@ func (threadService *ThreadService) DeleteThreadByID(threadID int) *dtos.Error {
 
 	// Check if thread to be deleted has image link(s), and delete if them from s3 if exist(s)
 	imageLinks := threadRepository.GetImageLinkByThreadID(threadID)
-	if len(imageLinks) != 0 {
-		// For each imagelink, create a goroutine
-		for _, imageLink := range imageLinks {
-			//Add a goroutine to the waitgroup
-			wg.Add(1)
-			go func(imageLink string, errChannel chan *dtos.Error) {
-				defer wg.Done()
-				err := utils.DeleteFileFromS3Bucket(imageLink)
-				if err != nil {
-					errsChannel <- &dtos.Error{
-						Status:    "error",
-						ErrorCode: "INTERNAL_SERVER_ERROR",
-						Message:   err.Error(),
-					}
+	// For each imagelink, create a goroutine
+	for _, imageLink := range imageLinks {
+		//Add a goroutine to the waitgroup
+		wg.Add(1)
+		go func(imageLink string, errChannel chan *dtos.Error) {
+			defer wg.Done()
+			err := utils.DeleteFileFromS3Bucket(imageLink)
+			if err != nil {
+				errsChannel <- &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
 				}
-			}(imageLink, errsChannel)
-		}
+			}
+		}(imageLink, errsChannel)
 	}
 
 	// Wait for all goroutines to finish before closing the channel and executing the rest

@@ -180,12 +180,12 @@ func (w *WebsocketController) GetThreadUploadProgress(context *gin.Context, prog
 		case progress := <-progressChannel:
 			if progress != 100 {
 				w.SendJSONMessage(connection, &dtos.UploadDTO{
-					Status:   "INCOMPLETE",
+					Status:   "incomplete",
 					Progress: progress,
 				})
 			} else {
 				w.SendJSONMessage(connection, &dtos.UploadDTO{
-					Status:   "COMPLETE",
+					Status:   "complete",
 					Progress: progress,
 				})
 				w.RemoveClient(client)

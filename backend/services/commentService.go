@@ -55,7 +55,7 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dt
 	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
 
 	comments, err := commentRepository.GetCommentsByAuthorID(authorID)
-	
+
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -63,7 +63,7 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dt
 			Message:   err.Error(),
 		}
 	}
-	
+
 	for _, comment := range comments {
 		// Truncate thread content
 		truncatedContent := utils.TruncateString(comment.Thread.Content, 20)
@@ -81,8 +81,47 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dt
 		comment.Thread.TopicsTagged = topics
 
 	}
-		
 
+	return comments, nil
+}
+
+func (commentService *CommentService) SearchComments(query string, page int, limit int) ([]*dtos.CommentDTO, *dtos.Error) {
+	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
+
+	comments, err := commentRepository.SearchComments(query, page, limit)
+
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	for _, comment := range comments {
+		// Retrieve comment count for each thread
+		commentCount, err := commentRepository.CountCommentsByThreadID(comment.Thread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		comment.Thread.CommentCount = &commentCount
+
+		// Retrieve topics for each thread
+		topics, err := topicRepository.GetTopicsByThreadID(comment.Thread.ThreadID)
+		if err != nil {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		comment.Thread.TopicsTagged = topics
+	}
 	return comments, nil
 }
 
