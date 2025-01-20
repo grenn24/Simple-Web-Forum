@@ -28,6 +28,10 @@ Perform CRUD operations on authors or author-specific resources (e.g. likes, com
 - /topics/:topicID (protected)  
 - /discussions/:discussionID (protected)   
 
+Admin routes require jwt admin token
+- /admin  
+Reset Database  
+Additional control handlers on existing protected routes
 
 ### Core Features
 - Thread Creation: start a thread on any topic  
