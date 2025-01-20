@@ -17,6 +17,7 @@ type ThreadDTO struct {
 	TopicsTagged []*models.Topic `json:"topics_tagged"`
 	Comments     []*CommentDTO   `json:"comments"`
 	ImageLink    []string        `json:"image_link"`
+	VideoLink    []string        `json:"video_link"`
 	//Optional JSON Fields
 	Author         *AuthorDTO              `json:"author,omitempty"`
 	LikeCount      *int                    `json:"like_count,omitempty"`
@@ -24,8 +25,9 @@ type ThreadDTO struct {
 	LikeStatus     *bool                   `json:"like_status,omitempty"`
 	BookmarkStatus *bool                   `json:"bookmark_status,omitempty"`
 	ArchiveStatus  *bool                   `json:"archive_status,omitempty"`
-	ImageTitle     *string                 `json:"image_title,omitempty"`
+	Popularity     *float64                `json:"popularity,omitempty"`
 	Image          []*multipart.FileHeader `json:"image,omitempty"`
+	Video          []*multipart.FileHeader `json:"video,omitempty"`
 }
 
 type UploadDTO struct {

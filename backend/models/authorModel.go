@@ -17,4 +17,5 @@ type Author struct {
 	AvatarIconLink *string    `json:"avatar_icon_link,omitempty" db:"avator_icon_link"`
 	Faculty        *string    `json:"faculty,omitempty" db:"faculty"`
 	Birthday       *time.Time `json:"birthday,omitempty" db:"birthday"`
+	Gender         *string    `json:"gender,omitempty" db:"gender"`
 }

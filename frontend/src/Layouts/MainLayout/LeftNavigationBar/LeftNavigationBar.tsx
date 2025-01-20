@@ -4,12 +4,12 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import { useState, useEffect } from "react";
 import DrawerItems from "./DrawerItems";
 import DrawerIcons from "./DrawerIcons";
 import { useNavigate } from "react-router-dom";
 import Routes from "./Routes";
+import { Typography } from "@mui/material";
 
 interface Prop {
 	leftNavBarExpandedStatus: boolean;
@@ -42,7 +42,6 @@ const LeftNavigationBar = ({
 				flexDirection: "column",
 				alignItems: "center",
 			}}
-			
 		>
 			<List
 				sx={{
@@ -54,23 +53,25 @@ const LeftNavigationBar = ({
 				}}
 			>
 				{DrawerItems.map((text, index) => (
-					<Box key={text} width="100%"  >
-						<ListItem  disablePadding >
-							<ListItemButton onClick={() => {
-								leftNavBarExpandedStatus ? closeLeftNavBar() : null;
-								navigate(Routes[index]);
-							}}>
+					<Box key={text} width="100%" >
+						<ListItem disablePadding>
+							<ListItemButton
+								onClick={() => {
+									leftNavBarExpandedStatus ? closeLeftNavBar() : null;
+									navigate(Routes[index]);
+								}}
+							>
 								<ListItemIcon
 									sx={{
 										display: "flex",
 										justifyContent: "center",
-										marginRight:1,
-										marginLeft:1
+										marginRight: 1,
+										marginLeft: 1,
 									}}
 								>
 									{DrawerIcons[index]}
 								</ListItemIcon>
-								<ListItemText primary={text} />
+								<Typography fontFamily="Open Sans" fontWeight={440}>{text}</Typography>
 							</ListItemButton>
 						</ListItem>
 						{index === 2 ? (
@@ -123,7 +124,9 @@ const LeftNavigationBar = ({
 							md: "0px",
 						},
 						zIndex: 1200,
+						backgroundColor: "background.default",
 					},
+					backdropFilter: "blur(4px)",
 				}}
 			>
 				{drawerContent}

@@ -6,17 +6,25 @@ import { AuthorDTO } from "../../../dtos/AuthorDTO";
 import List from "../../../components/List";
 import AuthorCardMini from "./AuthorCardMini";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import authorSortOrder from "./authorSortOrder";
 
 const AuthorsSearchPage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [authors, setAuthors] = useState<AuthorDTO[]>([]);
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
+	const sort = searchParams.get("sort");
+	let currentSortIndex = 0;
+	authorSortOrder.forEach((label, index) => {
+		if (label === sort) {
+			currentSortIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	useEffect(() => {
 		setIsLoading(true);
 		get(
-			"/authors/search?query=" + query,
+			`/authors/search?query=${query}&sort=${currentSortIndex}`,
 			(res) => {
 				const responseBody = res.data.data;
 				setAuthors(parseAuthors(responseBody));
@@ -24,7 +32,7 @@ const AuthorsSearchPage = () => {
 			},
 			(err) => console.log(err)
 		);
-	}, [query]);
+	}, [query, sort]);
 
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">

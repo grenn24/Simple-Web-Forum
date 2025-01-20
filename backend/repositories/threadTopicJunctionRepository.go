@@ -51,3 +51,29 @@ func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) AddThreadToT
 
 	return err
 }
+
+func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) RemoveThreadFromTopic(threadID int, topicID int) (int, error) {
+		result, err := ThreadTopicJunctionRepository.DB.Exec("DELETE FROM threadTopicJunction WHERE thread_id = $1 AND topic_id = $2", threadID, topicID)
+
+	// Check for any deletion errors
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, _ := result.RowsAffected()
+
+	return int(rowsDeleted), err
+}
+
+func (ThreadTopicJunctionRepository *ThreadTopicJunctionRepository) RemoveThreadFromAllTopics(threadID int) (int, error) {
+		result, err := ThreadTopicJunctionRepository.DB.Exec("DELETE FROM threadTopicJunction WHERE thread_id = $1", threadID)
+
+	// Check for any deletion errors
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, _ := result.RowsAffected()
+
+	return int(rowsDeleted), err
+}

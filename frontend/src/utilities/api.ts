@@ -5,35 +5,18 @@ const apiClient = axios.create({
 	baseURL: "https://nus-gossips-6a2501962208.herokuapp.com/api",
 });
 
-apiClient.interceptors.response.use(
-	// status code within 2xx
-	(response) => response,
-	// status code outside 2xx
-	(error) => {
-		console.log(error);
-		// check if error is caused by expired jwt token
-		const errResponseBody = error.response.data;
-		if (errResponseBody.error_code === "INVALID_TOKEN") {
-			apiClient
-				.get("/authentication/refresh-jwt-token", { withCredentials: true })
-				.catch((err) => {
-					console.log(err);
-				});
-		} else {
-			return Promise.reject(error);
-		}
-	}
-);
 
 export function get<T>(
 	url: string,
 	handleSuccessResponse: (res: AxiosResponse<any, any>) => void,
-	handleErrorResponse?: (err: any) => void
+	handleErrorResponse?: (err: any) => void,
+	headers?: object
 ) {
 	apiClient
 		.get<T>(url, {
 			headers: {
 				Accept: "application/json",
+				...headers,
 			},
 			withCredentials: true,
 		})
@@ -41,13 +24,22 @@ export function get<T>(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					get(url, handleSuccessResponse, handleErrorResponse, headers);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
@@ -70,13 +62,27 @@ export function postJSON<T>(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					postJSON(
+						url,
+						requestBody,
+						handleSuccessResponse,
+						handleErrorResponse
+					);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err.response);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
@@ -100,13 +106,27 @@ export function postFormData<T>(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					postFormData(
+						url,
+						formData,
+						handleSuccessResponse,
+						handleErrorResponse
+					);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err.response);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
@@ -129,13 +149,22 @@ export function putJSON<T>(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					putJSON(url, requestBody, handleSuccessResponse, handleErrorResponse);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err.response);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
@@ -159,13 +188,22 @@ export function putFormData<T>(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					putFormData(url, formData, handleSuccessResponse, handleErrorResponse);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err.response);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
@@ -189,14 +227,51 @@ export function Delete(
 		.catch((err) => {
 			// Response with http status code outside 2xx
 			if (err.response) {
+				const responseBody = err.response.data;
+				// Make another request with the refreshed jwt tokens
+				if (responseBody.error_code === "TOKEN_REFRESHED") {
+					Delete(
+						url,
+						requestBody,
+						handleSuccessResponse,
+						handleErrorResponse
+					);
+					return;
+				}
 				handleErrorResponse && handleErrorResponse(err);
 			} else if (err.request) {
 				// Request was made but no response was received
 				console.log("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log("Error while setting up request or handling the response:" + err.message);
+				console.log(
+					"Error while setting up request or handling the response:" +
+						err.message
+				);
 			}
 		});
 	return;
 }
+
+
+/*
+apiClient.interceptors.response.use(
+	// status code within 2xx
+	(response) => response,
+	// status code outside 2xx
+	(error) => {
+		console.log(error);
+		// check if error is caused by expired jwt token
+		const errResponseBody = error.response.data;
+		if (errResponseBody.error_code === "INVALID_TOKEN") {
+			apiClient
+				.get("/authentication/refresh-jwt-token", { withCredentials: true })
+				.catch((err) => {
+					console.log(err);
+				});
+		} else {
+			return Promise.reject(error);
+		}
+	}
+);
+*/

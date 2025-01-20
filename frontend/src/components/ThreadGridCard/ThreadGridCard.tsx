@@ -7,12 +7,13 @@ import Typography from "@mui/material/Typography";
 import Menu from "../Menu";
 import BookmarkBorderRoundedIcon from "@mui/icons-material/BookmarkBorderRounded";
 import BookmarkRemoveRoundedIcon from "@mui/icons-material/BookmarkRemoveRounded";
-import { CardActionArea, SxProps, Theme } from "@mui/material";
+import { Box, CardActionArea, SxProps, Theme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import { Delete, postJSON } from "../../utilities/api";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
 import { formatDistanceToNow } from "date-fns";
+import RichTextField from "../RichTextField";
 
 interface Prop {
 	thread: ThreadDTO;
@@ -45,12 +46,19 @@ const ThreadGridCard = ({ thread, style, showAvatarTooltipText=true }: Prop) => 
 	};
 	return (
 		<>
-			<Card sx={{ borderRadius: 0.7 , ...style}} elevation={3}>
+			<Card sx={{ borderRadius: 0.7, ...style }} elevation={3}>
 				<CardActionArea
-					sx={{ borderRadius: 0 }}
+					sx={{
+						borderRadius: 0,
+						height: "100%",
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "flex-start",
+					}}
 					onClick={(event) => {
 						event.stopPropagation();
-						navigate(`../Thread/${thread.threadID}`);}}
+						navigate(`../Thread/${thread.threadID}`);
+					}}
 					disableRipple
 				>
 					<CardHeader
@@ -97,31 +105,59 @@ const ThreadGridCard = ({ thread, style, showAvatarTooltipText=true }: Prop) => 
 							/>
 						}
 						title={thread.author.username}
-						subheader={formatDistanceToNow(thread.createdAt, { addSuffix: true })}
+						subheader={formatDistanceToNow(thread.createdAt, {
+							addSuffix: true,
+						})}
 						titleTypographyProps={{ fontWeight: 750 }}
-						sx={{ paddingBottom: 0.5 }}
+						sx={{ paddingBottom: 0.5, boxSizing: "border-box", width: "100%" }}
 					/>
 
-					<CardContent sx={{ py: 0, marginTop: 1, marginBottom: 1 }}>
-						<Typography
-							fontSize={20}
-							color="text.primary"
-							fontFamily="Open Sans"
-							fontWeight={600}
-							lineHeight={1.3}
-							
+					<CardContent
+						sx={{
+							py: 0,
+							my: 1,
+							boxSizing: "border-box",
+							width: "100%",
+							height: "100%",
+						}}
+					>
+						<Box
+							display="flex"
+							flexDirection="column"
+							justifyContent="space-between"
+							height="100%"
+							maxHeight="100%"
 						>
-							{thread.title}
-						</Typography>
-						<Typography fontSize={17} my={1} >{thread.content}</Typography>
-						<Typography
-							fontSize={15}
-							fontFamily="Open Sans"
-							fontWeight={400}
-							whiteSpace="pre-wrap"
-						>
-							{thread.likeCount} Likes • {thread.commentCount} Comments
-						</Typography>
+							<Box display="flex" flexDirection="column" flexGrow={1}>
+								<Typography
+									fontSize={20}
+									color="primary.dark"
+									fontWeight={700}
+									lineHeight={1.3}
+									height={30}
+								>
+									{thread.title}
+								</Typography>
+
+
+								<Box  height={50} fontSize={15}>
+									<RichTextField
+										editorState={thread.content}
+										editable={false}
+										showBorders={false}
+									/>
+								</Box>
+							</Box>
+
+							<Typography
+								fontSize={15}
+								fontFamily="Open Sans"
+								fontWeight={400}
+								whiteSpace="pre-wrap"
+							>
+								{thread.likeCount} Likes • {thread.commentCount} Comments
+							</Typography>
+						</Box>
 					</CardContent>
 				</CardActionArea>
 			</Card>

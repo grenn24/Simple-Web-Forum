@@ -5,4 +5,5 @@ export interface TopicDTO {
 	name: string;
 	followStatus: boolean;
 	threads: ThreadDTO[];
+	popularity: number;
 }

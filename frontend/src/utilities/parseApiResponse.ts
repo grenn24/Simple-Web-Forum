@@ -4,20 +4,29 @@ import { CommentDTO } from "../dtos/CommentDTO";
 import LikeDTO from "../dtos/LikeDTO";
 import { ThreadDTO } from "../dtos/ThreadDTO";
 import { TopicDTO } from "../dtos/TopicDTO";
+import { convertFromRaw, EditorState } from "draft-js";
 
 export function parseThread(thread: any): ThreadDTO {
 	return {
 		threadID: thread.thread_id,
 		title: thread.title,
-		content: thread.content,
-		imageTitle: thread.image_title,
-		imageLink: thread.image_link ? thread.image_link.map((link: any) => link) : [],
+		content: EditorState.createWithContent(
+			convertFromRaw(JSON.parse(thread.content))
+		),
+
+		imageLink: thread.image_link
+			? thread.image_link.map((link: any) => link)
+			: [],
+		videoLink: thread.video_link
+			? thread.video_link.map((link: any) => link)
+			: [],
 		createdAt: new Date(thread.created_at),
 		likeCount: thread.like_count,
 		likeStatus: thread.like_status,
 		bookmarkStatus: thread.bookmark_status,
 		archiveStatus: thread.archive_status,
 		commentCount: thread.comment_count,
+		popularity: thread.popularity,
 		author: parseAuthor(thread.author),
 		comments: parseComments(thread.comments),
 		topicsTagged: parseTopicNames(thread.topics_tagged),
@@ -71,9 +80,7 @@ export function parseTopics(
 		: [];
 }
 
-export function parseTopicNames(
-	topics: any
-): TopicDTO[] {
+export function parseTopicNames(topics: any): TopicDTO[] {
 	return topics ? topics.map((topic: any) => parseTopic(topic)) : [];
 }
 
@@ -85,6 +92,7 @@ export function parseTopic(
 		topicID: topic.topic_id,
 		name: topic.name,
 		followStatus: topic.follow_status,
+		popularity: topic.popularity,
 		threads: parseThreads(topic.threads, removeArchivedThreads),
 	};
 }
@@ -100,8 +108,9 @@ export function parseAuthor(author: any): AuthorDTO {
 		username: author.username,
 		followStatus: author.follow_status,
 		faculty: author.faculty,
-		birthday: new Date(author.birthday),
+		birthday: author.birthday ? new Date(author.birthday) : null,
 		biography: author.biography,
+		gender: author.gender,
 		followerCount: author.follower_count,
 	};
 }

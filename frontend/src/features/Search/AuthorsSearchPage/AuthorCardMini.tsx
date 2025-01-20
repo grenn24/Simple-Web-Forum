@@ -7,7 +7,7 @@ interface Prop {
 }
 const AuthorCardMini = ({author}:Prop) => {
   return (
-		<Box display="flex" justifyContent="space-between">
+		<Box display="flex" justifyContent="space-between" alignItems="center">
 			<Box display="flex" alignItems="center">
 				<Avatar src={author.avatarIconLink} />
 				<Box display="flex" flexDirection="column" marginLeft={2}>
@@ -19,6 +19,7 @@ const AuthorCardMini = ({author}:Prop) => {
 					</Typography>
 				</Box>
 			</Box>
+			<Typography fontFamily="Open Sans" fontSize={17} display={author.faculty ? "inherit" : "none"}>Faculty of {author.faculty}</Typography>
 		</Box>
 	);
 }

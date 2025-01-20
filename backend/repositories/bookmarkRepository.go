@@ -5,7 +5,6 @@ import (
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
-	"github.com/grenn24/simple-web-forum/utils"
 	"github.com/lib/pq"
 )
 
@@ -48,9 +47,24 @@ func (bookmarkRepository *BookmarkRepository) DeleteBookmarkByThreadIDAuthorID(t
 
 
 func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
-	sortOrder := []string{"ORDER BY bookmark.created_at DESC", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
+	sortOrder := []string{"bookmark.created_at DESC", "thread.popularity DESC", "thread.created_at DESC", "thread.created_at ASC"}
 	rows, err := bookmarkRepository.DB.Query(`
-		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link, thread.image_title, thread.image_link, thread.like_count,
+		SELECT
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread_author.author_id,
+			thread_author.name,
+			thread_author.username,
+			thread_author.avatar_icon_link,
+		
+			thread.image_link,
+		
+			thread.video_link,
+			thread.like_count,
+			thread.comment_count,
+			thread.popularity,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -61,6 +75,7 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = bookmark.author_id
 		WHERE bookmark.author_id = $1
+		ORDER BY 
 	` + sortOrder[sortIndex], authorID)
 
 	if err != nil {
@@ -86,9 +101,13 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			&bookmarkedThread.Author.Name,
 			&bookmarkedThread.Author.Username,
 			&bookmarkedThread.Author.AvatarIconLink,
-			&bookmarkedThread.ImageTitle,
+			
 			pq.Array(&bookmarkedThread.ImageLink),
+			
+			pq.Array(&bookmarkedThread.VideoLink),
 			&bookmarkedThread.LikeCount,
+			&bookmarkedThread.CommentCount,
+			&bookmarkedThread.Popularity,
 			&bookmarkedThread.ArchiveStatus,
 		)
 
@@ -97,7 +116,7 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			return nil, err
 		}
 
-		bookmarkedThread.Content = utils.TruncateString(bookmarkedThread.Content, 30)
+
 
 		// Append the scanned like to likes slice
 		bookmarkedThreads = append(bookmarkedThreads, bookmarkedThread)

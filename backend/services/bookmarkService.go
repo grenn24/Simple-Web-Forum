@@ -82,7 +82,6 @@ func (bookmarkService *BookmarkService) DeleteBookmarkByThreadIDAuthorID(threadI
 
 func (bookmarkService *BookmarkService) GetBookmarkedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, *dtos.Error) {
 	bookmarkRepository := &repositories.BookmarkRepository{DB: bookmarkService.DB}
-	commentRepository := &repositories.CommentRepository{DB: bookmarkService.DB}
 	topicRepository := &repositories.TopicRepository{DB: bookmarkService.DB}
 	likeRepository := &repositories.LikeRepository{DB: bookmarkService.DB}
 
@@ -98,17 +97,6 @@ func (bookmarkService *BookmarkService) GetBookmarkedThreadsByAuthorID(authorID 
 	}
 
 	for _, bookmarkedThread := range bookmarkedThreads {
-
-		// Retrieve comment count
-		commentCount, err := commentRepository.CountCommentsByThreadID(bookmarkedThread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		bookmarkedThread.CommentCount = &commentCount
 
 		// Retrieve like, bookmark and isUser status
 		likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(bookmarkedThread.ThreadID, bookmarkedThread.Author.AuthorID)

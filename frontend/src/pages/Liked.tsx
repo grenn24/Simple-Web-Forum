@@ -30,20 +30,20 @@ const Liked = () => {
 	const [likes, setLikes] = useState<LikeDTO[]>([]);
 
 	// Retrieve liked threads from api (re-fetch whenever sorting order is changed)
-	useEffect(
-		() =>
-			get(
-				"/authors/user/likes?sort=" + currentSortIndex,
-				(res) => {
-					const responseBody = res.data.data;
-					const likes = parseLikes(responseBody, true);
-					setLikes(likes);
-					setIsLoading(false);
-				},
-				(err) => console.log(err)
-			),
-		[sort]
-	);
+	useEffect(() => {
+		setIsLoading(true);
+
+		get(
+			"/authors/user/likes?sort=" + currentSortIndex,
+			(res) => {
+				const responseBody = res.data.data;
+				const likes = parseLikes(responseBody, true);
+				setLikes(likes);
+				setIsLoading(false);
+			},
+			(err) => console.log(err)
+		);
+	}, [sort]);
 
 	return (
 		<Box
@@ -53,6 +53,9 @@ const Liked = () => {
 				minHeight: "100%",
 			}}
 			flexGrow={1}
+			position="absolute"
+			width="100%"
+			boxSizing="border-box"
 			display="flex"
 			flexDirection="column"
 			alignItems="center"
@@ -72,7 +75,7 @@ const Liked = () => {
 					fontFamily="Open Sans"
 					fontWeight={700}
 					fontSize={30}
-					color="primary.dark"
+					color="text.primary"
 				>
 					Liked
 				</Typography>
@@ -89,7 +92,7 @@ const Liked = () => {
 			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-					color="primary.dark"
+					color="text.primary"
 					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
@@ -120,7 +123,7 @@ const Liked = () => {
 			<Box
 				sx={{
 					width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
-					marginBottom: 3,
+					my: 3,
 				}}
 				display="flex"
 				flexDirection="column"
@@ -131,12 +134,15 @@ const Liked = () => {
 				{isLoading ? (
 					<Box width="100%">
 						<ThreadCardLoading bodyHeight={180} />
+						<br />
+						<br />
+						<ThreadCardLoading bodyHeight={180} />
 					</Box>
 				) : likes.length !== 0 ? (
 					likes.map((like) => (
 						<Box key={like.likeID} width="100%">
 							<ThreadCard thread={like.thread} />
-							<Divider />
+							<Divider sx={{ my: 3 }} />
 						</Box>
 					))
 				) : (

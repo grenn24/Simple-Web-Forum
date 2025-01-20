@@ -1,5 +1,5 @@
 import * as React from "react";
-import { styled } from "@mui/material/styles";
+import { styled, SxProps, Theme } from "@mui/material/styles";
 import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
 import FormatAlignCenterIcon from "@mui/icons-material/FormatAlignCenter";
 import FormatAlignRightIcon from "@mui/icons-material/FormatAlignRight";
@@ -15,6 +15,9 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup, {
 	toggleButtonGroupClasses,
 } from "@mui/material/ToggleButtonGroup";
+import { EditorState, RichUtils } from "draft-js";
+import { ChromePicker, ColorResult, RGBColor } from "react-color";
+import { Box } from "@mui/material";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 	[`& .${toggleButtonGroupClasses.grouped}`]: {
@@ -32,9 +35,24 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 		},
 }));
 
-export default function EditorBar() {
-	const [alignment, setAlignment] = React.useState("left");
-	const [formats, setFormats] = React.useState(() => ["italic"]);
+interface Prop {
+	setEditorState: (editorState: EditorState) => void;
+	editorState: EditorState;
+	color: RGBColor;
+	setColor: (color: RGBColor) => void;
+	style?: SxProps<Theme>;
+}
+
+export default function EditorBar({
+	setEditorState,
+	editorState,
+	color,
+	setColor,
+	style,
+}: Prop) {
+	const [openColourPicker, setOpenColourPicker] = React.useState(false);
+	const [alignment, setAlignment] = React.useState<String>("left");
+	const [formats, setFormats] = React.useState<string[]>(["center"]);
 
 	const handleFormat = (
 		event: React.MouseEvent<HTMLElement>,
@@ -52,17 +70,47 @@ export default function EditorBar() {
 		setAlignment(newAlignment);
 	};
 
+	const handleColorSelect = (color: ColorResult) => {
+		setColor(color.rgb);
+		const colorStyle = `rgbcolor-${color.rgb.r}-${color.rgb.g}-${color.rgb.b}-${color.rgb.a}`;
+		const newEditorState = RichUtils.toggleInlineStyle(editorState, colorStyle);
+		setEditorState(newEditorState);
+	};
+
+	React.useEffect(() => {
+		const updatedFormats: string[] = [];
+		// Get current inline style
+		const currentInlineStyle = editorState.getCurrentInlineStyle();
+		currentInlineStyle.forEach((styleName) => {
+			if (styleName === "BOLD") updatedFormats.push("bold");
+			if (styleName === "ITALIC") updatedFormats.push("italic");
+			if (styleName === "UNDERLINE") updatedFormats.push("underlined");
+		});
+		setFormats(updatedFormats);
+		// Get current block style
+		const contentState = editorState.getCurrentContent();
+		const selection = editorState.getSelection();
+		const blockKey = selection.getStartKey();
+		const block = contentState.getBlockForKey(blockKey);
+		const blockType = block.getType();
+		console.log(blockType);
+		if (blockType === "left") setAlignment(blockType);
+		if (blockType === "center") setAlignment(blockType);
+		if (blockType === "right") setAlignment(blockType);
+		if (blockType === "justify")  setAlignment(blockType);
+		
+	}, [editorState]);
+
 	return (
 		<div>
 			<Paper
 				elevation={0}
-                
-				sx={(theme) => ({
+				sx={{
 					display: "flex",
-					border: `1px solid ${theme.palette.divider}`,
 					flexWrap: "wrap",
-					justifyContent:"center"
-				})}
+					justifyContent: "center",
+					...style,
+				}}
 			>
 				<StyledToggleButtonGroup
 					size="small"
@@ -70,17 +118,45 @@ export default function EditorBar() {
 					exclusive
 					onChange={handleAlignment}
 				>
-					<ToggleButton value="left" aria-label="left aligned">
-						<FormatAlignLeftIcon />
+					<ToggleButton
+						value="left"
+						aria-label="left aligned"
+						sx={{ px: 1.2 }}
+						onClick={() =>
+							setEditorState(RichUtils.toggleBlockType(editorState, "left"))
+						}
+					>
+						<FormatAlignLeftIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="center" aria-label="centered">
-						<FormatAlignCenterIcon />
+					<ToggleButton
+						value="center"
+						aria-label="centered"
+						onClick={() =>
+							setEditorState(RichUtils.toggleBlockType(editorState, "center"))
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatAlignCenterIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="right" aria-label="right aligned">
-						<FormatAlignRightIcon />
+					<ToggleButton
+						value="right"
+						aria-label="right aligned"
+						onClick={() =>
+							setEditorState(RichUtils.toggleBlockType(editorState, "right"))
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatAlignRightIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="justify" aria-label="justified" disabled>
-						<FormatAlignJustifyIcon />
+					<ToggleButton
+						value="justify"
+						aria-label="justified"
+						onClick={() =>
+							setEditorState(RichUtils.toggleBlockType(editorState, "justify"))
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatAlignJustifyIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
 				</StyledToggleButtonGroup>
 				<Divider flexItem orientation="vertical" sx={{ mx: 0.5, my: 1 }} />
@@ -90,18 +166,72 @@ export default function EditorBar() {
 					onChange={handleFormat}
 					aria-label="text formatting"
 				>
-					<ToggleButton value="bold" aria-label="bold">
-						<FormatBoldIcon />
+					<ToggleButton
+						value="bold"
+						aria-label="bold"
+						onClick={() =>
+							setEditorState(RichUtils.toggleInlineStyle(editorState, "BOLD"))
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatBoldIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="italic" aria-label="italic">
-						<FormatItalicIcon />
+					<ToggleButton
+						value="italic"
+						aria-label="italic"
+						onClick={() =>
+							setEditorState(RichUtils.toggleInlineStyle(editorState, "ITALIC"))
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatItalicIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="underlined" aria-label="underlined">
-						<FormatUnderlinedIcon />
+					<ToggleButton
+						value="underlined"
+						aria-label="underlined"
+						onClick={() =>
+							setEditorState(
+								RichUtils.toggleInlineStyle(editorState, "UNDERLINE")
+							)
+						}
+						sx={{ px: 1.2 }}
+					>
+						<FormatUnderlinedIcon sx={{ fontSize: 20 }} />
 					</ToggleButton>
-					<ToggleButton value="color" aria-label="color" disabled>
-						<FormatColorFillIcon />
-						<ArrowDropDownIcon />
+
+					<ToggleButton
+						value="color"
+						aria-label="color"
+						disableTouchRipple
+						onClick={() => setOpenColourPicker(!openColourPicker)}
+						sx={{ px: 1.2 }}
+					>
+						<FormatColorFillIcon
+							sx={{
+								color: color
+									? `rgb(${color.r},${color.g},${color.b},${color.a})`
+									: "inherit",
+								fontSize: 20,
+							}}
+						/>
+						<ArrowDropDownIcon
+							sx={{
+								color: color
+									? `rgb(${color.r},${color.g},${color.b},${color.a})`
+									: "inherit",
+								fontSize: 20,
+							}}
+						/>
+						<Box
+							display={openColourPicker ? "inherit" : "none"}
+							position="absolute"
+							right={0}
+							top={50}
+							zIndex={1}
+							onClick={(e) => e.stopPropagation()}
+						>
+							<ChromePicker color={color} onChange={handleColorSelect} />
+						</Box>
 					</ToggleButton>
 				</StyledToggleButtonGroup>
 			</Paper>

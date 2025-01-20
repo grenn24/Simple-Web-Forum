@@ -61,7 +61,6 @@ func (followService *FollowService) GetAllFollows() ([]*models.Follow, *dtos.Err
 func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, *dtos.Error) {
 	followRepository := repositories.FollowRepository{DB: followService.DB}
 	likeRepository := repositories.LikeRepository{DB: followService.DB}
-	commentRepository := repositories.CommentRepository{DB: followService.DB}
 	topicRepository := repositories.TopicRepository{DB: followService.DB}
 
 	followedThreads, err := followRepository.GetFollowedThreadsByAuthorID(authorID, sortIndex)
@@ -86,28 +85,6 @@ func (followService *FollowService) GetFollowedThreadsByAuthorID(authorID int, s
 			}
 		}
 		followedThread.TopicsTagged = topicsTagged
-
-		// Retrieve like count
-		likeCount, err := likeRepository.CountLikesByThreadID(followedThread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		followedThread.LikeCount = &likeCount
-
-		// Retrieve comment count
-		commentCount, err := commentRepository.CountCommentsByThreadID(followedThread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		followedThread.CommentCount = &commentCount
 
 		// Retrieve like status and isUser Status
 		likeStatus := likeRepository.GetLikeStatusByThreadIDAuthorID(followedThread.ThreadID, followedThread.Author.AuthorID)

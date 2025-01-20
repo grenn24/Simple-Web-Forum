@@ -12,12 +12,11 @@ const Authentication = () => {
 			"/authentication/validate-jwt-token",
 			() => {},
 			(err) => {
-				// Check for erros due to expired refresh tokens or missing tokens (if refresh token is valid and jwt token is expired, api server will automatically return a new jwt token)
-				const errBody = err.response.data;
-				if (errBody.error_code === "INVALID_TOKEN" || "MISSING_TOKENS") {
+				// Check for erros due to expired refresh tokens or missing both tokens
+				// If refresh token is valid and jwt token is expired, the api server will automatically return a new jwt token
+				const responseBody = err.response.data;
+				if (responseBody.error_code === "INVALID_TOKEN" || "MISSING_TOKENS") {
 					navigate("../Welcome");
-				} else {
-					navigate("../Error");
 				}
 			}
 		);

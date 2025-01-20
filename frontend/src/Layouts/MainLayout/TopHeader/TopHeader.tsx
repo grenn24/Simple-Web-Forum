@@ -16,6 +16,13 @@ import { get } from "../../../utilities/api";
 import SimpleDialog from "../../../components/SimpleDialog";
 import List from "../../../components/List";
 import { useEffect, useState } from "react";
+import { parseAuthor } from "../../../utilities/parseApiResponse";
+import { useAppDispatch, useAppSelector } from "../../../utilities/redux";
+import {
+	changeAvatarIconLink,
+	changeName,
+	changeUsername,
+} from "./userInfoSlice";
 
 interface Prop {
 	openLeftNavBar: () => void;
@@ -25,16 +32,22 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const screenWidth = useWindowSize().width as number;
+	const dispatch = useAppDispatch();
 	const [openLogOutDialog, setOpenLogOutDialog] = useState(false);
-	const [avatarIconLink, setAvatarIconLink] = useState("");
+	const { avatarIconLink } = useAppSelector((state) => ({
+		avatarIconLink: state.userInfo.avatarIconLink,
+	}));
 
 	useEffect(
 		() =>
 			get(
-				"/authors/user/avatar-icon-link",
+				"/authors/user",
 				(res) => {
-					const avatarIconLink = res.data.data;
-					setAvatarIconLink(avatarIconLink);
+					const responseBody = res.data.data;
+					const user = parseAuthor(responseBody);
+					dispatch(changeUsername(user.username));
+					dispatch(changeName(user.name));
+					dispatch(changeAvatarIconLink(user.avatarIconLink));
 				},
 				(err) => console.log(err)
 			),
@@ -47,7 +60,8 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 			<AppBar
 				position="fixed"
 				sx={{
-					bgcolor: "background.default",
+					bgcolor: "rgb(255,255,255,0.7)",
+					backdropFilter: "blur(6px)",
 					height: "auto",
 					zIndex: 1201,
 					width: "100%",
@@ -99,7 +113,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								xl: "none",
 							},
 							px: 1.5,
-							height: "80%",
+				
 						}}
 						handleButtonClick={() => {
 							openLeftNavBar();
@@ -111,14 +125,20 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								<CloseRoundedIcon color="primary" />
 							)
 						}
-					></Button>
+					/>
 					<SearchBar placeholder="Search for anything" />
-					<Box display="flex" alignItems="center">
+					<Box
+						display="flex"
+						alignItems="center"
+						width="20%"
+						justifyContent="flex-end"
+					>
 						<Button
 							variant="text"
 							color="text.primary"
 							borderRadius={50}
 							fontSize={20}
+							
 							buttonIcon={
 								<AddRoundedIcon
 									sx={{
@@ -126,7 +146,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 									}}
 								/>
 							}
-							buttonStyle={{ height: "80%" }}
+							buttonStyle={{ height: "80%", px:1.3 }}
 							toolTipText="Create Thread"
 							handleButtonClick={() => {
 								navigate("../Create-Thread");

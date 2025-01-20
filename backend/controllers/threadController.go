@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "image"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -108,8 +109,9 @@ func (threadController *ThreadController) SearchThreads(context *gin.Context, db
 	query := context.Query("query")
 	page := utils.ConvertStringToInt(context.Query("page"), context)
 	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	threads, responseErr := threadService.SearchThreads(userAuthorID, query, page, limit)
+	threads, responseErr := threadService.SearchThreads(userAuthorID, query, page, limit, sortIndex)
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return
@@ -161,74 +163,95 @@ func (threadController *ThreadController) GetThreadsByTopicID(context *gin.Conte
 	})
 }
 
-// Accepts form data request body
-func (threadController *ThreadController) CreateUserThread(context *gin.Context, db *sql.DB, progressChannels map[string]chan float64, errorChannels map[string]chan *dtos.Error, mutex *sync.Mutex) {
+func (threadController *ThreadController) GetTrendingThreads(context *gin.Context, db *sql.DB) {
 	threadService := threadController.ThreadService
-
-	// Create the progress and error channels
-	uploadID := context.PostForm("upload_id")
-	if uploadID == "" {
-		context.JSON(http.StatusBadRequest, dtos.Error{
-			Status:    "error",
-			ErrorCode: "MISSING_REQUIRED_FIELDS",
-			Message:   "Missing upload id",
-		})
+	userAuthorID := utils.GetUserAuthorID(context)
+	page := utils.ConvertStringToInt(context.Query("page"), context)
+	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+	threads, responseErr := threadService.GetTrendingThreads(userAuthorID, page, limit)
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
 		return
 	}
-	mutex.Lock()
-	fmt.Println("progress channel created")
-	progressChannel := make(chan float64)
-	progressChannels[uploadID] = progressChannel
-	fmt.Println("error channel created")
-	errorChannel := make(chan *dtos.Error)
-	errorChannels[uploadID] = errorChannel
-	mutex.Unlock()
-
-	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)
-	// Assign the necessary fields
-	authorID := utils.GetUserAuthorID(context)
-	thread.AuthorID = authorID
-	thread.Title = context.PostForm("title")
-	thread.Content = context.PostForm("content")
-	imageTitle := context.PostForm("image_title")
-	thread.ImageTitle = &imageTitle
-
-	fmt.Println(("no errors"))
-
-	// Check if the binded struct contains necessary fields
-	if thread.Title == "" || thread.AuthorID == 0 {
-		context.JSON(http.StatusBadRequest, dtos.Error{
-			Status:    "error",
-			ErrorCode: "MISSING_REQUIRED_FIELDS",
-			Message:   "Missing required thread title",
-		})
-		return
-	}
-
-	context.JSON(http.StatusCreated, dtos.Success{
-		Status:  "success",
-		Message: "Thread upload has started",
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   threads,
 	})
 
-	// Extract images and topics tagged from http request multipart form
-	thread.TopicsTagged = context.PostFormArray("topics_tagged")
-	formData, err := context.MultipartForm()
-	images := formData.File["images"]
-	// If no images are uploaded, images will be an empty file array
-	if err != nil {
-		errorChannel <- &dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		}
-		return
-	}
-	thread.Image = images
+}
 
-	fmt.Println(("thread upload started"))
-	// Create new thread, subsequent errors sent using websocket
-	go threadService.CreateThread(thread, progressChannel, errorChannel)
+// Accepts form data request body
+func (threadController *ThreadController) CreateThread(context *gin.Context, db *sql.DB, progressChannels map[string]chan float64, errorChannels map[string]chan *dtos.Error, mutex *sync.Mutex) {
+	threadService := threadController.ThreadService
+	contentType := context.GetHeader("Content-Type")
+	// Declare a pointer to a new instance of a thread struct
+	thread := new(models.Thread)
+	if strings.Split(contentType, ";")[0] == "multipart/form-data" {
+		// Create the progress and error channels
+		uploadID := context.PostForm("upload_id")
+		if uploadID == "" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "MISSING_REQUIRED_FIELDS",
+				Message:   "Missing upload id",
+			})
+			return
+		}
+		mutex.Lock()
+		fmt.Println("progress channel created")
+		progressChannel := make(chan float64)
+		progressChannels[uploadID] = progressChannel
+		fmt.Println("error channel created")
+		errorChannel := make(chan *dtos.Error)
+		errorChannels[uploadID] = errorChannel
+		mutex.Unlock()
+
+		// Assign the necessary fields
+		authorID := utils.GetUserAuthorID(context)
+		thread.AuthorID = authorID
+		thread.Title = context.PostForm("title")
+		thread.Content = context.PostForm("content")
+
+		fmt.Println(("no errors"))
+
+		// Check if the binded struct contains necessary fields
+		if thread.Title == "" || thread.AuthorID == 0 {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "MISSING_REQUIRED_FIELDS",
+				Message:   "Missing required thread title",
+			})
+			return
+		}
+
+		context.JSON(http.StatusCreated, dtos.Success{
+			Status:  "success",
+			Message: "Thread upload has started",
+		})
+
+		// Extract images and topics tagged from http request multipart form
+		thread.TopicsTagged = context.PostFormArray("topics_tagged")
+		formData, err := context.MultipartForm()
+
+		if err != nil {
+			errorChannel <- &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+			return
+		}
+		// If no images are uploaded, images will be an empty file array
+		images := formData.File["images"]
+		thread.Image = images
+		videos := formData.File["videos"]
+		thread.Video = videos
+		thread.Visiblity = "public"
+
+		fmt.Println(("thread upload started"))
+		// Create new thread, subsequent errors sent using websocket
+		go threadService.CreateThread(thread, progressChannel, errorChannel)
+	}
 }
 
 func (threadController *ThreadController) UpdateThread(context *gin.Context, db *sql.DB) {

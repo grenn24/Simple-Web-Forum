@@ -9,12 +9,17 @@ import { useEffect, useRef, useState } from "react";
 
 interface Prop {
 	imageLinks: string[];
-
-	setFullScreenImage: (state: boolean) => void;
+	videoLinks?: string[];
+	setOpenFullScreenMediaViewer: (state: boolean) => void;
 }
-const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
+const FullScreenImage = ({
+	imageLinks,
+	videoLinks,
+	setOpenFullScreenMediaViewer,
+}: Prop) => {
 	const [imageZoom, setImageZoom] = useState(false);
 	const imageRef = useRef<HTMLDivElement>(null);
+	const videoRef = useRef<HTMLDivElement>(null);
 	const imageViewerRef = useRef<HTMLDivElement>(null);
 	const imageViewerContainerRef = useRef<HTMLDivElement>(null);
 	const scrollLeft = () => {
@@ -41,15 +46,17 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 				event.preventDefault();
 				scrollLeft();
 			}
-			event.key === "Escape" && setFullScreenImage(false);
+			event.key === "Escape" && setOpenFullScreenMediaViewer(false);
 		};
 		imageViewerContainerRef.current?.requestFullscreen();
-		return () => window.removeEventListener("keydown", () => {});
+		return () => {
+			window.removeEventListener("keydown", () => {});
+			document.body.style.overflow = "visible";
+		};
 	}, []);
 
 	const exitFullScreen = () => {
-		setFullScreenImage(false);
-		document.body.style.overflow = "visible";
+		setOpenFullScreenMediaViewer(false);
 	};
 
 	return (
@@ -76,6 +83,31 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 				}}
 				zIndex={21}
 			>
+				{videoLinks?.map((video: string) => (
+					<Box
+						flexShrink={0}
+						width="100%"
+						height="100%"
+						display="flex"
+						flexDirection="row"
+						justifyContent="center"
+						onClick={exitFullScreen}
+						ref={videoRef}
+					>
+						<video
+							src={video}
+							style={{
+								maxWidth: "100%",
+								maxHeight: "100%",
+								objectFit: "contain",
+								width: "auto",
+							}}
+							autoPlay
+							controls
+							loop
+						/>
+					</Box>
+				))}
 				{imageLinks.map((image: string) => (
 					<Box
 						flexShrink={0}
@@ -107,7 +139,7 @@ const FullScreenImage = ({ imageLinks, setFullScreenImage }: Prop) => {
 				position="absolute"
 				width="100%"
 				height="100%"
-				display={{ xs: "none", md: "flex" }}
+				display="flex"
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"

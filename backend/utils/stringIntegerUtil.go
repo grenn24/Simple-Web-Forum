@@ -35,7 +35,7 @@ func ConvertIntToString(value int) string {
 	return valueConverted
 }
 
-func TruncateString(content string, wordLimit int) string {
+func TruncateWords(content string, wordLimit int) string {
 	// Split content into words
 	words := strings.Fields(content)
 
@@ -46,9 +46,19 @@ func TruncateString(content string, wordLimit int) string {
 	return content
 }
 
+func TruncateCharacters(content string, charLimit int) string {
+	runes := []rune(content)
+	// If there are more words than the limit, truncate and add "..."
+	if len(runes) > charLimit {
+		runes = runes[:charLimit]
+		return string(runes) + "..."
+	}
+	return content
+}
+
 // Converts a javascript date object represented as string into time.Time
-func DateStringToTime(dateString string) time.Time {
-	format := "Mon Jan 2 2006 15:04:05 GMT-0700"
+func ParseDateString(dateString string) time.Time {
+	format := "02/01/2006"
 	timeString := strings.Split(dateString, " (")[0]
 	time, _ := time.Parse(format, timeString)
 	return time

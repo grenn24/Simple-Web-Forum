@@ -6,6 +6,7 @@ import Button from "../../../components/Button";
 import { dateToTimeYear } from "../../../utilities/dateToString";
 import { Delete } from "../../../utilities/api";
 import UnarchiveRoundedIcon from "@mui/icons-material/UnarchiveRounded";
+import RichTextField from "../../../components/RichTextField";
 
 interface Prop {
 	thread: ThreadDTO;
@@ -18,7 +19,7 @@ const ThreadCardMini = ({ thread, archives, setArchives }: Prop) => {
 	const { authorID } = useParams();
 	return (
 		<Box key={thread.threadID}>
-			<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600}>
+			<Typography fontFamily="Open Sans" fontSize={22} fontWeight={760}  color="primary.dark">
 				{thread.title}
 			</Typography>
 
@@ -49,8 +50,12 @@ const ThreadCardMini = ({ thread, archives, setArchives }: Prop) => {
 					);
 				})}
 			</Typography>
-			<Typography marginTop={2} fontSize={17}>
-				{thread.content}
+			<Typography marginTop={2} fontSize={15} fontWeight={400}>
+				<RichTextField
+					editorState={thread.content}
+					showBorders={false}
+					editable={false}
+				/>
 			</Typography>
 			<Box display="flex" justifyContent="flex-end" alignItems="center">
 				<Typography

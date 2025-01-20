@@ -9,8 +9,8 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
-import { useNavigate } from "react-router-dom";
-import { postJSON } from "../../utilities/api";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { get, postJSON } from "../../utilities/api";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	ArrowForwardIosRounded as ArrowForwardIosRoundedIcon,
@@ -21,8 +21,13 @@ import googleIcon from "../../assets/image/google-icon.svg";
 import githubIcon from "../../assets/image/github-icon.svg";
 import successSound from "../../assets/audio/success-sound.mp3";
 import playerGenerator from "../../utilities/playerGenerator";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Snackbar from "../../components/Snackbar";
+import { useGoogleLogin } from "@react-oauth/google";
+
+
+
+
 
 const LogIn = () => {
 	const {
@@ -40,7 +45,31 @@ const LogIn = () => {
 	);
 	const [isLoading, setIsLoading] = useState(false);
 	const [loginSuccess, setLoginSuccess] = useState(false);
+	const [searchParams, _] = useSearchParams();
+	const code = searchParams.get("code");
 	const [openLogInErrorSnackbar, setOpenLogInErrorSnackbar] = useState(false);
+	const handleGoogleLogIn = useGoogleLogin({
+		onSuccess: (tokenResponse) => {
+			setIsLoading(true);
+			get(
+				"/authentication/oauth?provider=google",
+				() => {
+					setIsLoading(false);
+					setLoginSuccess(true);
+					player();
+					setTimeout(() => navigate("/"), 1000);
+				},
+				(err) => console.log(err),
+				{ Authorization: "Bearer " + tokenResponse.access_token }
+			);
+		},
+	});
+
+	const handleGitHubLogIn = () => {
+		const clientID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+		const currentUrl = window.location.href;
+		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${currentUrl}`;
+	};
 
 	const handleFormSubmit = handleSubmit((data) => {
 		setIsLoading(true);
@@ -76,6 +105,24 @@ const LogIn = () => {
 		);
 	});
 
+	// After callback, make a post request to api with authorisation code
+	useEffect(() => {
+		if (code) {
+			setIsLoading(true);
+			postJSON(
+				"/authentication/oauth?provider=github",
+				{ authorisationCode: code },
+				() => {
+					setIsLoading(false);
+					setLoginSuccess(true);
+					player();
+					setTimeout(() => navigate("/"), 1000);
+				},
+				(err) => console.log(err)
+			);
+		}
+	}, [code]);
+
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -90,7 +137,7 @@ const LogIn = () => {
 				alignItems="center"
 				{...register("email", { required: true })}
 			>
-				<Card elevation={4} sx={{ width: 350, marginBottom:5 }}>
+				<Card elevation={4} sx={{ width: 350, marginBottom: 5 }}>
 					<form onSubmit={handleFormSubmit}>
 						<CardContent>
 							<Box
@@ -144,9 +191,11 @@ const LogIn = () => {
 								<Typography>or</Typography>
 							</Divider>
 							<br />
+
 							<Button
 								fullWidth
 								variant="outlined"
+								handleButtonClick={() => handleGoogleLogIn()}
 								buttonIcon={
 									<Avatar
 										src={googleIcon}
@@ -167,6 +216,7 @@ const LogIn = () => {
 										sx={{ width: 20, height: 20, mx: 1 }}
 									/>
 								}
+								handleButtonClick={() => handleGitHubLogIn()}
 							>
 								Log In with GitHub
 							</Button>
@@ -191,6 +241,7 @@ const LogIn = () => {
 					</form>
 				</Card>
 			</Box>
+
 			{/*Log In Error Snackbar*/}
 			<Snackbar
 				openSnackbar={openLogInErrorSnackbar}

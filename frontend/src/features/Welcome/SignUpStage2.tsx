@@ -16,12 +16,12 @@ import {
 import { useEffect, useState } from "react";
 import Select from "../../components/Select";
 import DatePicker from "../../components/DatePicker/DatePicker";
-import { useAppDispatch, useAppSelector } from "../../utilities/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../utilities/redux";
 import {
 	incrementStage,
 	changeBirthday,
 	changeFaculty,
-	changeNusStudent,
+	changeGender,
 } from "./signUpSlice";
 import { motion } from "motion/react";
 
@@ -29,20 +29,11 @@ const SignUpStage2 = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const [disableFacultySelect, setDisableFacultySelect] = useState(false);
-	const {
-		currentSignUpStage,
-		birthday,
-		faculty,
-	} = useAppSelector((state) => ({
+	const { currentSignUpStage, birthday, faculty, gender } = useAppSelector((state) => ({
 		currentSignUpStage: state.signUp.currentSignUpStage,
-		name: state.signUp.name,
-		username: state.signUp.username,
-		email: state.signUp.email,
 		birthday: state.signUp.birthday,
-		biography: state.signUp.biography,
 		faculty: state.signUp.faculty,
-		password: state.signUp.password,
-		nusStudent: state.signUp.nusStudent,
+		gender: state.signUp.gender,
 	}));
 
 	// check if current sign up stage is at 0
@@ -53,13 +44,14 @@ const SignUpStage2 = () => {
 	}, []);
 
 	const handleBirthdaySelect = (date: Date) => {
-		console.log(date);
 		dispatch(changeBirthday(date));
 	};
 	const handleFacultySelect = (faculty: string) => {
-		console.log(faculty);
 		dispatch(changeFaculty(faculty));
 	};
+	const handleGenderSelect = (gender: string)=>{
+		dispatch(changeGender(gender));
+	}
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -107,11 +99,20 @@ const SignUpStage2 = () => {
 								toolTipText="Skip"
 							/>
 						</Box>
+						<Select
+							label="Gender"
+							defaultValue={gender}
+							handleSelect={handleGenderSelect}
+							values={["Male", "Female"]}
+						/>
+						<br />
+						<br />
 						<DatePicker
 							label="Birthday"
 							handleDateSelect={handleBirthdaySelect}
 							defaultValue={birthday}
 							width="100%"
+							onClear={()=>dispatch(changeBirthday(null))}
 						/>
 						<br />
 						<br />
@@ -138,10 +139,10 @@ const SignUpStage2 = () => {
 							control={<Checkbox />}
 							label="I am currently not a NUS student"
 							onChange={(_, checked) => {
+								console.log(faculty);
 								setDisableFacultySelect(!disableFacultySelect);
-								if (checked) {
-									dispatch(changeFaculty(undefined));
-									dispatch(changeNusStudent(false));
+								if (!checked) {
+									dispatch(changeFaculty(""));
 								}
 							}}
 						/>

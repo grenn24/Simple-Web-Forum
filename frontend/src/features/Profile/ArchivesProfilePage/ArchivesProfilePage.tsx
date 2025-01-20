@@ -55,7 +55,7 @@ const RemovedPage = () => {
 								event.currentTarget.dataset &&
 								navigate(`../Thread/${event.currentTarget.dataset.value}`)
 						)}
-						listItemTextStyle={{ flexGrow: 1 }}
+						listItemTextStyle={{ flexGrow: 1, width: "100%" }}
 						listItemPadding={1.4}
 						disableRipple
 						divider

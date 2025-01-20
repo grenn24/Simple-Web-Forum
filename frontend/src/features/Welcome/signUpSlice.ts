@@ -9,9 +9,9 @@ const initialState = {
 	email: "",
 	password: "",
 	biography:"",
-	faculty: undefined,
-	birthday: undefined,
-	nusStudent: true,
+	gender:"",
+	faculty: "",
+	birthday: null as Date | null,
 	avatarIcon: null
 };
 export const signUpSlice = createSlice({
@@ -50,12 +50,12 @@ export const signUpSlice = createSlice({
 		changeBiography: (state, action) => {
 			state.biography = action.payload;
 		},
-		changeNusStudent: (state, action) => {
-			state.nusStudent = action.payload;
-		},
 		changeAvatarIcon: (state, action) => {
 			state.avatarIcon = action.payload;
 		},
+		changeGender:(state,action)=>{
+			state.gender = action.payload;
+		}
 	},
 });
 
@@ -71,8 +71,8 @@ export const {
 	changeFaculty,
 	changeBirthday,
 	changeBiography,
-	changeNusStudent,
-	changeAvatarIcon
+	changeAvatarIcon,
+	changeGender
 } = signUpSlice.actions;
 
 const signUpSliceReducer = signUpSlice.reducer;

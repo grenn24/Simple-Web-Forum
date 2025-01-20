@@ -12,15 +12,15 @@ import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
 import googleIcon from "../../assets/image/google-icon.svg";
 import githubIcon from "../../assets/image/github-icon.svg";
-import { useNavigate } from "react-router-dom";
-import { postJSON } from "../../utilities/api";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { get, postJSON } from "../../utilities/api";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	ArrowForwardRounded as ArrowForwardRoundedIcon,
 	ArrowForwardIosRounded as ArrowForwardIosRoundedIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../utilities/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../utilities/redux";
 import {
 	incrementStage,
 	reset,
@@ -30,6 +30,9 @@ import {
 	changeUsername,
 } from "./signUpSlice";
 import { motion } from "motion/react";
+import { useGoogleLogin } from "@react-oauth/google";
+import playerGenerator from "../../utilities/playerGenerator";
+import successSound from "../../assets/audio/success-sound.mp3";
 
 const SignUpStage1 = () => {
 	const {
@@ -40,6 +43,8 @@ const SignUpStage1 = () => {
 		watch,
 	} = useForm({ mode: "onChange" });
 	const navigate = useNavigate();
+	const [searchParams, _] = useSearchParams();
+	const code = searchParams.get("code");
 	const [retypedPasswordMatches, setRetypedPasswordMatches] = useState(false);
 	const dispatch = useAppDispatch();
 	const { currentSignUpStage, name, username, email, password } =
@@ -53,6 +58,14 @@ const SignUpStage1 = () => {
 			faculty: state.signUp.faculty,
 			password: state.signUp.password,
 		}));
+
+	const player = playerGenerator(
+		successSound,
+		0.7,
+		{ default: [0, 2000] },
+		"default"
+	);
+
 	// check if current sign up stage is at 0
 	useEffect(() => {
 		if (currentSignUpStage === 0) {
@@ -61,7 +74,19 @@ const SignUpStage1 = () => {
 		if (watch("password") !== "") {
 			setRetypedPasswordMatches(watch("password") === watch("retypedPassword"));
 		}
-	}, [watch("password"), watch("retypedPassword")]);
+		if (code) {
+
+			postJSON(
+				"/authentication/oauth?provider=github",
+				{ authorisationCode: code },
+				() => {
+					player();
+					setTimeout(() => navigate("/"), 500);
+				},
+				(err) => console.log(err)
+			);
+		}
+	}, [watch("password"), watch("retypedPassword"),code]);
 
 	const handleCheckAvailability = handleSubmit((data) => {
 		if (currentSignUpStage > 1) {
@@ -110,6 +135,25 @@ const SignUpStage1 = () => {
 		}
 	});
 
+	const handleGoogleLogIn = useGoogleLogin({
+		onSuccess: (tokenResponse) =>
+			get(
+				"/authentication/oauth?provider=google",
+				() => {
+					player();
+					setTimeout(() => navigate("/"), 500);
+				},
+				(err) => console.log(err),
+				{ Authorization: "Bearer " + tokenResponse.access_token }
+			),
+	});
+
+	const handleGitHubLogIn = () => {
+		const clientID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+		const redirectURI = "http://localhost:5173/Welcome/Log-In";
+		window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientID}&redirect_uri=${redirectURI}`;
+	};
+
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -122,7 +166,6 @@ const SignUpStage1 = () => {
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"
-				
 			>
 				<Box marginBottom={3} width={350}>
 					<Typography textAlign="center">Fill in your credentials</Typography>
@@ -165,6 +208,7 @@ const SignUpStage1 = () => {
 								error={!!errors.name}
 								helperText={errors.name?.message as string}
 								fullWidth
+								autoComplete="name"
 								defaultValue={name}
 							/>
 
@@ -187,6 +231,7 @@ const SignUpStage1 = () => {
 								error={!!errors.username}
 								helperText={errors.username?.message as string}
 								fullWidth
+								autoComplete="username"
 								defaultValue={username}
 							/>
 							<br />
@@ -206,6 +251,7 @@ const SignUpStage1 = () => {
 								error={!!errors.email}
 								helperText={errors.email?.message as string}
 								fullWidth
+								autoComplete="email"
 								defaultValue={email}
 							/>
 							<br />
@@ -259,6 +305,7 @@ const SignUpStage1 = () => {
 										sx={{ width: 20, height: 20, mx: 1 }}
 									/>
 								}
+								handleButtonClick={()=>handleGoogleLogIn()}
 							>
 								Sign Up with Google
 							</Button>
@@ -273,6 +320,7 @@ const SignUpStage1 = () => {
 										sx={{ width: 20, height: 20, mx: 1 }}
 									/>
 								}
+								handleButtonClick={()=>handleGitHubLogIn()}
 							>
 								Sign Up with GitHub
 							</Button>

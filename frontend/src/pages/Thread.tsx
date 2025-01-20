@@ -34,7 +34,12 @@ import { useState, useEffect } from "react";
 import MenuExpandedItems from "../features/Thread/TopRightMenu/MenuExpandedItems.tsx";
 import playerGenerator from "../utilities/playerGenerator.ts";
 import likeSound from "../assets/audio/like-sound.mp3";
-import { useNavigate, useLocation, useParams, useSearchParams } from "react-router-dom";
+import {
+	useNavigate,
+	useLocation,
+	useParams,
+	useSearchParams,
+} from "react-router-dom";
 import TextFieldAutosize from "../components/TextFieldAutosize/TextFieldAutosize.tsx";
 import Comment from "../features/Thread/Comment.tsx";
 import { Delete, get, postJSON, putJSON } from "../utilities/api.ts";
@@ -49,6 +54,10 @@ import { CommentDTO } from "../dtos/CommentDTO.tsx";
 import commentSortOrder from "../features/Thread/commentSortOrder.tsx";
 import { parseThread } from "../utilities/parseApiResponse.ts";
 import MediaViewer from "../components/MediaViewer.tsx";
+import SelectChip from "../components/SelectChip/SelectChip.tsx";
+import { EditorState } from "draft-js";
+import { convertToRaw } from "draft-js";
+import RichTextField from "../components/RichTextField/RichTextField.tsx";
 
 const Thread = () => {
 	const player = playerGenerator(
@@ -70,6 +79,7 @@ const Thread = () => {
 			currentSortIndex = index;
 		}
 	});
+	const [threadContent, setThreadContent] = useState(new EditorState());
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
 	const [archiveStatus, setArchiveStatus] = useState(false);
@@ -77,8 +87,8 @@ const Thread = () => {
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
 	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
-
 	const [thread, setThread] = useState<ThreadDTO>({} as ThreadDTO);
+	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
 
 	// State variables used to track edit or loading status
 	const [isLoading, setIsLoading] = useState(true);
@@ -98,12 +108,14 @@ const Thread = () => {
 					setThread(thread);
 					setLikeCount(thread.likeCount);
 					setLikeStatus(thread.likeStatus);
+					setTopicsSelected(thread.topicsTagged.map((topic) => topic.name));
 					setArchiveStatus(thread.archiveStatus);
 					setBookmarkStatus(thread.bookmarkStatus);
 					setIsLoading(false);
 					// Check if isEditing or isCommenting was passed in during navigation
 					setIsCommenting(location.state?.isCommenting);
 					setIsEditing(location.state?.isEditing);
+					setThreadContent(thread.content);
 				},
 				(err) => console.log(err)
 			),
@@ -140,7 +152,10 @@ const Thread = () => {
 			`/threads/${thread.threadID}`,
 			{
 				title: data.title,
-				content: data.content,
+				content: JSON.stringify(
+					convertToRaw(threadContent.getCurrentContent())
+				),
+				topics_tagged: topicsSelected,
 			},
 			() => {
 				setIsUploadingThread(false);
@@ -162,6 +177,11 @@ const Thread = () => {
 				flexDirection="column"
 				justifyContent="center"
 				alignItems="center"
+				flexGrow={1}
+				boxSizing="border-box"
+				width="100%"
+				maxWidth="100%"
+				position="absolute"
 			>
 				<Box width="100%">
 					<Button
@@ -278,42 +298,26 @@ const Thread = () => {
 											marginTop={2}
 											marginBottom={3}
 										>
-											{thread.topicsTagged.map((topic: TopicDTO) => (
-												<Button
-													key={topic.topicID}
-													disableRipple
-													handleButtonClick={() =>
-														navigate(`../Topics/${topic.topicID}`)
-													}
-													fontFamily="Open Sans"
-													buttonStyle={{
-														px: 1,
-														py: 0,
-														marginLeft: 0,
-														marginRight: 1.5,
-													}}
-													color="text.secondary"
-													variant="outlined"
-													backgroundColor="primary.light"
-												>
-													{topic.name}
-												</Button>
-											))}
+											<SelectChip
+												predefinedTopics={[
+													"Exams",
+													"CCA",
+													"Homework",
+													"Orientation Camp",
+													"Exchange",
+												]}
+												topicsSelected={topicsSelected}
+												setTopicsSelected={setTopicsSelected}
+											/>
 										</Typography>
-										<Controller
-											name="content"
-											control={control}
-											defaultValue={thread.content}
-											render={() => (
-												<TextField
-													label="Thread Content"
-													fullWidth
-													{...register("content")}
-													multiline
-													minRows={10}
-												/>
-											)}
-										/>
+										<Box my={2}>
+											<RichTextField
+												editorState={threadContent}
+												setEditorState={(editorState) =>
+													setThreadContent(editorState)
+												}
+											/>
+										</Box>
 									</CardContent>
 
 									<CardActions
@@ -376,7 +380,7 @@ const Thread = () => {
 											color="text.secondary"
 											fontFamily="Open Sans"
 											fontSize={17}
-											my={2}
+											marginBottom={2}
 										>
 											{thread.topicsTagged.map((topic: TopicDTO) => (
 												<Button
@@ -387,11 +391,11 @@ const Thread = () => {
 													}
 													fontFamily="Open Sans"
 													buttonStyle={{
-														px: 1,
-														py: 0,
+														p:0,
 														marginLeft: 0,
 														marginRight: 1.5,
 													}}
+													fontSize={14}
 													color="text.secondary"
 													variant="outlined"
 													backgroundColor="primary.light"
@@ -400,18 +404,28 @@ const Thread = () => {
 												</Button>
 											))}
 										</Typography>
-										<Typography textAlign="left" my={2} whiteSpace="pre-wrap">
-											{thread.content}
-										</Typography>
+										<Box my={2}>
+											<RichTextField
+												editorState={thread.content}
+												showBorders={false}
+												editable={false}
+											/>
+										</Box>
 										<Box
 											height={470}
 											my={2}
-											display={thread.imageLink.length === 0 ? "none" : "block"}
+											display={
+												thread.imageLink.length === 0 &&
+												thread.videoLink.length === 0
+													? "none"
+													: "block"
+											}
 										>
 											<MediaViewer
-												borderRadius={1.3}
+												borderRadius={1.0}
 												backgroundColor="black"
 												imageLinks={thread.imageLink}
+												videoLinks={thread.videoLink}
 											/>
 										</Box>
 									</CardContent>
@@ -420,6 +434,7 @@ const Thread = () => {
 										sx={{
 											display: "flex",
 											justifyContent: "flex-start",
+											py:0
 										}}
 									>
 										<Button
@@ -551,7 +566,7 @@ const Thread = () => {
 										sx={{
 											display: "flex",
 											justifyContent: "center",
-											marginBottom: 1.5,
+											marginBottom: 1,
 										}}
 									>
 										{!isCommenting ? (
@@ -635,9 +650,12 @@ const Thread = () => {
 										)}
 										menuIcon={<SortRoundedIcon />}
 										variant="text"
-										handleMenuExpandedItemsClick={Array(commentSortOrder.length).fill(
-											(event: React.MouseEvent<HTMLElement>) =>
-												navigate(`?comment-sort=${event.currentTarget.dataset?.value}`)
+										handleMenuExpandedItemsClick={Array(
+											commentSortOrder.length
+										).fill((event: React.MouseEvent<HTMLElement>) =>
+											navigate(
+												`?comment-sort=${event.currentTarget.dataset?.value}`
+											)
 										)}
 										menuStyle={{ fontFamily: "Open Sans" }}
 									>

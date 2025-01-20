@@ -6,7 +6,7 @@ const ThreadGridCardsLoading = () => {
 	const theme = useTheme();
 	return (
 		<>
-			<Box width="100%" marginBottom={8} marginTop={5}>
+			<Box width="100%" marginBottom={5}>
 				<Box display="flex" justifyContent="space-between" alignItems="center">
 					<Skeleton variant="rounded" width={200} height={30} />
 					<Skeleton variant="rounded" width={100} height={20} />
@@ -31,14 +31,14 @@ const ThreadGridCardsLoading = () => {
 							<Skeleton
 								variant="rounded"
 								height={180}
-								animation="pulse"
+								animation="wave"
 								width="100%"
 							/>
 						</Grid>
 					))}
 				</Grid>
 			</Box>
-			<Box width="100%">
+			<Box width="100%" marginBottom={5}>
 				<Box display="flex" justifyContent="space-between" alignItems="center">
 					<Skeleton variant="rounded" width={200} height={30} />
 					<Skeleton variant="rounded" width={100} height={20} />
@@ -63,7 +63,39 @@ const ThreadGridCardsLoading = () => {
 							<Skeleton
 								variant="rounded"
 								height={180}
-								animation="pulse"
+								animation="wave"
+								width="100%"
+							/>
+						</Grid>
+					))}
+				</Grid>
+			</Box>
+			<Box width="100%" marginBottom={5}>
+				<Box display="flex" justifyContent="space-between" alignItems="center">
+					<Skeleton variant="rounded" width={200} height={30} />
+					<Skeleton variant="rounded" width={100} height={20} />
+				</Box>
+				<Grid
+					container
+					columnSpacing={2.5}
+					rowSpacing={2}
+					sx={{ marginTop: 2 }}
+				>
+					{new Array(3).fill("").map((_, index) => (
+						<Grid
+							key={index}
+							size={
+								screenWidth > theme.breakpoints.values.md
+									? 4
+									: screenWidth > theme.breakpoints.values.sm
+									? 6
+									: 12
+							}
+						>
+							<Skeleton
+								variant="rounded"
+								height={180}
+								animation="wave"
 								width="100%"
 							/>
 						</Grid>

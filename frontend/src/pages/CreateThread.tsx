@@ -1,4 +1,11 @@
-import { Box, Typography, Divider, Container } from "@mui/material";
+import {
+	Box,
+	Typography,
+	Divider,
+	Container,
+	CircularProgress,
+	Stack,
+} from "@mui/material";
 import Button from "../components/Button";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +18,21 @@ import { useEffect, useState } from "react";
 import Snackbar from "../components/Snackbar";
 import { createWebsocket } from "../utilities/websocket";
 import { v4 as uuidv4 } from "uuid";
-import { useAppDispatch, useAppSelector } from "../utilities/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../utilities/redux";
 import {
 	editUpload,
 	addUpload,
 	deleteUpload,
+	changeOpenImageUploadedSnackbar,
+	changeOpenVideoUploadedSnackbar,
+	resetFields,
 } from "../features/CreateThread/createThreadSlice";
+import VideoPage from "../features/CreateThread/VideoPage";
+import { convertToRaw } from "draft-js";
 
 const CreateThread = () => {
 	const navigate = useNavigate();
-	const [topicsSelected, setTopicsSelected] = useState<string[]>([]);
 	const [isUploading, setIsUploading] = useState(false);
-	const [imagesSelected, setImagesSelected] = useState<File[]>([]);
 
 	const [openThreadUploadStartedSnackbar, setOpenThreadUploadStartedSnackbar] =
 		useState(false);
@@ -38,34 +48,53 @@ const CreateThread = () => {
 		control,
 		setValue,
 		watch,
-	} = useForm();
+	} = useForm({
+		mode: "onChange",
+	});
 	const dispatch = useAppDispatch();
-	const { uploads } = useAppSelector((state) => ({
+	const {
+		uploads,
+		isCompressingImages,
+		openImageUploadedSnackbar,
+		openVideoUploadedSnackbar,
+		imagesSelected,
+		videosSelected,
+		topicsSelected,
+		content,
+	} = useAppSelector((state) => ({
 		uploads: state.createThread.uploads,
+		isCompressingImages: state.createThread.isCompressingImages,
+		openImageUploadedSnackbar: state.createThread.openImageUploadedSnackbar,
+		openVideoUploadedSnackbar: state.createThread.openVideoUploadedSnackbar,
+		imagesSelected: state.createThread.imagesSelected,
+		videosSelected: state.createThread.videosSelected,
+		topicsSelected: state.createThread.topicsSelected,
+		content: state.createThread.content,
 	}));
 
 	const createThread = handleSubmit((data) => {
 		const uploadID = uuidv4();
-		if (watch("title") !== "") {
+		if (watch("title") !== "" && !isCompressingImages) {
 			setIsUploading(true);
 			const formData = new FormData();
 			formData.append("upload_id", uploadID);
 			formData.append("title", data.title);
-			formData.append("content", data.content);
-			data.imageTitle && formData.append("image_title", data.imageTitle);
+			formData.append(
+				"content",
+				JSON.stringify(convertToRaw(content.getCurrentContent()))
+			);
 			imagesSelected.forEach((image: File) => formData.append("images", image));
+			videosSelected.forEach((video: File) => formData.append("videos", video));
 			topicsSelected.forEach((topic) =>
 				formData.append("topics_tagged", topic)
 			);
 			postFormData(
-				"/threads/user",
+				"/threads",
 				formData,
 				() => {
+					dispatch(resetFields());
 					reset();
 					setValue("title", "");
-					setValue("content", "");
-					setImagesSelected([]);
-					setTopicsSelected([]);
 					setIsUploading(false);
 					setOpenThreadUploadStartedSnackbar(true);
 					const websocket = createWebsocket("/threads/upload-progress");
@@ -79,26 +108,21 @@ const CreateThread = () => {
 						dispatch(
 							addUpload({
 								uploadID: uploadID,
-								upload: {
-									title: data.title,
-									uploadStatus: "incomplete",
-									progress: 0,
-								},
+								title: data.title,
+								uploadStatus: "incomplete",
+								progress: 0,
 							})
 						);
 					};
 					websocket.onmessage = (event) => {
-
 						const upload = JSON.parse(event.data);
 						if (upload.status === "incomplete") {
 							dispatch(
 								editUpload({
 									uploadID: uploadID,
-									upload: {
-										title: data.title,
-										uploadStatus: upload.status,
-										progress: upload.progress,
-									},
+									title: data.title,
+									uploadStatus: upload.status,
+									progress: upload.progress,
 								})
 							);
 						}
@@ -106,11 +130,9 @@ const CreateThread = () => {
 							dispatch(
 								editUpload({
 									uploadID: uploadID,
-									upload: {
-										title: data.title,
-										uploadStatus: upload.status,
-										progress: upload.progress,
-									},
+									title: data.title,
+									uploadStatus: upload.status,
+									progress: upload.progress,
 								})
 							);
 						}
@@ -118,18 +140,15 @@ const CreateThread = () => {
 							dispatch(
 								editUpload({
 									uploadID: uploadID,
-									upload: {
-										title: data.title,
-										uploadStatus: upload.status
-									},
+									title: data.title,
+									uploadStatus: upload.status,
 								})
 							);
 						}
-
 					};
 					websocket.onclose = () => {
 						websocket.close();
-						setTimeout(()=>dispatch(deleteUpload(uploadID)), 2000)
+						setTimeout(() => dispatch(deleteUpload(uploadID)), 2000);
 					};
 				},
 				(err) => {
@@ -144,8 +163,12 @@ const CreateThread = () => {
 	});
 
 	useEffect(() => {
-		console.log("Uploads state changed:", uploads);
-	}, [uploads]);
+		window.addEventListener("beforeunload", (event) => event.preventDefault());
+		return window.removeEventListener(
+			"beforeunload",
+			(event) => event.preventDefault()
+		);
+	}, []);
 
 	return (
 		<Box
@@ -190,7 +213,7 @@ const CreateThread = () => {
 			<Container
 				sx={{
 					width: { xs: "100%", sm: 600, md: 650, lg: 650, xl: 650 },
-					my: 3,
+
 					px: { xs: 1, sm: 3 },
 				}}
 				disableGutters
@@ -203,19 +226,14 @@ const CreateThread = () => {
 							createThread={createThread}
 							errors={errors}
 							control={control}
-							topicsSelected={topicsSelected}
-							setTopicsSelected={setTopicsSelected}
 							isUploading={isUploading}
+							watch={watch}
 						/>,
-						<ImagePage
-							imagesSelected={imagesSelected}
-							setImagesSelected={setImagesSelected}
-							register={register}
-							control={control}
-						/>,
+						<ImagePage />,
+						<VideoPage />,
 					]}
 				/>
-				<Box textAlign="right" marginTop={5}>
+				<Box textAlign="right" marginTop={3}>
 					<Button
 						color="primary.dark"
 						variant="outlined"
@@ -228,31 +246,60 @@ const CreateThread = () => {
 					</Button>
 				</Box>
 			</Container>
-
-			{/*Thread Upload Started snackbar*/}
-			<Snackbar
-				openSnackbar={openThreadUploadStartedSnackbar}
-				setOpenSnackbar={setOpenThreadUploadStartedSnackbar}
-				message="Thread will be uploaded in the background"
-				duration={1000}
-				undoButton={false}
-			/>
-			{/*Thread Upload error snackbar*/}
-			<Snackbar
-				openSnackbar={openThreadUploadErrorSnackbar}
-				setOpenSnackbar={setOpenThreadUploadErrorSnackbar}
-				message="An error occurred while Uploading the thread. Please try again."
-				duration={3000}
-				undoButton={false}
-			/>
-			{/*Thread missing snackbar*/}
-			<Snackbar
-				openSnackbar={openThreadTitleMissingSnackbar}
-				setOpenSnackbar={setOpenThreadTitleMissingSnackbar}
-				message="Please add a title for your thread before uploading."
-				duration={3000}
-				undoButton={false}
-			/>
+			<Stack>
+				{/*Thread Upload Started snackbar*/}
+				<Snackbar
+					openSnackbar={openThreadUploadStartedSnackbar}
+					setOpenSnackbar={setOpenThreadUploadStartedSnackbar}
+					message="Thread will be uploaded in the background"
+					duration={1000}
+					undoButton={false}
+				/>
+				{/*Thread Upload error snackbar*/}
+				<Snackbar
+					openSnackbar={openThreadUploadErrorSnackbar}
+					setOpenSnackbar={setOpenThreadUploadErrorSnackbar}
+					message="An error occurred while uploading the thread. Please try again."
+					duration={3000}
+					undoButton={false}
+				/>
+				{/*Thread missing snackbar*/}
+				<Snackbar
+					openSnackbar={openThreadTitleMissingSnackbar}
+					setOpenSnackbar={setOpenThreadTitleMissingSnackbar}
+					message="Please add a title for your thread before uploading."
+					duration={3000}
+					undoButton={false}
+				/>
+				{/*Image compressing snackbar*/}
+				<Snackbar
+					openSnackbar={isCompressingImages}
+					message="Compressing Images"
+					undoButton={false}
+					actionIcon={<CircularProgress size={27} sx={{ marginRight: 1.5 }} />}
+					closeButton={false}
+				/>
+				{/*Image uploaded snackbar*/}
+				<Snackbar
+					openSnackbar={openImageUploadedSnackbar}
+					handleSnackbarClose={() =>
+						dispatch(changeOpenImageUploadedSnackbar(false))
+					}
+					message="Images Uploaded"
+					duration={2000}
+					undoButton={false}
+				/>
+				{/*Video uploaded snackbar*/}
+				<Snackbar
+					openSnackbar={openVideoUploadedSnackbar}
+					handleSnackbarClose={() =>
+						dispatch(changeOpenVideoUploadedSnackbar(false))
+					}
+					message="Videos Uploaded"
+					duration={2000}
+					undoButton={false}
+				/>
+			</Stack>
 		</Box>
 	);
 };

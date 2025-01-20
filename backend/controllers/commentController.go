@@ -94,8 +94,9 @@ func (commentController *CommentController) SearchComments(context *gin.Context,
 	query := context.Query("query")
 	page := utils.ConvertStringToInt(context.Query("page"), context)
 	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	comments, responseErr := commentService.SearchComments(query, page, limit)
+	comments, responseErr := commentService.SearchComments(query, page, limit, sortIndex)
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
 	}

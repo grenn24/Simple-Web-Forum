@@ -17,8 +17,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/google/uuid"
 	"github.com/grenn24/simple-web-forum/dtos"
 )
+
+type AwsS3Bucket struct {
+	ProgressChannel     chan float64
+	ErrorChannel        chan *dtos.Error
+	TotalSize           int
+	TotalBytesRead      int
+	TotalBytesReadMutex sync.Mutex
+}
 
 // Region is predefined
 func CreateSession() (*session.Session, error) {
@@ -58,13 +67,13 @@ func PostFileToS3Bucket(filename string, folder string, file io.Reader) (string,
 }
 
 // Autogenerate filenames using fileheader struct from formdata and post to the specified folder in s3 (returns public file url on successful upload)
-func PostFileHeaderToS3Bucket(fileHeader *multipart.FileHeader, folder string) (string, error) {
+func  PostFileHeaderToS3Bucket(fileHeader *multipart.FileHeader, folder string) (string, error) {
 	filename, file, err := ConvertFileHeaderToFile(fileHeader)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
-	url, err := PostFileToS3Bucket(filename, folder, file)
+	url, err := PostFileToS3Bucket(uuid.NewString()+"."+strings.Split(filename,".")[1], folder, file)
 	if err != nil {
 		return "", err
 	}
@@ -73,17 +82,16 @@ func PostFileHeaderToS3Bucket(fileHeader *multipart.FileHeader, folder string) (
 
 // Post a slice of fileheaders to the specified folder in s3 (returns a slice public file urls on successful upload)
 // Error from the goroutines is collected in a channel, and the first error is returned
-func PostFileHeadersToS3Bucket(fileHeaders []*multipart.FileHeader, folder string, progressChannel chan float64, errorChannel chan *dtos.Error) []string {
+// Filenames generated using uuid to avoid duplicates
+func (x *AwsS3Bucket) PostFileHeadersToS3Bucket(fileHeaders []*multipart.FileHeader, folder string) []string {
 	// If image(s) were attached, upload to s3 and retrieve the string array of links (using goroutines)
 	urls := make([]string, 0)
 	var urlsMutex sync.Mutex
 	fmt.Println("starting to post images")
-	var totalSize int
+
 	for _, fileHeader := range fileHeaders {
-		totalSize += int(fileHeader.Size)
+		x.TotalSize += int(fileHeader.Size)
 	}
-	var totalBytesRead int
-	var totalBytesReadMutex sync.Mutex
 
 	// Start a waitgroup for goroutines
 	var wg sync.WaitGroup
@@ -96,7 +104,7 @@ func PostFileHeadersToS3Bucket(fileHeaders []*multipart.FileHeader, folder strin
 			defer wg.Done()
 			filename, file, err := ConvertFileHeaderToFile(fileHeader)
 			if err != nil {
-				errorChannel <- &dtos.Error{
+				x.ErrorChannel <- &dtos.Error{
 					Status:    "error",
 					ErrorCode: "INTERNAL_SERVER_ERROR",
 					Message:   err.Error(),
@@ -105,19 +113,18 @@ func PostFileHeadersToS3Bucket(fileHeaders []*multipart.FileHeader, folder strin
 			}
 			defer file.Close()
 			fileReader := CreateReaderWithProgress(file, int(fileHeader.Size), func(bytesRead int) {
-				
-				progress := float64(totalBytesRead) / float64(totalSize) * 95
-				progressChannel <- progress
+
+				progress := float64(x.TotalBytesRead) / float64(x.TotalSize) * 95
+				x.ProgressChannel <- progress
 				fmt.Println(progress)
-				totalBytesReadMutex.Lock()
-				totalBytesRead += bytesRead
-				totalBytesReadMutex.Unlock()
-				
-				
+				x.TotalBytesReadMutex.Lock()
+				x.TotalBytesRead += bytesRead
+				x.TotalBytesReadMutex.Unlock()
+
 			})
-			url, err := PostFileToS3Bucket(filename, "thread_image", fileReader)
+			url, err := PostFileToS3Bucket(uuid.NewString()+"."+strings.Split(filename,".")[1], folder, fileReader)
 			if err != nil {
-				errorChannel <- &dtos.Error{
+				x.ErrorChannel <- &dtos.Error{
 					Status:    "error",
 					ErrorCode: "INTERNAL_SERVER_ERROR",
 					Message:   err.Error(),

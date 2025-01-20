@@ -4,35 +4,44 @@ import Button from "../../components/Button";
 import { removeFromArray } from "../../utilities/arrayManipulation";
 import { openFileInNewWindow } from "../../utilities/fileManipulation";
 import Snackbar from "../../components/Snackbar";
+
 import { useState } from "react";
+import { useAppDispatch } from "../../utilities/redux";
+import { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 
 interface Prop {
-	imagesSelected: File[];
-	setImagesSelected: (images: File[]) => void;
+	filesSelected: File[];
+	setFilesSelected: ActionCreatorWithPayload<any>;
 }
 
-const UploadedImageList = ({ imagesSelected, setImagesSelected}: Prop) => {
-	const imageFiles = Array.from(imagesSelected).map((image: File) => image);
-	const [imageDeleted, setImageDeleted] = useState<File>({} as File);
-	const [openImageDeletedSnackbar, setOpenImageDeletedSnackbar] =
+const UploadedFilesList = ({ filesSelected, setFilesSelected }: Prop) => {
+	const dispatch = useAppDispatch();
+	const files = Array.from(filesSelected).map((file: File) => file);
+	const [fileDeleted, setfileDeleted] = useState<File>({} as File);
+	const [openfileDeletedSnackbar, setOpenfileDeletedSnackbar] =
 		useState(false);
 	return (
-		imageFiles.length !== 0 && (
+		files.length !== 0 && (
 			<>
-				<Box width="100%" display="flex" justifyContent="space-between">
+				<Box
+					width="100%"
+					display="flex"
+					justifyContent="space-between"
+					marginTop={3}
+				>
 					<Typography fontFamily="Open Sans" color="text.primary">
-						{imageFiles.length} Images
+						{files.length} files
 					</Typography>
 					<Button
 						buttonStyle={{ py: 0 }}
-						handleButtonClick={() => setImagesSelected([])}
+						handleButtonClick={() => dispatch(setFilesSelected([]))}
 					>
 						Clear All
 					</Button>
 				</Box>
 
 				<Divider sx={{ my: 1.2 }} />
-				{imageFiles.map((image, index) => (
+				{files.map((file, index) => (
 					<Box
 						display="flex"
 						flexDirection="row"
@@ -41,7 +50,7 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected}: Prop) => {
 						key={index}
 					>
 						<Link
-							onClick={() => openFileInNewWindow(image)}
+							onClick={() => openFileInNewWindow(file)}
 							underline="hover"
 							rel="noreferrer"
 							target="_blank"
@@ -56,7 +65,7 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected}: Prop) => {
 								color="text.primary"
 								fontSize={15}
 							>
-								{image.name}
+								{file.name}
 							</Typography>
 						</Link>
 						<Box
@@ -70,35 +79,37 @@ const UploadedImageList = ({ imagesSelected, setImagesSelected}: Prop) => {
 								color="text.primary"
 								fontSize={15}
 							>
-								{Math.round((image.size / Math.pow(2, 20)) * 100) / 100}mb
+								{Math.round((file.size / Math.pow(2, 20)) * 100) / 100}mb
 							</Typography>
 							<Button
 								buttonIcon={<ClearRoundedIcon />}
 								color="primary.dark"
 								buttonStyle={{ marginLeft: 1, p: 0 }}
 								handleButtonClick={() => {
-									setImagesSelected(removeFromArray(imagesSelected, index));
-									setImageDeleted(image);
-									setOpenImageDeletedSnackbar(true);
+									dispatch(
+										setFilesSelected(removeFromArray(filesSelected, index))
+									);
+									setfileDeleted(file);
+									setOpenfileDeletedSnackbar(true);
 								}}
 							/>
 						</Box>
-						{/*Image Deleted Snackbar*/}
-						<Snackbar
-							openSnackbar={openImageDeletedSnackbar}
-							setOpenSnackbar={setOpenImageDeletedSnackbar}
-							message="Image deleted"
-							duration={3000}
-							undoButton
-							handleUndoButtonClick={() =>
-								setImagesSelected([...imagesSelected, imageDeleted])
-							}
-						/>
 					</Box>
 				))}
+				{/*File Deleted Snackbar*/}
+				<Snackbar
+					openSnackbar={openfileDeletedSnackbar}
+					setOpenSnackbar={setOpenfileDeletedSnackbar}
+					message="File deleted"
+					duration={3000}
+					undoButton
+					handleUndoButtonClick={() =>
+						dispatch(setFilesSelected([...filesSelected, fileDeleted]))
+					}
+				/>
 			</>
 		)
 	);
 };
 
-export default UploadedImageList;
+export default UploadedFilesList;

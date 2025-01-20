@@ -71,14 +71,28 @@ func (authorService *AuthorService) GetAuthorByID(authorID int, userAuthorID int
 	return author, nil
 }
 
+func (authorService *AuthorService) GetAuthorActivityByAuthorID(authorID int) ([]*dtos.AuthorActivityDTO, *dtos.Error) {
+	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
+
+	authorActivities, err := authorRepository.GetAuthorActivityByAuthorID(authorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return authorActivities, nil
+}
+
 func (authorService *AuthorService) GetAvatarIconLinkByAuthorID(authorID int) string {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 	return authorRepository.GetAvatarIconLinkByAuthorID(authorID)
 }
 
-func (authorService *AuthorService) SearchAuthors(userAuthorID int, query string, page int, limit int) ([]*dtos.AuthorDTO, *dtos.Error) {
+func (authorService *AuthorService) SearchAuthors(userAuthorID int, query string, page int, limit int, sortIndex int) ([]*dtos.AuthorDTO, *dtos.Error) {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
-	authors, err := authorRepository.SearchAuthors(userAuthorID, query, page, limit)
+	authors, err := authorRepository.SearchAuthors(userAuthorID, query, page, limit, sortIndex)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -95,14 +109,6 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	_, err := authorRepository.CreateAuthor(author)
 
 	if err != nil {
-		// Check for existing name
-		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "NAME_ALREADY_EXISTS",
-				Message:   "The name provided has already been used. (case insensitive)",
-			}
-		}
 		// Check for existing username
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
 			return &dtos.Error{
@@ -129,11 +135,61 @@ func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Er
 	return nil
 }
 
+// Only update existing fields with values (for replacing fields with null values using other deletion methods)
 func (authorService *AuthorService) UpdateAuthor(author *dtos.AuthorDTO, authorID int) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 
-	avatarIconLink := authorRepository.GetAvatarIconLinkByAuthorID(authorID)
-	author.AvatarIconLink = &avatarIconLink
+	// Update fields on existing author
+	existingAuthor, err := authorRepository.GetAuthorByID(authorID)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+
+	if author.Name != "" {
+		existingAuthor.Name = author.Name
+	}
+	if author.Username != "" {
+		existingAuthor.Username = author.Username
+	}
+	if author.Email != nil && *author.Email != "" {
+		existingAuthor.Email = author.Email
+	}
+
+	// If biography is provided, update it
+	if author.Biography != nil {
+		existingAuthor.Biography = author.Biography
+	}
+	// If birthday is provided, update it
+	if author.Birthday != nil {
+		if *author.Birthday != utils.ParseDateString("") {
+			existingAuthor.Birthday = author.Birthday
+		} else {
+			existingAuthor.Birthday = nil
+		}
+
+	}
+	// If faculty is provided, update it
+	if author.Faculty != nil {
+		if *author.Faculty != "" {
+			existingAuthor.Faculty = author.Faculty
+		} else {
+			existingAuthor.Faculty = nil
+		}
+
+	}
+	// If gender is provided, update it
+	if author.Gender != nil {
+		if *author.Gender != "" {
+			existingAuthor.Gender = author.Gender
+		} else {
+			existingAuthor.Gender = nil
+		}
+
+	}
 
 	// Check if avatar icon file was uploaded
 	if author.AvatarIcon != nil {
@@ -161,24 +217,24 @@ func (authorService *AuthorService) UpdateAuthor(author *dtos.AuthorDTO, authorI
 			}
 		}
 		// Assign the newly returned link to author dto
-		author.AvatarIconLink = &avatarIconLink
+		existingAuthor.AvatarIconLink = &avatarIconLink
 	}
 
-	err := authorRepository.UpdateAuthor(author, authorID)
+	err = authorRepository.UpdateAuthor(existingAuthor, authorID)
 
 	if err != nil {
-		if err.Error() == "pq: duplicate key value violates unique constraint \"author_name_lowercase\"" {
-			return &dtos.Error{
-				Status:    "error",
-				ErrorCode: "NAME_ALREADY_EXISTS",
-				Message:   "Name already exists (duplicate)",
-			}
-		}
 		if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
 			return &dtos.Error{
 				Status:    "error",
 				ErrorCode: "USERNAME_ALREADY_EXISTS",
 				Message:   "Username already exists (duplicate)",
+			}
+		}
+		if err.Error() == "pq: duplicate key value violates unique constraint \"author_email_lowercase\"" {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "USERNAME_ALREADY_EXISTS",
+				Message:   "Email already exists (duplicate)",
 			}
 		}
 		return &dtos.Error{

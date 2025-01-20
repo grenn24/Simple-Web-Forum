@@ -1,1 +1,1 @@
-export default ["Home", "Following", "Recommended","Topics", "Bookmarked", "Liked"];
+export default ["Home", "Following", "Recommended","Discussions","Topics", "Bookmarked", "Liked"];

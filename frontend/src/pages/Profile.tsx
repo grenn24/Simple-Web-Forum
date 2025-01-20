@@ -35,6 +35,8 @@ import List from "../components/List";
 import Snackbar from "../components/Snackbar";
 import FileInput from "../components/FileInput";
 import CameraInput from "../components/CameraInput";
+import { compressImageFile } from "../utilities/fileManipulation";
+import Select from "../components/Select";
 
 const Profile = () => {
 	const {
@@ -62,9 +64,8 @@ const Profile = () => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [isUploading, setIsUploading] = useState(false);
+	const screenSizeGreaterThanXS = useMediaQuery(theme.breakpoints.up("sm"));
 	const [openUploadAvatarDialog, setOpenUploadAvatarDialog] = useState(false);
-	const [openFileSizeLimitSnackbar, setOpenFileSizeLimitSnackbar] =
-		useState(false);
 	const [openAvatarIconDeletedSnackbar, setOpenAvatarIconDeletedSnackbar] =
 		useState(false);
 	const [openAvatarIconUploadedSnackbar, setOpenAvatarIconUploadedSnackbar] =
@@ -78,23 +79,24 @@ const Profile = () => {
 		useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const [openCameraInput, setOpenCameraInput] = useState(false);
+	const [faculty, setFaculty] = useState<string>("");
 
 	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
-	useEffect(
-		() =>
-			get(
-				`/authors/${authorID === "User" ? "user" : authorID}`,
-				(res) => {
-					const responseBody = res.data.data;
-					const author = parseAuthor(responseBody);
-					setAuthor(author);
-					setFollowStatus(author.followStatus);
-					setIsLoading(false);
-				},
-				(err) => console.log(err)
-			),
-		[authorID, isEditing, type]
-	);
+	useEffect(() => {
+		setIsLoading(true);
+		get(
+			`/authors/${authorID === "User" ? "user" : authorID}`,
+			(res) => {
+				const responseBody = res.data.data;
+				const author = parseAuthor(responseBody);
+				setAuthor(author);
+				setFollowStatus(author.followStatus);
+				setIsLoading(false);
+				author.faculty && setFaculty(author.faculty);
+			},
+			(err) => console.log(err)
+		);
+	}, [authorID]);
 
 	const handleFollowAuthor = () => {
 		if (followStatus) {
@@ -127,10 +129,18 @@ const Profile = () => {
 			formData.append("name", data.name);
 			formData.append("username", data.username);
 			formData.append("biography", data.biography);
+			formData.append("faculty", faculty);
 			putFormData(
 				"/authors/user",
 				formData,
 				() => {
+					get(`/authors/${authorID === "User" ? "user" : authorID}`, (res) => {
+						const responseBody = res.data.data;
+						const author = parseAuthor(responseBody);
+						setAuthor(author);
+						setFollowStatus(author.followStatus);
+						author.faculty && setFaculty(author.faculty);
+					});
 					setIsEditing(false);
 					setIsUploading(false);
 					reset();
@@ -167,21 +177,21 @@ const Profile = () => {
 	const handleUploadAvatarIcon = (files: FileList) => {
 		setOpenUploadAvatarDialog(false);
 		const avatarIcon = files[0];
-		if (avatarIcon.size > 20000000) {
-			setOpenFileSizeLimitSnackbar(true);
-		} else {
-			const formData = new FormData();
-			formData.append("avatar_icon", avatarIcon);
-			putFormData(
-				"/authors/user/avatar-icon-link",
-				formData,
-				() => setOpenAvatarIconUploadedSnackbar(true),
-				(err) => {
-					console.log(err);
-					setOpenAvatarIconUploadErrorSnackbar(true);
-				}
-			);
-		}
+		compressImageFile(avatarIcon, 2)
+			.then((compressedAvatarIcon) => {
+				const formData = new FormData();
+				formData.append("avatar_icon", compressedAvatarIcon);
+				putFormData(
+					"/authors/user/avatar-icon-link",
+					formData,
+					() => setOpenAvatarIconUploadedSnackbar(true),
+					(err) => {
+						console.log(err);
+						setOpenAvatarIconUploadErrorSnackbar(true);
+					}
+				);
+			})
+			.catch((err) => console.log(err));
 	};
 
 	const handleDeleteAvatarIcon = () => {
@@ -204,6 +214,9 @@ const Profile = () => {
 				minHeight: "100%",
 			}}
 			flexGrow={1}
+			position="absolute"
+			width="100%"
+			boxSizing="border-box"
 			display="flex"
 			flexDirection="column"
 			alignItems="center"
@@ -213,7 +226,7 @@ const Profile = () => {
 				fontFamily="Open Sans"
 				fontWeight={700}
 				fontSize={30}
-				color="primary.dark"
+				color="text.primary"
 				marginBottom={2}
 				width="100%"
 			>
@@ -231,7 +244,7 @@ const Profile = () => {
 			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-					color="primary.dark"
+					color="text.primary"
 					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
@@ -267,7 +280,7 @@ const Profile = () => {
 									}}
 									buttonIcon={<EditRoundedIcon style={{ fontSize: 22 }} />}
 									handleButtonClick={() => setOpenUploadAvatarDialog(true)}
-								></Button>
+								/>
 							}
 						>
 							<Avatar
@@ -414,6 +427,8 @@ const Profile = () => {
 								buttonStyle={{ py: 0 }}
 								borderRadius={40}
 								fontSize={18}
+								fontFamily="Poppins"
+								fontWeight={450}
 								buttonIcon={
 									followStatus ? (
 										<NotificationsActiveRoundedIcon />
@@ -437,10 +452,13 @@ const Profile = () => {
 								buttonIcon={
 									isEditing ? <CheckRoundedIcon /> : <EditRoundedIcon />
 								}
+								color="white"
 								type="submit"
+								fontFamily="Open Sans"
+								fontWeight={400}
 								handleButtonClick={handleEditButtonClick}
 							>
-								{isEditing ? "Confirm" : "Edit"}
+								{screenSizeGreaterThanXS && (isEditing ? "Confirm" : "Edit")}
 							</Button>
 						)
 					) : (
@@ -450,6 +468,73 @@ const Profile = () => {
 							animation="pulse"
 							height={20}
 						/>
+					)}
+				</Box>
+
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					width="100%"
+					marginBottom={2}
+					alignItems="center"
+				>
+					<Box display={isLoading ? "none" : "flex"}>
+						<Typography
+							fontFamily="Open Sans"
+							fontSize={18}
+							fontWeight={680}
+							whiteSpace="pre-wrap"
+						>
+							{author.followerCount + " "}
+						</Typography>
+						<Typography fontFamily="Open Sans" fontSize={18} fontWeight={500}>
+							Followers
+						</Typography>
+					</Box>
+					{isEditing ? (
+						<Box display="flex" alignItems="center" width="50%">
+							<Typography
+								fontFamily="Open Sans"
+								fontSize={18}
+								fontWeight={500}
+								whiteSpace="nowrap"
+								marginRight={1.5}
+							>
+								Faculty of
+							</Typography>
+							<Select
+								style={{ height: 40 }}
+								fontSize={18}
+								size="small"
+								defaultValue={author.faculty}
+								handleSelect={(faculty) => setFaculty(faculty)}
+								values={[
+									"Computing",
+									"Business",
+									"Dentistry",
+									"Law",
+									"Medicine",
+									"Science",
+									"Arts and Social Sciences",
+									"Public Health",
+									"Engineering",
+								]}
+							/>
+						</Box>
+					) : (
+						<Box display={author.faculty ? "flex" : "none"}>
+							<Typography
+								fontFamily="Open Sans"
+								fontSize={18}
+								fontWeight={500}
+								whiteSpace="pre-wrap"
+							>
+								Faculty of{" "}
+							</Typography>
+							<Typography fontFamily="Open Sans" fontSize={18} fontWeight={680}>
+								{author.faculty}
+							</Typography>
+						</Box>
 					)}
 				</Box>
 				<Box width="100%">
@@ -500,17 +585,14 @@ const Profile = () => {
 				<TabMenu
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
-					variant={
-						useMediaQuery(theme.breakpoints.up("sm"))
-							? "fullWidth"
-							: "scrollable"
-					}
+					variant={screenSizeGreaterThanXS ? "fullWidth" : "scrollable"}
 					defaultPageIndex={currentTabIndex}
 					handleTabLabelClick={(newTabIndex) =>
 						navigate("?type=" + profileTabMenuLabels[newTabIndex])
 					}
 				/>
 			</Box>
+
 			{/*Hidden avatar icon input components*/}
 			<FileInput
 				onFileSubmit={handleUploadAvatarIcon}
@@ -523,14 +605,6 @@ const Profile = () => {
 				openCameraInput={openCameraInput}
 				setOpenCameraInput={setOpenCameraInput}
 				acceptedFileTypes="image/jpeg, image/png"
-			/>
-			{/*File Size Limit exceeded snackbar*/}
-			<Snackbar
-				openSnackbar={openFileSizeLimitSnackbar}
-				setOpenSnackbar={setOpenFileSizeLimitSnackbar}
-				message="File size exceeds 20mb limit"
-				duration={2000}
-				undoButton={false}
 			/>
 			{/*Avatar icon uploaded snackbar*/}
 			<Snackbar
@@ -564,7 +638,6 @@ const Profile = () => {
 				duration={2000}
 				undoButton={false}
 			/>
-		
 		</Box>
 	);
 };

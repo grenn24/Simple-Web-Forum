@@ -107,17 +107,12 @@ func (topicController *TopicController) GetAllThreadTopicJunctions(context *gin.
 	})
 }
 
-type Request struct {
-	ThreadID int `json:"thread_id"`
-	TopicID  int `json:"topic_id"`
-}
-
 func (topicController *TopicController) AddThreadToTopic(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
-	request := new(Request)
+	request := make(map[string]int)
 
-	responseErr := topicService.AddThreadToTopic(request.ThreadID, request.TopicID)
+	responseErr := topicService.AddThreadToTopic(request["thread_id"], request["topic_id"])
 
 	if responseErr != nil {
 		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
@@ -134,10 +129,10 @@ func (topicController *TopicController) AddThreadToTopic(context *gin.Context, d
 	})
 }
 
-func (topicController *TopicController) GetAllTopicsWithThreads(context *gin.Context, db *sql.DB) {
+func (topicController *TopicController) GetAllTopics(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
-	topicsWithThreads, responseErr := topicService.GetAllTopicsWithThreads(utils.GetUserAuthorID(context))
+	topicsWithThreads, responseErr := topicService.GetAllTopics(utils.GetUserAuthorID(context))
 
 	if responseErr != nil {
 		// Internal server errors
@@ -151,10 +146,10 @@ func (topicController *TopicController) GetAllTopicsWithThreads(context *gin.Con
 	})
 }
 
-func (topicController *TopicController) GetAllTopics(context *gin.Context, db *sql.DB) {
+func (topicController *TopicController) GetTrendingTopics(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
 
-	topicsWithFollowStatus, responseErr := topicService.GetAllTopics(utils.GetUserAuthorID(context))
+	topicsWithThreads, responseErr := topicService.GetTrendingTopics(utils.GetUserAuthorID(context))
 
 	if responseErr != nil {
 		// Internal server errors
@@ -164,9 +159,10 @@ func (topicController *TopicController) GetAllTopics(context *gin.Context, db *s
 
 	context.JSON(http.StatusOK, dtos.Success{
 		Status: "success",
-		Data:   topicsWithFollowStatus,
+		Data:   topicsWithThreads,
 	})
 }
+
 
 func (topicController *TopicController) SearchTopics(context *gin.Context, db *sql.DB) {
 	topicService := topicController.TopicService
@@ -174,8 +170,9 @@ func (topicController *TopicController) SearchTopics(context *gin.Context, db *s
 	query := context.Query("query")
 	page := utils.ConvertStringToInt(context.Query("page"), context)
 	limit := utils.ConvertStringToInt(context.Query("limit"), context)
+	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
 
-	topics, responseErr := topicService.SearchTopics(userAuthorID, query, page, limit)
+	topics, responseErr := topicService.SearchTopics(userAuthorID, query, page, limit, sortIndex)
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
 		return

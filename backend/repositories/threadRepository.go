@@ -14,7 +14,20 @@ type ThreadRepository struct {
 }
 
 func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, error) {
-	rows, err := threadRepository.DB.Query("SELECT * FROM thread")
+	rows, err := threadRepository.DB.Query(`
+		SELECT
+			thread_id,
+			title,
+			created_at,
+			content,
+			author_id,
+			image_link,
+			video_link,
+			like_count,
+			popularity,
+			comment_count
+		FROM thread
+	`)
 
 	if err != nil {
 		return nil, err
@@ -36,9 +49,11 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 			&thread.CreatedAt,
 			&thread.Content,
 			&thread.AuthorID,
-			&thread.ImageTitle,
 			pq.Array(&thread.ImageLink),
+			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
+			&thread.Popularity,
+			&thread.CommentCount,
 		)
 
 		// Check for any scanning errors
@@ -54,7 +69,21 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 }
 
 func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.Thread, error) {
-	row := threadRepository.DB.QueryRow("SELECT * FROM thread WHERE thread_id = $1", threadID)
+	row := threadRepository.DB.QueryRow(`
+		SELECT 
+			thread_id,
+			title,
+			created_at,
+			content,
+			author_id,
+			image_link,
+			video_link,
+			like_count,
+			popularity,
+			comment_count
+		FROM thread
+		WHERE thread_id = $1
+	 `, threadID)
 
 	// Declare a pointer to a new instance of a thread struct
 	thread := new(models.Thread)
@@ -66,9 +95,11 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 		&thread.CreatedAt,
 		&thread.Content,
 		&thread.AuthorID,
-		&thread.ImageTitle,
 		pq.Array(&thread.ImageLink),
+		pq.Array(&thread.VideoLink),
 		&thread.LikeCount,
+		&thread.Popularity,
+		&thread.CommentCount,
 	)
 
 	return thread, err
@@ -76,7 +107,16 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 
 func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadDTO, error) {
 	rows, err := threadRepository.DB.Query(fmt.Sprintf(`
-		SELECT thread.thread_id, thread.title, thread.created_at, thread.content, thread.author_id, thread.image_title, thread.image_link, thread.like_count,
+		SELECT
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread.author_id,
+			thread.image_link,
+			thread.video_link,
+			thread.like_count,
+			thread.comment_count,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -84,7 +124,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 		END AS archive_status
 		FROM thread
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = thread.author_id
-		WHERE thread.author_id = %v
+		WHERE thread.author_id = %v AND thread.visibility = 'public'
 		ORDER BY thread.created_at DESC
 	`, authorID))
 
@@ -110,9 +150,10 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 			&thread.CreatedAt,
 			&thread.Content,
 			&thread.Author.AuthorID,
-			&thread.ImageTitle,
 			pq.Array(&thread.ImageLink),
+			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
+			&thread.CommentCount,
 			&thread.ArchiveStatus,
 		)
 
@@ -136,16 +177,18 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			thread.created_at,
 			thread.content,
 			thread.like_count,
+			thread.comment_count,
 			thread.author_id,
 			author.name,
 			author.username,
 			author.avatar_icon_link,
-			thread.image_title,
-			thread.image_link
+			thread.image_link,
+			thread.video_link
 		FROM threadTopicJunction
 		INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
 		INNER JOIN author ON thread.author_id = author.author_id
 		WHERE threadTopicJunction.topic_id = $1
+		ORDER BY thread.created_at DESC
 	`, topicID)
 
 	if err != nil {
@@ -170,12 +213,13 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			&thread.CreatedAt,
 			&thread.Content,
 			&thread.LikeCount,
+			&thread.CommentCount,
 			&thread.Author.AuthorID,
 			&thread.Author.Name,
 			&thread.Author.Username,
 			&thread.Author.AvatarIconLink,
-			&thread.ImageTitle,
 			pq.Array(&thread.ImageLink),
+			pq.Array(&thread.VideoLink),
 		)
 
 		// Check for any scanning errors
@@ -210,6 +254,26 @@ func (threadRepository *ThreadRepository) DecrementLikeCountByThreadID(threadID 
 	return err
 }
 
+func (threadRepository *ThreadRepository) IncrementCommentCountByThreadID(threadID int) error {
+	_, err := threadRepository.DB.Exec(`
+		UPDATE thread
+		SET comment_count = comment_count + 1
+		WHERE thread_id = $1
+	`, threadID)
+
+	return err
+}
+
+func (threadRepository *ThreadRepository) DecrementCommentCountByThreadID(threadID int) error {
+	_, err := threadRepository.DB.Exec(`
+		UPDATE thread
+		SET comment_count = comment_count - 1
+		WHERE thread_id = $1
+	`, threadID)
+
+	return err
+}
+
 func (threadRepository *ThreadRepository) GetLikeCountByThreadID(threadID int) int {
 	var likeCount int
 	row := threadRepository.DB.QueryRow("SELECT like_count FROM thread WHERE thread_id = $1", threadID)
@@ -230,11 +294,30 @@ func (threadRepository *ThreadRepository) GetImageLinkByThreadID(threadID int) [
 	return imageLink
 }
 
+func (threadRepository *ThreadRepository) GetVideoLinkByThreadID(threadID int) []string {
+	var videoLink []string
+	row := threadRepository.DB.QueryRow("SELECT video_link FROM thread WHERE thread_id = $1", threadID)
+	err := row.Scan(pq.Array(&videoLink))
+
+	// No video links found
+	if err != nil || err == sql.ErrNoRows {
+
+		return []string{}
+	}
+	return videoLink
+}
+
 // User author id needed to acquire archive status
-func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query string, page int, limit int) ([]*dtos.ThreadDTO, error) {
+// Page and limit can be specified to return threads for a particular page
+func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query string, page int, limit int, sortIndex int) ([]*dtos.ThreadDTO, error) {
+	sortOrder := []string{"thread.popularity DESC", "thread.created_at DESC", "thread.created_at ASC"}
+
 	var limitOffset string
-	if page != 0 && limit != 0 {
-		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	if limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v", limit)
+		if page != 0 {
+			limitOffset += fmt.Sprintf(" OFFSET %v", (page-1)*limit)
+		}
 	}
 
 	rows, err := threadRepository.DB.Query(`
@@ -247,9 +330,13 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 			author.name,
 			author.username,
 			author.avatar_icon_link,
-			thread.image_title,
+			
 			thread.image_link,
+			
+			thread.video_link,
 			thread.like_count,
+			thread.comment_count,
+			thread.popularity,
 			CASE 
 				WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 				THEN TRUE 
@@ -260,8 +347,9 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
 		LEFT JOIN threadTopicJunction ON threadTopicJunction.thread_id = thread.thread_id
 		LEFT JOIN topic ON threadTopicJunction.topic_id = topic.topic_id
-		WHERE thread.title ILIKE $2 OR thread.content ILIKE $2 OR topic.name ILIKE $2
-	`+limitOffset, userAuthorID, "%"+query+"%")
+		WHERE (thread.title ILIKE $2 OR thread.content ILIKE $2 OR topic.name ILIKE $2) AND thread.visibility = 'public'
+		ORDER BY
+	`+sortOrder[sortIndex]+limitOffset, userAuthorID, "%"+query+"%")
 
 	if err != nil {
 		return nil, err
@@ -288,9 +376,95 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 			&thread.Author.Name,
 			&thread.Author.Username,
 			&thread.Author.AvatarIconLink,
-			&thread.ImageTitle,
+
 			pq.Array(&thread.ImageLink),
+
+			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
+			&thread.CommentCount,
+			&thread.Popularity,
+			&thread.ArchiveStatus,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned thread to threads slice
+		threads = append(threads, thread)
+	}
+	return threads, err
+}
+
+func (threadRepository *ThreadRepository) GetTrendingThreads(userAuthorID int, page int, limit int) ([]*dtos.ThreadDTO, error) {
+
+	var limitOffset string
+	if page != 0 && limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	}
+
+	rows, err := threadRepository.DB.Query(`
+		SELECT
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread.author_id,
+			author.name,
+			author.username,
+			author.avatar_icon_link,
+			
+			thread.image_link,
+			
+			thread.video_link,
+			thread.like_count,
+			thread.comment_count,
+			thread.popularity,
+			CASE 
+				WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE 
+		END AS archive_status
+		FROM thread
+		INNER JOIN author ON thread.author_id = author.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
+		WHERE visibility = 'public'
+		ORDER BY thread.popularity DESC
+	`+limitOffset, userAuthorID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	threads := make([]*dtos.ThreadDTO, 0)
+
+	for rows.Next() {
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(dtos.ThreadDTO)
+
+		thread.Author = new(dtos.AuthorDTO)
+
+		// Scan the current row into the thread struct
+		err := rows.Scan(
+			&thread.ThreadID,
+			&thread.Title,
+			&thread.CreatedAt,
+			&thread.Content,
+			&thread.Author.AuthorID,
+			&thread.Author.Name,
+			&thread.Author.Username,
+			&thread.Author.AvatarIconLink,
+
+			pq.Array(&thread.ImageLink),
+
+			pq.Array(&thread.VideoLink),
+			&thread.LikeCount,
+			&thread.CommentCount,
+			&thread.Popularity,
 			&thread.ArchiveStatus,
 		)
 
@@ -307,11 +481,26 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 
 func (threadRepository *ThreadRepository) CreateThread(thread *models.Thread) (int, error) {
 	var threadID int64
-	row := threadRepository.DB.QueryRow("INSERT INTO thread (title, content, author_id, image_title, image_link) VALUES ($1, $2, $3, $4, $5) RETURNING thread_id", thread.Title, thread.Content, thread.AuthorID, thread.ImageTitle, pq.Array(thread.ImageLink))
+	row := threadRepository.DB.QueryRow(`
+		INSERT INTO thread
+		(title, content, author_id, image_link, video_link, visibility)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING thread_id
+	`, thread.Title, thread.Content, thread.AuthorID, pq.Array(thread.ImageLink), pq.Array(thread.VideoLink), "public")
 
 	// Check for errors while returning thread id
 	err := row.Scan(&threadID)
 	return int(threadID), err
+}
+
+func (threadRepository *ThreadRepository) CreateDiscussionThread(thread *models.Thread, discussionID int) error {
+	_, err := threadRepository.DB.Exec(`
+		INSERT INTO thread
+		(title, content, author_id, image_link, video_link, discussion_id, visibility)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`, thread.Title, thread.Content, thread.AuthorID, pq.Array(thread.ImageLink), pq.Array(thread.VideoLink), discussionID, "private")
+
+	return err
 }
 
 // Update fields in thread model (for non null db columns check if the field is empty first)
@@ -327,6 +516,18 @@ func (threadRepository *ThreadRepository) UpdateThread(thread *models.Thread, th
 		return err
 	}
 	return nil
+}
+
+func (threadRepository *ThreadRepository) ResetAllCommentCount() error {
+	_, err := threadRepository.DB.Exec("UPDATE thread SET comment_count = 0")
+
+	return err
+}
+
+func (threadRepository *ThreadRepository) ResetAllLikeCount() error {
+	_, err := threadRepository.DB.Exec("UPDATE thread SET like_count = 0")
+
+	return err
 }
 
 func (threadRepository *ThreadRepository) DeleteAllThreads() error {

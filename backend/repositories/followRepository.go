@@ -38,7 +38,7 @@ func (followRepository *FollowRepository) DeleteFollowByFollowerFolloweeID(follo
 
 // Threads from followed topics and authors (duplicates removed)
 func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
-	sortOrder := []string{"", "", "ORDER BY thread.created_at DESC", "ORDER BY thread.created_at ASC"}
+	sortOrder := []string{"thread.popularity DESC", "thread.popularity DESC", "thread.created_at DESC", "thread.created_at ASC"}
 	rows, err := followRepository.DB.Query(`
 		SELECT DISTINCT
 			thread.thread_id, 
@@ -49,9 +49,13 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			thread_author.name,
 			thread_author.username, 
 			thread_author.avatar_icon_link,  
-			thread.image_title, 
+		
 			thread.image_link,
+	
+			thread.video_link,
 			thread.like_count,
+			thread.comment_count,
+			thread.popularity,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -62,7 +66,8 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 		LEFT JOIN thread ON thread.author_id = follow.followee_author_id OR thread.thread_id = threadTopicJunction.thread_id
 		LEFT JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = follow.follower_author_id
-		WHERE thread.thread_id IS NOT NULL AND follow.follower_author_id = $1
+		WHERE thread.thread_id IS NOT NULL AND follow.follower_author_id = $1 AND thread.visibility = 'public'
+		ORDER BY 
 	`+sortOrder[sortIndex], authorID)
 
 	if err != nil {
@@ -89,9 +94,13 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			&followedThread.Author.Name,
 			&followedThread.Author.Username,
 			&followedThread.Author.AvatarIconLink,
-			&followedThread.ImageTitle,
+
 			pq.Array(&followedThread.ImageLink),
+		
+			pq.Array(&followedThread.VideoLink),
 			&followedThread.LikeCount,
+			&followedThread.CommentCount,
+			&followedThread.Popularity,
 			&followedThread.ArchiveStatus,
 		)
 

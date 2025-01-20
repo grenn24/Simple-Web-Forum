@@ -4,7 +4,7 @@ import Button from "../components/Button";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import { get } from "../utilities/api.ts";
-import ThreadGridCardsLoading from "../features/Topics/ThreadGridCardsLoading";
+import ThreadGridCardsLoading from "../features/Topics/TopicsLoading.tsx";
 import { TopicDTO } from "../dtos/TopicDTO";
 import { parseTopic, parseTopics } from "../utilities/parseApiResponse";
 import Topic from "../features/Topics/Topic.tsx";
@@ -22,7 +22,7 @@ const Topics = () => {
 		setIsLoading(true);
 		setTopicsWithThreads([]);
 		get(
-			`/topics${topicID ? `/${topicID}` : ""}/threads`,
+			`/topics${topicID ? `/${topicID}` : ""}`,
 			(res) => {
 				const responseBody = res.data.data;
 				if (topicID) {
@@ -44,7 +44,6 @@ const Topics = () => {
 					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
-			
 				flexGrow={1}
 				display="flex"
 				flexDirection="column"
@@ -65,7 +64,7 @@ const Topics = () => {
 						fontFamily="Open Sans"
 						fontWeight={700}
 						fontSize={30}
-						color="primary.dark"
+						color="text.primary"
 					>
 						Explore Topics
 					</Typography>
@@ -81,7 +80,7 @@ const Topics = () => {
 				>
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-						color="primary.dark"
+						color="text.primary"
 						buttonStyle={{ mx: 0, p: 0 }}
 						handleButtonClick={() => navigate(-1)}
 						toolTipText="Back"
@@ -96,7 +95,11 @@ const Topics = () => {
 					{/*If website is still fetching data from api, display loading skeleton grid cards instead*/}
 					{isLoading && <ThreadGridCardsLoading />}
 					{topicsWithThreads.map((topic) => (
-						<Topic key={topic.topicID} topic={topic} />
+						<Topic
+							key={topic.topicID}
+							topic={topic}
+							expandable={topicID ? false : true}
+						/>
 					))}
 				</Box>
 			</Box>

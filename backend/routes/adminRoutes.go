@@ -9,6 +9,8 @@ import (
 )
 
 func AdminRoutes(router *gin.RouterGroup, db *sql.DB) {
+	// Declare api router group
+	adminRouter := router.Group("/admin")
 	// Initialise controller handlers
 	topicController := &controllers.TopicController{TopicService: &services.TopicService{
 		DB: db,
@@ -17,13 +19,13 @@ func AdminRoutes(router *gin.RouterGroup, db *sql.DB) {
 		DB: db,
 	}}
 
-	router.GET("/thread-topic-junctions", func(context *gin.Context) {
+	adminRouter.GET("/thread-topic-junctions", func(context *gin.Context) {
 		topicController.GetAllThreadTopicJunctions(context, db)
 	})
-	router.DELETE("/reset-database", func(context *gin.Context) {
+	adminRouter.DELETE("/reset-database", func(context *gin.Context) {
 		adminController.ResetDatabase(context, db)
 	})
-	router.POST("/initialise-database", func(context *gin.Context) {
+	adminRouter.POST("/initialise-database", func(context *gin.Context) {
 		adminController.InitialiseDatabase(context, db)
 	})
 }

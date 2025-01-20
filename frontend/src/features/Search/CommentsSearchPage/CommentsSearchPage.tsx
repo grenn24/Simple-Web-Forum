@@ -6,17 +6,25 @@ import { CommentDTO } from "../../../dtos/CommentDTO";
 import List from "../../../components/List";
 import CommentCardMini from "./CommentCardMini";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import commentSortOrder from "../../Thread/commentSortOrder";
 
 const CommentsSearchPage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [comments, setComments] = useState<CommentDTO[]>([]);
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
+	const sort = searchParams.get("sort");
+	let currentSortIndex = 0;
+	commentSortOrder.forEach((label, index) => {
+		if (label === sort) {
+			currentSortIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	useEffect(() => {
 		setIsLoading(true);
 		get(
-			"/comments/search?query=" + query,
+			`/comments/search?query=${query}&sort=${currentSortIndex}`,
 			(res) => {
 				const responseBody = res.data.data;
 				setComments(parseComments(responseBody));
@@ -24,7 +32,7 @@ const CommentsSearchPage = () => {
 			},
 			(err) => console.log(err)
 		);
-	}, [query]);
+	}, [query,sort]);
 
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">

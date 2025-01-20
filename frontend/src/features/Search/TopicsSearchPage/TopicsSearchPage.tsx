@@ -5,18 +5,26 @@ import { parseTopics } from "../../../utilities/parseApiResponse";
 import { get } from "../../../utilities/api";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../../components/List";
-import TopicCardMini from "./TopicCardMini";
+import TopicCardMini from "./TopicCardsViewer";
+import topicSortOrder from "./topicSortOrder";
 
 const TopicsSearchPage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [topics, setTopics] = useState<TopicDTO[]>([]);
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
+	const sort = searchParams.get("sort");
+	let currentSortIndex = 0;
+	topicSortOrder.forEach((label, index) => {
+		if (label === sort) {
+			currentSortIndex = index;
+		}
+	});
 	const navigate = useNavigate();
 	useEffect(() => {
 		setIsLoading(true);
 		get(
-			"/topics/search?query=" + query,
+			`/topics/search?query=${query}&sort=${currentSortIndex}`,
 			(res) => {
 				const responseBody = res.data.data;
 				setTopics(parseTopics(responseBody));
@@ -24,7 +32,7 @@ const TopicsSearchPage = () => {
 			},
 			(err) => console.log(err)
 		);
-	}, [query]);
+	}, [query,sort]);
 
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
@@ -53,7 +61,7 @@ const TopicsSearchPage = () => {
 					listItemTextStyle={{ flexGrow: 1, maxWidth: "100%" }}
 					divider
 					disableRipple
-					listStyle={{ flexGrow: 1, maxWidth: "100%" }}
+					listStyle={{ flexGrow: 1, maxWidth: "100%", width:"100%" }}
 				/>
 			)}
 		</Box>

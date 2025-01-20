@@ -54,14 +54,14 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			name TEXT NOT NULL,
 			username TEXT NOT NULL,
 			email TEXT NOT NULL,
-			password_hash TEXT NOT NULL,
-			avator_icon_link TEXT,
+			password_hash TEXT,
+			avatar_icon_link TEXT,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			biography TEXT NOT NULL DEFAULT '',
 			faculty TEXT,
-			birthday DATE
+			birthday DATE,
+			gender TEXT
 		);
-		CREATE UNIQUE INDEX IF NOT EXISTS author_name_lowercase ON author(LOWER(name));
 		CREATE UNIQUE INDEX IF NOT EXISTS author_username_lowercase ON author(LOWER(username));
 		CREATE UNIQUE INDEX IF NOT EXISTS author_email_lowercase ON author(LOWER(email));
 
@@ -71,9 +71,13 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			content TEXT NOT NULL DEFAULT '',
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
-			image_title TEXT,
 			image_link TEXT[] DEFAULT '{}',
-			like_count INTEGER DEFAULT 0
+			like_count INTEGER DEFAULT 0,
+			video_link TEXT[] DEFAULT '{}',
+			comment_count INTEGER DEFAULT 0,
+			popularity NUMERIC(5,2) DEFAULT 0,
+			discussion_id INTEGER REFERENCES discussion(discussion_id) ON DELETE CASCADE,
+			visibility TEXT NOT NULL DEFAULT 'public'
 		);
 
 		CREATE TABLE IF NOT EXISTS comment (
@@ -94,7 +98,8 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 
 		CREATE TABLE IF NOT EXISTS topic  (
 			topic_id SERIAL PRIMARY KEY,
-			name TEXT NOT NULL
+			name TEXT NOT NULL,
+			popularity NUMERIC(5,2) DEFAULT 0
 		);
 		CREATE UNIQUE INDEX IF NOT EXISTS topic_name_lowercase ON topic(LOWER(name));
 
@@ -103,6 +108,22 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
 			topic_id INTEGER NOT NULL REFERENCES topic(topic_id) ON DELETE CASCADE,
 			UNIQUE (thread_id, topic_id)
+		);
+
+		CREATE TABLE IF NOT EXISTS discussion  (
+			discussion_id SERIAL PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			creator_author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			discussion_icon_link TEXT,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE TABLE IF NOT EXISTS discussionMember (
+			discussion_member_id SERIAL PRIMARY KEY,
+			discussion_id INTEGER NOT NULL REFERENCES discussion(discussion_id) ON DELETE CASCADE,
+			member_author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (discussion_id, member_author_id)
 		);
 
 		CREATE TABLE IF NOT EXISTS follow (
@@ -130,6 +151,31 @@ func InitialiseDatabase(context *gin.Context, db *sql.DB) {
 			UNIQUE (thread_id, author_id),
 			created_at TIMESTAMP NOT NULL DEFAULT NOW()
 		);
+
+		CREATE OR REPLACE FUNCTION update_popularity()
+			RETURNS TRIGGER
+		AS $$
+		BEGIN
+			UPDATE thread
+    		SET popularity = GREATEST(5 + 2 * like_count + 2 * comment_count - LN(1 + EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)) / 86400), 0);
+			UPDATE topic
+			SET popularity = (
+				SELECT
+				COALESCE(SUM(thread.popularity), 0)
+				FROM threadTopicJunction
+				INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
+				INNER JOIN author ON thread.author_id = author.author_id
+				WHERE threadTopicJunction.topic_id = topic.topic_id
+			);
+			RETURN NULL;
+		END;
+		$$ LANGUAGE PLPGSQL;
+
+		CREATE OR REPLACE TRIGGER update_popularity
+		AFTER INSERT
+		ON thread
+		FOR EACH STATEMENT
+		EXECUTE PROCEDURE update_popularity();
 	`)
 
 	// Check for any sql query errors
@@ -177,7 +223,7 @@ func main() {
 	//Attach cors middleware to router (doesn't work with router groups)
 	router.Use(middlewares.CORS)
 	router.MaxMultipartMemory = 2000 << 20
-	
+
 	//Set up routes for serving static html files
 	router.Static("/assets", "./dist/assets")
 	HandleMissedRoutes(router)

@@ -39,8 +39,6 @@ func (archiveService *ArchiveService) CreateArchive(archive *models.Archive) *dt
 
 func (archiveService *ArchiveService) GetArchivesByAuthorID(authorID int) ([]*dtos.ArchiveDTO, *dtos.Error) {
 	archiveRepository := &repositories.ArchiveRepository{DB: archiveService.DB}
-	likeRepository := &repositories.LikeRepository{DB: archiveService.DB}
-	commentRepository := &repositories.CommentRepository{DB: archiveService.DB}
 	topicRepository := &repositories.TopicRepository{DB: archiveService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: archiveService.DB}
 
@@ -56,27 +54,6 @@ func (archiveService *ArchiveService) GetArchivesByAuthorID(authorID int) ([]*dt
 	}
 
 	for _, archivedThread := range archivedThreads {
-		// Retrieve like count
-		likeCount, err := likeRepository.CountLikesByThreadID(archivedThread.Thread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		archivedThread.Thread.LikeCount = &likeCount
-
-		// Retrieve comment count
-		commentCount, err := commentRepository.CountCommentsByThreadID(archivedThread.Thread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		archivedThread.Thread.CommentCount = &commentCount
 
 		// Retrieve archive and bookmark status
 		archiveStatus := true

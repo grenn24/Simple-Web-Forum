@@ -13,16 +13,18 @@ import { TopicDTO } from "../../dtos/TopicDTO";
 
 interface Prop {
 	topic: TopicDTO;
+	expandable?: boolean
 }
 
-const Topic = ({ topic }: Prop) => {
+const Topic = ({ topic , expandable=true}: Prop) => {
 	const navigate = useNavigate();
 	const screenWidth = useWindowSize().width as number;
 	const theme = useTheme();
 	const [followStatus, setFollowStatus] = useState(topic.followStatus);
+	const [isExpanded, setIsExpanded] = useState(expandable ? false : true);
 
 	return (
-		<Box marginBottom={8} marginTop={5}>
+		<Box marginBottom={5}>
 			<Box display="flex" alignItems="center" justifyContent="space-between">
 				<Typography
 					variant="h5"
@@ -37,7 +39,9 @@ const Topic = ({ topic }: Prop) => {
 				<Button
 					buttonStyle={{ py: 0 }}
 					borderRadius={40}
-					fontSize={20}
+					fontFamily="Poppins"
+					fontSize={18}
+					fontWeight={450}
 					buttonIcon={
 						followStatus ? (
 							<NotificationsActiveRoundedIcon />
@@ -71,12 +75,12 @@ const Topic = ({ topic }: Prop) => {
 					container
 					columnSpacing={2.5}
 					rowSpacing={2}
-					sx={{ marginTop: 2 }}
+					sx={{ my: 2 }}
 				>
-					{topic.threads.map((thread) => (
+					{topic.threads.filter((_,index)=>isExpanded ? true: index < 3).map((thread) => (
 						<Grid
 							size={
-								screenWidth > theme.breakpoints.values.md
+								screenWidth > theme.breakpoints.values.lg
 									? 4
 									: screenWidth > theme.breakpoints.values.sm
 									? 6
@@ -84,10 +88,15 @@ const Topic = ({ topic }: Prop) => {
 							}
 							key={thread.threadID}
 						>
-							<ThreadGridCard thread={thread} />
+							<ThreadGridCard thread={thread} style={{height:200}} />
 						</Grid>
 					))}
 				</Grid>
+				<Box display={(topic.threads.length > 6 && expandable) ? "flex" : "none"} justifyContent="center">
+					<Button fontFamily="Open Sans" fontSize={18} fontWeight={600} handleButtonClick={()=>setIsExpanded(!isExpanded)}>
+						{isExpanded ? "View Less" : "View More"}
+					</Button>
+				</Box>
 			</Box>
 		</Box>
 	);

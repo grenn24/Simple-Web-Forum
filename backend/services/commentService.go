@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
@@ -65,9 +66,8 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dt
 	}
 
 	for _, comment := range comments {
-		// Truncate thread content
-		truncatedContent := utils.TruncateString(comment.Thread.Content, 20)
-		comment.Thread.Content = truncatedContent
+	
+
 
 		// Retrieve topics tagged
 		topics, err := topicRepository.GetTopicsByThreadID(comment.Thread.ThreadID)
@@ -85,11 +85,11 @@ func (commentService *CommentService) GetCommentsByAuthorID(authorID int) ([]*dt
 	return comments, nil
 }
 
-func (commentService *CommentService) SearchComments(query string, page int, limit int) ([]*dtos.CommentDTO, *dtos.Error) {
+func (commentService *CommentService) SearchComments(query string, page int, limit int, sortIndex int) ([]*dtos.CommentDTO, *dtos.Error) {
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
 	topicRepository := &repositories.TopicRepository{DB: commentService.DB}
 
-	comments, err := commentRepository.SearchComments(query, page, limit)
+	comments, err := commentRepository.SearchComments(query, page, limit, sortIndex)
 
 	if err != nil {
 		return nil, &dtos.Error{
@@ -100,16 +100,6 @@ func (commentService *CommentService) SearchComments(query string, page int, lim
 	}
 
 	for _, comment := range comments {
-		// Retrieve comment count for each thread
-		commentCount, err := commentRepository.CountCommentsByThreadID(comment.Thread.ThreadID)
-		if err != nil {
-			return nil, &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
-			}
-		}
-		comment.Thread.CommentCount = &commentCount
 
 		// Retrieve topics for each thread
 		topics, err := topicRepository.GetTopicsByThreadID(comment.Thread.ThreadID)
@@ -157,15 +147,28 @@ func (commentService *CommentService) CountCommentsByThreadID(threadID string) (
 }
 
 func (commentService *CommentService) CreateComment(comment *models.Comment) error {
-
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: commentService.DB}
+	err := threadRepository.IncrementCommentCountByThreadID(comment.ThreadID)
+	if err != nil {
+		return err
+	}
 	return commentRepository.CreateComment(comment)
 }
 
 func (commentService *CommentService) DeleteAllComments() *dtos.Error {
-
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
+	threadRepository := &repositories.ThreadRepository{DB: commentService.DB}
 	err := commentRepository.DeleteAllComments()
+	if err != nil {
+		// Check for internal server errors
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	err = threadRepository.ResetAllCommentCount()
 	if err != nil {
 		// Check for internal server errors
 		return &dtos.Error{
@@ -178,25 +181,47 @@ func (commentService *CommentService) DeleteAllComments() *dtos.Error {
 }
 
 func (commentService *CommentService) DeleteCommentByID(commentID int) *dtos.Error {
-
 	commentRepository := &repositories.CommentRepository{DB: commentService.DB}
-	rowsDeleted, err := commentRepository.DeleteCommentByID(commentID)
-
+	threadRepository := &repositories.ThreadRepository{DB: commentService.DB}
+	comment, err := commentRepository.GetCommentByID(commentID)
 	if err != nil {
-		// Check for internal server errors
+		// Check for thread not found error
+		if err == sql.ErrNoRows {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "NOT_FOUND",
+				Message:   fmt.Sprintf("No comment found for comment id: %v", commentID),
+			}
+		}
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
 		}
 	}
+	rowsDeleted, err := commentRepository.DeleteCommentByID(commentID)
 
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
 	// Check for comment not found error
 	if rowsDeleted == 0 {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   "No comments found for comment id: " + utils.ConvertIntToString(commentID),
+		}
+	}
+	err = threadRepository.DecrementCommentCountByThreadID(comment.ThreadID)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
 		}
 	}
 

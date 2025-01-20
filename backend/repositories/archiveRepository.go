@@ -5,7 +5,8 @@ import (
 
 	"github.com/grenn24/simple-web-forum/dtos"
 	"github.com/grenn24/simple-web-forum/models"
-	"github.com/grenn24/simple-web-forum/utils"
+
+	"github.com/lib/pq"
 )
 
 type ArchiveRepository struct {
@@ -21,12 +22,29 @@ func (archiveRepository *ArchiveRepository) CreateArchive(archive *models.Archiv
 
 func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) ([]*dtos.ArchiveDTO, error) {
 	rows, err := archiveRepository.DB.Query(`
-		SELECT thread_archive.archive_id, thread_archive.created_at , archive_author.author_id, archive_author.name, archive_author.avatar_icon_link, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link, thread.thread_id, thread.title, thread.created_at, thread.content, thread.image_title, thread.image_link, TRUE AS archive_status
+		SELECT
+			thread_archive.archive_id,
+			thread_archive.created_at,
+			archive_author.author_id,
+			archive_author.name,
+			archive_author.avatar_icon_link,
+			thread_author.author_id,
+			thread_author.name,
+			thread_author.avatar_icon_link,
+			thread.thread_id,
+			thread.title,
+			thread.created_at,
+			thread.content,
+			thread.like_count,
+			thread.comment_count,
+			
+			thread.image_link,
+			TRUE AS archive_status
 		FROM thread_archive
 		INNER JOIN thread ON thread_archive.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		INNER JOIN author AS archive_author ON thread_archive.author_id = archive_author.author_id
-		WHERE thread_archive.author_id = $1
+		WHERE thread_archive.author_id = $1 AND thread.visiblity = 'public'
 	`, authorID)
 
 	if err != nil {
@@ -35,32 +53,33 @@ func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) 
 
 	//Close rows after finishing query
 	defer rows.Close()
-	archivedThreads := make([]*dtos.ArchiveDTO, 0)
+	archives := make([]*dtos.ArchiveDTO, 0)
 
 	for rows.Next() {
 		// Declare a pointer to a new instance of a archived thread struct
-		archivedThread := new(dtos.ArchiveDTO)
-		archivedThread.Author = new(dtos.AuthorDTO)
-		archivedThread.Thread = new(dtos.ThreadDTO)
-		archivedThread.Thread.Author = new(dtos.AuthorDTO)
+		archive := new(dtos.ArchiveDTO)
+		archive.Author = new(dtos.AuthorDTO)
+		archive.Thread = new(dtos.ThreadDTO)
+		archive.Thread.Author = new(dtos.AuthorDTO)
 
 		// Scan the current row into the archive struct
 		err := rows.Scan(
-			&archivedThread.ArchiveID,
-			&archivedThread.CreatedAt,
-			&archivedThread.Author.AuthorID,
-			&archivedThread.Author.Name,
-			&archivedThread.Author.AvatarIconLink,
-			&archivedThread.Thread.Author.AuthorID,
-			&archivedThread.Thread.Author.Name,
-			&archivedThread.Thread.Author.AvatarIconLink,
-			&archivedThread.Thread.ThreadID,
-			&archivedThread.Thread.Title,
-			&archivedThread.Thread.CreatedAt,
-			&archivedThread.Thread.Content,
-			&archivedThread.Thread.ImageTitle,
-			&archivedThread.Thread.ImageLink,
-			&archivedThread.Thread.ArchiveStatus,
+			&archive.ArchiveID,
+			&archive.CreatedAt,
+			&archive.Author.AuthorID,
+			&archive.Author.Name,
+			&archive.Author.AvatarIconLink,
+			&archive.Thread.Author.AuthorID,
+			&archive.Thread.Author.Name,
+			&archive.Thread.Author.AvatarIconLink,
+			&archive.Thread.ThreadID,
+			&archive.Thread.Title,
+			&archive.Thread.CreatedAt,
+			&archive.Thread.Content,
+			&archive.Thread.LikeCount,
+			&archive.Thread.CommentCount,
+			pq.Array(&archive.Thread.ImageLink),
+			&archive.Thread.ArchiveStatus,
 		)
 
 		// Check for any scanning errors
@@ -68,13 +87,13 @@ func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) 
 			return nil, err
 		}
 
-		archivedThread.Thread.Content = utils.TruncateString(archivedThread.Thread.Content, 30)
+
 
 		// Append the scanned archive to archives slice
-		archivedThreads = append(archivedThreads, archivedThread)
+		archives = append(archives, archive)
 	}
 
-	return archivedThreads, err
+	return archives, err
 }
 
 func (archiveRepository *ArchiveRepository) GetArchiveStatusByThreadIDAuthorID(threadID int, authorID int) bool {

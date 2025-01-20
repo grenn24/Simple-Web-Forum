@@ -16,6 +16,7 @@ interface Prop {
 	dialogTitleHeight?: number
 }
 
+// Component for dialog with title and children (without padding)
 const SimpleDialog = ({
 	children,
 	handleCloseDialog,

@@ -1,54 +1,42 @@
-import { TextField, Typography } from "@mui/material";
-import { Controller, Control } from "react-hook-form";
+import {  Typography } from "@mui/material";
 import FileInput from "../../components/FileInput";
 import { useState } from "react";
 import Button from "../../components/Button";
 import Snackbar from "../../components/Snackbar";
-import UploadedImageList from "./UploadedImageList";
+import UploadedImagesList from "./UploadedFilesList";
+import { compressImageFiles } from "../../utilities/fileManipulation";
+import { useAppDispatch, useAppSelector } from "../../utilities/redux";
+import { addImage, changeImagesSelected, changeIsCompressingImages, changeOpenImageUploadedSnackbar } from "./createThreadSlice";
 
-interface Prop {
-	register: (name: string, options?: object) => object;
-	control: Control;
-	imagesSelected: File[];
-	setImagesSelected: (images: File[]) => void;
-}
 
-const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
-	const [openImageUploadedSnackbar, setOpenImageUploadedSnackbar] =
-		useState(false);
+
+const ImagePage = () => {
+	const { imagesSelected } = useAppSelector((state) => ({
+		imagesSelected: state.createThread.imagesSelected,
+	}));
+	const dispatch = useAppDispatch();
+	const [openFileInput, setOpenFileInput] = useState(false);
 
 	const [openImageLimitSnackbar, setOpenImageLimitSnackbar] = useState(false);
 
-	const handleUploadImage = (files: FileList) => {
+	const handleUploadImages = (files: FileList) => {
+		dispatch(changeIsCompressingImages(true));
 		const newImages = Array.from(files);
-		newImages.forEach((image: File) =>
-			imagesSelected.length < 30
-				? imagesSelected.push(image)
-				: setOpenImageLimitSnackbar(true)
-		);
-		setImagesSelected(imagesSelected);
-		setOpenImageUploadedSnackbar(true);
+		compressImageFiles(newImages, 3)
+			.then((compressedImages) => {
+				compressedImages.forEach((compressedImage) =>
+					imagesSelected.length < 30
+						? dispatch(addImage(compressedImage))
+						: setOpenImageLimitSnackbar(true)
+				);
+				dispatch(changeIsCompressingImages(false));
+				dispatch(changeOpenImageUploadedSnackbar(true));
+			})
+			.catch((err) => console.log(err));
 	};
-	const [openFileInput, setOpenFileInput] = useState(false);
+
 	return (
 		<>
-			<Controller
-				name="imageTitle"
-				control={control}
-				defaultValue=""
-				render={() => (
-					<TextField
-						label="Image Title"
-						variant="outlined"
-						autoComplete="off"
-						fullWidth
-					/>
-				)}
-			/>
-
-			<br />
-			<br />
-			<br />
 			<Button
 				variant="outlined"
 				handleButtonClick={() => setOpenFileInput(true)}
@@ -69,32 +57,22 @@ const ImagePage = ({ imagesSelected, setImagesSelected, control }: Prop) => {
 				fontWeight={500}
 				color="primary.dark"
 			>
-				{imagesSelected.length}/30 Images Attached
+				{imagesSelected.length}/30 Images
 			</Typography>
 
-			<br />
-			<br />
-
-			<UploadedImageList
-				imagesSelected={imagesSelected}
-				setImagesSelected={setImagesSelected}
+			<UploadedImagesList
+				filesSelected={imagesSelected}
+				setFilesSelected={changeImagesSelected}
 			/>
 			{/*Hidden file input*/}
 			<FileInput
-				onFileSubmit={handleUploadImage}
+				onFileSubmit={handleUploadImages}
 				openFileInput={openFileInput}
 				setOpenFileInput={setOpenFileInput}
 				acceptedFileTypes="image/jpeg, image/png, image/gif"
 				multiple
 			/>
-			{/*Image uploaded snackbar*/}
-			<Snackbar
-				openSnackbar={openImageUploadedSnackbar}
-				setOpenSnackbar={setOpenImageUploadedSnackbar}
-				message="Image Uploaded"
-				duration={2000}
-				undoButton={false}
-			/>
+	
 
 			{/*Image Number Limit Snackbar*/}
 			<Snackbar

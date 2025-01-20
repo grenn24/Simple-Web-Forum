@@ -12,6 +12,7 @@ import {
 	IconButton,
 	IconButtonProps,
 	Box,
+	Divider,
 } from "@mui/material";
 import Button from "../Button";
 import Snackbar from "../Snackbar";
@@ -38,6 +39,7 @@ import MenuExpandedIcons from "./TopRightMenu/MenuExpandedIcons";
 import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItemsClick";
 import { ThreadDTO } from "../../dtos/ThreadDTO";
 import MediaViewer from "../MediaViewer";
+import RichTextField from "../RichTextField";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -92,12 +94,7 @@ const ThreadCard = ({ thread }: Prop) => {
 
 	return (
 		<>
-			<Card
-				sx={{
-					my: 3,
-				}}
-				elevation={3}
-			>
+			<Card elevation={3}>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
 					onClick={() => navigate(`../Thread/${thread.threadID}`)}
@@ -159,10 +156,12 @@ const ThreadCard = ({ thread }: Prop) => {
 						}
 						title={thread.author.username}
 						titleTypographyProps={{ fontWeight: 750 }}
-						subheader={formatDistanceToNow(thread.createdAt, { addSuffix: true })}
+						subheader={formatDistanceToNow(thread.createdAt, {
+							addSuffix: true,
+						})}
 					/>
 
-					<CardContent>
+					<CardContent sx={{paddingTop:0}}>
 						<Typography variant="h5" color="primary.dark" fontWeight={760}>
 							{thread.title}
 						</Typography>
@@ -170,13 +169,18 @@ const ThreadCard = ({ thread }: Prop) => {
 
 					<Box
 						height={470}
-						my={2}
-						display={thread.imageLink.length === 0 ? "none" : "block"}
+						display={
+							thread.imageLink.length === 0 && thread.videoLink.length === 0
+								? "none"
+								: "block"
+						}
 					>
 						<MediaViewer
 							backgroundColor="black"
 							imageLinks={thread.imageLink}
+							videoLinks={thread.videoLink}
 							fullScreenMode={false}
+							borderRadius={0.6}
 						/>
 					</Box>
 
@@ -276,15 +280,28 @@ const ThreadCard = ({ thread }: Prop) => {
 								event?.stopPropagation();
 							}}
 						>
-							<ExpandMoreIcon sx={{ color: "primary.dark", display:thread.content ? "block" : "none"}} />
+							<ExpandMoreIcon
+								sx={{
+									color: "primary.dark",
+									display: thread.content ? "block" : "none",
+								}}
+							/>
 						</ExpandMore>
 					</CardActions>
 
 					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
+						<CardContent sx={{py:0}}>
+							<Divider />
+						</CardContent>
+
 						<CardContent>
-							<Typography sx={{ marginBottom: 2 }} whiteSpace="pre-wrap">
-								{thread.content}
-							</Typography>
+							<Box fontSize={16}>
+								<RichTextField
+									editorState={thread.content}
+									showBorders={false}
+									editable={false}
+								/>
+							</Box>
 						</CardContent>
 					</Collapse>
 				</CardActionArea>

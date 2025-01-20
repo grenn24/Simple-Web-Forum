@@ -7,28 +7,38 @@ import {
 	useMediaQuery,
 	useTheme,
 } from "@mui/material";
-import {
-	useNavigate,
-	useSearchParams,
-} from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/Button";
 import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SearchRounded as SearchRoundedIcon,
+	CloseRounded as CloseRoundedIcon,
+	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
 import TabMenu from "../components/TabMenu";
 import { tabMenuLabels } from "../features/Search/tabMenuLabels";
 import { tabMenuPages } from "../features/Search/tabMenuPages";
+import { useState } from "react";
+import sortOrders from "../features/Search/sortOrders";
+import sortIcons from "../features/Search/sortIcons";
+import Menu from "../components/Menu";
 
 const Search = () => {
 	const [searchParams, _] = useSearchParams();
 	const type = searchParams.get("type");
 	const query = searchParams.get("query");
-
+	const [searchBarValue, setSearchBarValue] = useState(query);
+	const sort = searchParams.get("sort");
 	let currentTabIndex = 0;
 	tabMenuLabels.forEach((label, index) => {
 		if (label === type) {
 			currentTabIndex = index;
+		}
+	});
+	let currentSortIndex = 0;
+	sortOrders[currentTabIndex].forEach((label, index) => {
+		if (label === sort) {
+			currentSortIndex = index;
 		}
 	});
 
@@ -67,16 +77,19 @@ const Search = () => {
 						Search
 					</Typography>
 					<TextField
-						sx={{ width: "40%" }}
+						sx={{ width: { xs: "70%", md: "40%" } }}
+						value={searchBarValue}
 						size="small"
 						placeholder="Search for ... anything"
 						defaultValue={query}
 						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								const input = e.target as HTMLInputElement;
+							const input = e.target as HTMLInputElement;
+							if (e.key === "Enter" && input.value !== "") {
 								navigate("?query=" + input.value + "&type=" + type);
+								(document.activeElement as HTMLElement)?.blur();
 							}
 						}}
+						onChange={(e) => setSearchBarValue(e.target.value)}
 						slotProps={{
 							input: {
 								startAdornment: (
@@ -84,10 +97,27 @@ const Search = () => {
 										<SearchRoundedIcon sx={{ color: "primary.dark" }} />
 									</InputAdornment>
 								),
+								endAdornment: (
+									<InputAdornment
+										position="start"
+										onClick={() => setSearchBarValue("")}
+										sx={{
+											"&:hover": { cursor: "pointer" },
+											display: searchBarValue ? "inherit" : "none",
+										}}
+									>
+										<CloseRoundedIcon sx={{ color: "primary.dark" }} />
+									</InputAdornment>
+								),
 							},
 						}}
 					/>
-					<Typography whiteSpace="preserve"> </Typography>
+					<Typography
+						whiteSpace="preserve"
+						display={{ xs: "none", md: "block" }}
+					>
+						{" "}
+					</Typography>
 				</Box>
 			</Box>
 			<Box width="100%">
@@ -106,6 +136,31 @@ const Search = () => {
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
 				/>
+				<Menu
+					menuExpandedItemsArray={sortOrders[currentTabIndex]}
+					menuExpandedIconsArray={sortIcons[currentTabIndex]}
+					menuExpandedDataValuesArray={sortOrders[currentTabIndex].map(
+						(sort) => sort
+					)}
+					menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
+					menuStyle={{
+						borderRadius: 30,
+						px: 2,
+						py: 0,
+						fontSize: 20,
+						fontFamily: "Open Sans",
+						color: "primary.dark",
+					}}
+					handleMenuExpandedItemsClick={Array(
+						sortOrders[currentTabIndex].length
+					).fill((event: React.MouseEvent<HTMLElement>) =>
+						navigate(`?query=${query}&type=${type}&sort=${event.currentTarget.dataset?.value}`)
+					)}
+					toolTipText="Sort Options"
+					menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
+				>
+					{sortOrders[currentTabIndex][currentSortIndex]}
+				</Menu>
 			</Box>
 			<Box
 				sx={{
@@ -125,7 +180,7 @@ const Search = () => {
 							? "fullWidth"
 							: "scrollable"
 					}
-				></TabMenu>
+				/>
 			</Box>
 		</Box>
 	);

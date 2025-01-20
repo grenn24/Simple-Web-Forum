@@ -1,7 +1,7 @@
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 import { Box } from "@mui/material";
-import { useAppDispatch } from "../../utilities/reduxHooks";
+import { useAppDispatch } from "../../utilities/redux";
 import { incrementStage } from "./signUpSlice";
 import { motion } from "motion/react";
 interface Prop {}

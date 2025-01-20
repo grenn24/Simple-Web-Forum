@@ -16,9 +16,20 @@ func AuthenticationRoutes(router *gin.RouterGroup, db *sql.DB) {
 		DB: db,
 	}}
 
+	// GET for sending auth token
+	authenticationRouter.GET("/oauth", func(context *gin.Context) {
+		authenticationController.OAuth(context, db)
+	})
+	// POST for sending auth code
+	authenticationRouter.POST("/oauth", func(context *gin.Context) {
+		authenticationController.OAuth(context, db)
+	})
+
 	authenticationRouter.POST("/log-in", func(context *gin.Context) {
 		authenticationController.LogIn(context, db)
 	})
+
+	
 
 	authenticationRouter.POST("/sign-up/check-availability", func(context *gin.Context) {
 		authenticationController.SignUpCheckAvailability(context, db)

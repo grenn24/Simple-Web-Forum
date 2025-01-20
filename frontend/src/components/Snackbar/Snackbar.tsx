@@ -1,14 +1,17 @@
 import { Snackbar as SnackbarBase, SxProps, Theme } from "@mui/material";
 import Button from "../Button";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 
 interface Prop {
 	openSnackbar: boolean;
-	setOpenSnackbar?: (state: boolean) => void;
+	setOpenSnackbar?: (state: boolean) => void | ActionCreatorWithPayload<any>;
 	handleSnackbarClose?: () => void;
 	message: string;
-	duration: number;
+	duration?: number;
 	undoButton?: boolean;
+	closeButton?: boolean;
+	actionIcon?: JSX.Element;
 	handleUndoButtonClick?: () => void;
 	style?: SxProps<Theme>;
 
@@ -23,14 +26,16 @@ const Snackbar = ({
 	handleSnackbarClose,
 	message,
 	duration,
-	undoButton = true,
+	undoButton,
+	actionIcon,
+	closeButton = true,
 	handleUndoButtonClick,
 	style,
-	anchorOrigin
-
+	anchorOrigin,
 }: Prop) => {
 	const action = (
 		<>
+			{actionIcon}
 			{undoButton && (
 				<Button
 					color="secondary"
@@ -44,22 +49,24 @@ const Snackbar = ({
 					UNDO
 				</Button>
 			)}
-
-			<Button
-				size="small"
-				aria-label="close"
-				color="inherit"
-				handleButtonClick={(event: React.MouseEvent<HTMLElement>) => {
-					event.stopPropagation();
-					handleSnackbarClose && handleSnackbarClose();
-					setOpenSnackbar && setOpenSnackbar(false);
-				}}
-				buttonIcon={<CloseRoundedIcon fontSize="small" />}
-			/>
+			{closeButton && (
+				<Button
+					size="small"
+					aria-label="close"
+					color="inherit"
+					handleButtonClick={(event: React.MouseEvent<HTMLElement>) => {
+						event.stopPropagation();
+						handleSnackbarClose && handleSnackbarClose();
+						setOpenSnackbar && setOpenSnackbar(false);
+					
+					}}
+					buttonIcon={<CloseRoundedIcon fontSize="small" />}
+				/>
+			)}
 		</>
 	);
 	return (
-		<>
+
 			<SnackbarBase
 				anchorOrigin={anchorOrigin}
 				open={openSnackbar}
@@ -80,7 +87,7 @@ const Snackbar = ({
 					...style,
 				}}
 			/>
-		</>
+	
 	);
 };
 

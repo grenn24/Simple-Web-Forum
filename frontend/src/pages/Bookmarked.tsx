@@ -31,7 +31,9 @@ const Bookmarked = () => {
 
 	// Retrieve bookmarked threads from api (re-fetch whenever sorting order is changed)
 	useEffect(() => {
-		get<ThreadDTO[]>(
+		{setIsLoading(true);
+			
+			get<ThreadDTO[]>(
 			"/authors/user/bookmarks?sort=" + currentSortIndex,
 			(res) => {
 				const responseBody = res.data.data;
@@ -40,7 +42,7 @@ const Bookmarked = () => {
 				setIsLoading(false);
 			},
 			(err) => console.log(err)
-		);
+		);};
 	}, [sort]);
 
 	return (
@@ -51,6 +53,9 @@ const Bookmarked = () => {
 				minHeight: "100%",
 			}}
 			flexGrow={1}
+			position="absolute"
+			width="100%"
+			boxSizing="border-box"
 			display="flex"
 			flexDirection="column"
 			alignItems="center"
@@ -70,7 +75,7 @@ const Bookmarked = () => {
 					fontFamily="Open Sans"
 					fontWeight={700}
 					fontSize={30}
-					color="primary.dark"
+					color="text.primary"
 				>
 					Bookmarked
 				</Typography>
@@ -86,7 +91,7 @@ const Bookmarked = () => {
 			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-					color="primary.dark"
+					color="text.primary"
 					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
 					toolTipText="Back"
@@ -117,19 +122,22 @@ const Bookmarked = () => {
 			<Box
 				sx={{
 					width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
-					marginBottom: 3,
+					my: 3,
 				}}
 			>
 				{/*If website is still fetching data from api, display loading skeleton cards instead*/}
 				{isLoading ? (
 					<Box width="100%">
 						<ThreadCardLoading bodyHeight={180} />
+						<br />
+						<br />
+						<ThreadCardLoading bodyHeight={180} />
 					</Box>
 				) : bookmarkedThreads.length !== 0 ? (
 					bookmarkedThreads.map((bookmarkedThread) => (
 						<Box width="100%" key={bookmarkedThread.threadID}>
 							<ThreadCard thread={bookmarkedThread} />
-							<Divider />
+							<Divider sx={{ my: 3 }} />
 						</Box>
 					))
 				) : (

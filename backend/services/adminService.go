@@ -38,14 +38,14 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			name TEXT NOT NULL,
 			username TEXT NOT NULL,
 			email TEXT NOT NULL,
-			password_hash TEXT NOT NULL,
+			password_hash TEXT,
 			avatar_icon_link TEXT,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			biography TEXT NOT NULL DEFAULT '',
 			faculty TEXT,
-			birthday DATE
+			birthday DATE,
+			gender TEXT
 		);
-		CREATE UNIQUE INDEX IF NOT EXISTS author_name_lowercase ON author(LOWER(name));
 		CREATE UNIQUE INDEX IF NOT EXISTS author_username_lowercase ON author(LOWER(username));
 		CREATE UNIQUE INDEX IF NOT EXISTS author_email_lowercase ON author(LOWER(email));
 
@@ -55,9 +55,13 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 			content TEXT NOT NULL DEFAULT '',
 			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
-			image_title TEXT,
 			image_link TEXT[] DEFAULT '{}',
-			like_count INTEGER DEFAULT 0
+			like_count INTEGER DEFAULT 0,
+			video_link TEXT[] DEFAULT '{}',
+			comment_count INTEGER DEFAULT 0,
+			popularity NUMERIC(5,2) DEFAULT 0,
+			discussion_id INTEGER REFERENCES discussion(discussion_id) ON DELETE CASCADE,
+			visibility TEXT NOT NULL DEFAULT 'public'
 		);
 
 		CREATE TABLE IF NOT EXISTS comment (
@@ -78,7 +82,8 @@ func (adminService *AdminService) InitialiseDatabase() error {
 
 		CREATE TABLE IF NOT EXISTS topic  (
 			topic_id SERIAL PRIMARY KEY,
-			name TEXT NOT NULL
+			name TEXT NOT NULL,
+			popularity NUMERIC(5,2) DEFAULT 0
 		);
 		CREATE UNIQUE INDEX IF NOT EXISTS topic_name_lowercase ON topic(LOWER(name));
 
@@ -87,6 +92,22 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			thread_id INTEGER NOT NULL REFERENCES thread(thread_id) ON DELETE CASCADE,
 			topic_id INTEGER NOT NULL REFERENCES topic(topic_id) ON DELETE CASCADE,
 			UNIQUE (thread_id, topic_id)
+		);
+
+		CREATE TABLE IF NOT EXISTS discussion  (
+			discussion_id SERIAL PRIMARY KEY,
+			name TEXT NOT NULL,
+			description TEXT NOT NULL DEFAULT '',
+			creator_author_id INTEGER NOT NULL REFERENCES author(author_id),
+			discussion_icon_link TEXT,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE TABLE IF NOT EXISTS discussionMember (
+			discussion_member_id SERIAL PRIMARY KEY,
+			discussion_id INTEGER NOT NULL REFERENCES discussion(discussion_id) ON DELETE CASCADE,
+			member_author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			UNIQUE (discussion_id, member_author_id)
 		);
 
 		CREATE TABLE IF NOT EXISTS follow (
@@ -114,6 +135,31 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			UNIQUE (thread_id, author_id),
 			created_at TIMESTAMP NOT NULL DEFAULT NOW()
 		);
+
+			CREATE OR REPLACE FUNCTION update_popularity()
+			RETURNS TRIGGER
+		AS $$
+		BEGIN
+			UPDATE thread
+    		SET popularity = 0.5 * like_count + 0.5 * comment_count - POWER(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - created_at)), 2);
+			UPDATE topic
+			SET popularity = (
+				SELECT
+				COALESCE(SUM(thread.popularity), 0)
+				FROM threadTopicJunction
+				INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
+				INNER JOIN author ON thread.author_id = author.author_id
+				WHERE threadTopicJunction.topic_id = topic.topic_id
+			);
+			RETURN NULL;
+		END;
+		$$ LANGUAGE PLPGSQL;
+
+		CREATE TRIGGER update_popularity
+		AFTER INSERT OR UPDATE
+		ON thread
+		FOR EACH STATEMENT
+		EXECUTE PROCEDURE update_popularity();
 	`)
 
 	return err

@@ -46,6 +46,9 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter.GET("", func(context *gin.Context) {
 		threadController.GetAllThreads(context, db)
 	})
+	threadRouter.GET("/trending", func(context *gin.Context) {
+		threadController.GetTrendingThreads(context, db)
+	})
 	threadRouter.GET("/:threadID", func(context *gin.Context) {
 		threadController.GetThreadByID(context, db)
 	})
@@ -55,8 +58,8 @@ func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
 	threadRouter.GET("/search", func(context *gin.Context) {
 		threadController.SearchThreads(context, db)
 	})
-	threadRouter.POST("/user", func(context *gin.Context) {
-		threadController.CreateUserThread(context, db, progressChannels, errorChannels, &mutex )
+	threadRouter.POST("", func(context *gin.Context) {
+		threadController.CreateThread(context, db, progressChannels, errorChannels, &mutex )
 	})
 	threadRouter.GET("/upload-progress", func(context *gin.Context) {
 		websocketController.GetThreadUploadProgress(context, progressChannels, errorChannels, &mutex)

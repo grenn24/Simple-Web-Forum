@@ -18,12 +18,15 @@ import {
 	DeleteOutlineRounded as DeleteOutlineRoundedIcon,
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../utilities/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../utilities/redux";
 import { changeAvatarIcon, changeBiography, reset } from "./signUpSlice";
 import Menu from "../../components/Menu";
 import CameraInput from "../../components/CameraInput";
 import FileInput from "../../components/FileInput";
-import { generateFileURL } from "../../utilities/fileManipulation";
+import {
+	compressImageFile,
+	generateFileURL,
+} from "../../utilities/fileManipulation";
 import { motion } from "motion/react";
 
 const SignUpStage3 = () => {
@@ -37,7 +40,9 @@ const SignUpStage3 = () => {
 	const [openCameraInput, setOpenCameraInput] = useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const handleUploadAvatarIcon = (files: FileList) => {
-		dispatch(changeAvatarIcon(files[0]));
+		compressImageFile(files[0], 2)
+			.then((avatar) => dispatch(changeAvatarIcon(avatar)))
+			.catch((err) => console.log(err));
 	};
 	const {
 		name,
@@ -74,8 +79,9 @@ const SignUpStage3 = () => {
 		formData.append("biography", biography);
 		// omit if falsy (stored as null in db if empty)
 		avatarIcon && formData.append("avatar_icon", avatarIcon);
-		faculty && formData.append("faculty", faculty);
-		birthday && formData.append("birthday", birthday);
+		formData.append("faculty", faculty);
+		birthday &&
+			formData.append("birthday", birthday.toLocaleDateString("en-sg"));
 		postFormData(
 			"/authentication/sign-up",
 			formData,

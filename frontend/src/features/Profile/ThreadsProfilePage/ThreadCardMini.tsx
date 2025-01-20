@@ -10,6 +10,7 @@ import SimpleDialog from "../../../components/SimpleDialog";
 import List from "../../../components/List";
 import { useState } from "react";
 import Snackbar from "../../../components/Snackbar";
+import RichTextField from "../../../components/RichTextField";
 
 interface Prop {
 	thread: ThreadDTO;
@@ -22,14 +23,24 @@ const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 	const [openDeleteThreadSnackbar, setOpenDeleteThreadSnackbar] =
 		useState(false);
 	const { authorID } = useParams();
-
+	const handleDeleteThread = (event: React.MouseEvent) => {
+		event.stopPropagation();
+		setThreads(threads.filter((t) => t.threadID !== thread.threadID));
+		setOpenDeleteThreadSnackbar(true);
+		Delete(
+			`/threads/${thread.threadID}`,
+			{},
+			() => {},
+			(err) => console.log(err)
+		);
+		setOpenDeleteThreadDialog(false);
+	};
 	return (
-		<Box key={thread.threadID}>
+		<Box key={thread.threadID} width="100%">
 			<Typography
-				fontFamily="Open Sans"
 				fontSize={22}
-				fontWeight={600}
-				marginBottom={1.7}
+				fontWeight={760}
+				color="primary.dark"
 			>
 				{thread.title}
 			</Typography>
@@ -61,9 +72,13 @@ const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 					);
 				})}
 			</Typography>
-			<Typography fontSize={17} marginTop={2}>
-				{thread.content}
-			</Typography>
+			<Box marginTop={2} fontSize={15} fontWeight={400}>
+				<RichTextField
+					editorState={thread.content}
+					showBorders={false}
+					editable={false}
+				/>
+			</Box>
 			<Box>
 				<Box display="flex" alignItems="center" justifyContent="flex-end">
 					<Typography
@@ -102,17 +117,7 @@ const ThreadCardMini = ({ thread, threads, setThreads }: Prop) => {
 					listItemsArray={["Yes", "No"]}
 					divider
 					handleListItemsClick={[
-						(event) => {
-							event.stopPropagation();
-							setThreads(threads.filter((t) => t.threadID !== thread.threadID));
-							Delete(
-								`/threads/${thread.threadID}`,
-								{},
-								() => {},
-								(err) => console.log(err)
-							);
-							setOpenDeleteThreadDialog(false);
-						},
+						handleDeleteThread,
 						(event) => {
 							event.stopPropagation();
 							setOpenDeleteThreadDialog(false);

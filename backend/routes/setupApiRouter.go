@@ -30,6 +30,9 @@ func SetupApiRouter(router *gin.Engine, db *sql.DB) {
 	// Follow Related Routes
 	FollowRoutes(apiRouter, db)
 
+	// Discussion Related Routes
+	DiscussionRoutes(apiRouter, db)
+
 	// Admin / Debugging Related Routes
 	AdminRoutes(apiRouter, db)
 

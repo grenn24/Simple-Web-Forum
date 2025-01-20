@@ -1,0 +1,24 @@
+.center {
+	text-align: center;
+	font-size: 360;
+	font-family: "Poppins";
+}
+
+.left {
+	text-align: left;
+	font-size: 360;
+	font-family: "Poppins";
+}
+
+.right {
+	text-align: right;
+	font-size: 360;
+	font-family: "Poppins";
+}
+
+.justify {
+	text-align: justify;
+	font-size: 360;
+	font-family: "Poppins";
+}
+

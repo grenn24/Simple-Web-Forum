@@ -58,6 +58,21 @@ func (commentRepository *CommentRepository) GetAllComments(sort string) ([]*mode
 	return comments, err
 }
 
+func (commentRepository *CommentRepository) GetCommentByID(commentID int) (*models.Comment, error) {
+
+	row := commentRepository.DB.QueryRow("SELECT * FROM comment WHERE comment_id = $1", commentID)
+	comment := new(models.Comment)
+	err := row.Scan(
+		&comment.CommentID,
+		&comment.ThreadID,
+		&comment.AuthorID,
+		&comment.CreatedAt,
+		&comment.Content,
+	)
+
+	return comment, err
+}
+
 func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, sortIndex int) ([]*dtos.CommentDTO, error) {
 	sortOrder := []string{"comment.created_at DESC", "", "comment.created_at ASC"}
 
@@ -122,13 +137,25 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) ([]*dtos.CommentDTO, error) {
 
 	rows, err := commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.created_at, comment.content, comment_author.author_id, comment_author.name, comment_author.avatar_icon_link,
-		thread.thread_id, thread.title, thread.content, thread.created_at, thread_author.author_id, thread_author.name, thread_author.avatar_icon_link
+		SELECT
+			comment.comment_id,
+			comment.created_at,
+			comment.content,
+			comment_author.author_id,
+			comment_author.name,
+			comment_author.avatar_icon_link,
+			thread.thread_id,
+			thread.title,
+			thread.content,
+			thread.created_at,
+			thread_author.author_id,
+			thread_author.name,
+			thread_author.avatar_icon_link
 		FROM comment 
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
-		INNER JOIN author AS comment_author ON thread.author_id = comment_author.author_id
-		WHERE comment.author_id = $1
+		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
+		WHERE comment.author_id = $1 AND thread.visibility = 'public'
 		ORDER BY comment.created_at DESC`, authorID)
 	if err != nil {
 		return nil, err
@@ -175,22 +202,26 @@ func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) 
 	return comments, err
 }
 
-func (commentRepository *CommentRepository) SearchComments(query string, page int, limit int) ([]*dtos.CommentDTO, error) {
+func (commentRepository *CommentRepository) SearchComments(query string, page int, limit int, sortIndex int) ([]*dtos.CommentDTO, error) {
+	sortOrder := []string{"comment.created_at DESC", "comment.created_at ASC"}
 	var limitOffset string
-	if page != 0 && limit != 0 {
-		limitOffset = fmt.Sprintf(" LIMIT %v OFFSET %v", limit, (page-1)*limit)
+	if limit != 0 {
+		limitOffset = fmt.Sprintf(" LIMIT %v", limit)
+		if page != 0 {
+			limitOffset += fmt.Sprintf(" OFFSET %v", (page-1)*limit)
+		}
 	}
-
 
 	rows, err := commentRepository.DB.Query(`
 		SELECT comment.comment_id, comment.content, comment.created_at, comment_author.author_id, comment_author.name, comment_author.username, comment_author.avatar_icon_link, thread.thread_id, thread.title,
-		thread.content, thread.created_at, thread.like_count, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link
+		thread.content, thread.created_at, thread.like_count, thread.comment_count, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link
 		FROM comment 
 		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
-		WHERE comment.content ILIKE $1
-	`+limitOffset,  "%"+query+"%")
+		WHERE comment.content ILIKE $1 AND thread.discussion_id IS NULL
+		ORDER BY
+	`+sortOrder[sortIndex]+limitOffset, "%"+query+"%")
 
 	if err != nil {
 		return nil, err
@@ -222,6 +253,7 @@ func (commentRepository *CommentRepository) SearchComments(query string, page in
 			&comment.Thread.Content,
 			&comment.Thread.CreatedAt,
 			&comment.Thread.LikeCount,
+			&comment.Thread.CommentCount,
 			&comment.Thread.Author.AuthorID,
 			&comment.Thread.Author.Name,
 			&comment.Thread.Author.Username,

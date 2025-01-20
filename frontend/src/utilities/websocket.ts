@@ -1,7 +1,7 @@
 
 const baseURL = "https://nus-gossips-6a2501962208.herokuapp.com/api";
 
-// Create a websocket and specify optional callback functions for open, close, websocket error events
+// Create a websocket and specify optional callback functions for open, close, websocket error events (can specify afterwards also)
 export function createWebsocket(
 	url: string,
 	onOpen: (event: Event) => void = () => {},

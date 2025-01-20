@@ -25,6 +25,7 @@ import SignUpStage1 from "./features/Welcome/SignUpStage1";
 import SignUpStage2 from "./features/Welcome/SignUpStage2";
 import SignUpStage3 from "./features/Welcome/SignUpStage3";
 import Search from "./pages/Search";
+import Discussions from "./pages/Discussions";
 
 function App() {
 	const [leftNavBarExpandedStatus, setleftNavBarExpandedStatus] =
@@ -74,6 +75,7 @@ function App() {
 								<Route path="Topics" element={<Topics />} />
 								<Route path="Topics/:topicID" element={<Topics />} />
 								<Route path="Bookmarked" element={<Bookmarked />} />
+								<Route path="Discussions" element={<Discussions />} />
 								<Route path="Liked" element={<Liked />} />
 								<Route path="Settings" element={<Settings />} />
 								<Route path="Profile/:authorID" element={<Profile />} />

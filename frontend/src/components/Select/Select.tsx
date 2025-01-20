@@ -4,16 +4,21 @@ import {
 	MenuItem,
 	Select as SelectBase,
 	SelectChangeEvent,
+	SxProps,
+	Theme,
 } from "@mui/material";
 
 interface Prop {
 	value?: string; // for controlled fields
 	controlled?: boolean;
 	values: string[];
-	label: string;
+	label?: string;
 	defaultValue?: string;
 	handleSelect: (selectedValue: string) => void;
-	disabled?:boolean
+	disabled?:boolean;
+	style?: SxProps<Theme>;
+	size?: "small" | "medium"
+	fontSize?: string | number
 }
 const Select = ({
 	value,
@@ -22,7 +27,10 @@ const Select = ({
 	controlled = false,
 	label,
 	handleSelect,
-	disabled
+	disabled,
+	style,
+	size,
+	fontSize
 }: Prop) => {
 	return (
 		<FormControl fullWidth>
@@ -36,6 +44,8 @@ const Select = ({
 					}}
 					defaultValue={defaultValue}
 					disabled={disabled}
+					sx={{ ...style, fontSize }}
+					size={size}
 				>
 					<MenuItem value="">&nbsp;</MenuItem>
 					{values.map((selection, index) => (
@@ -52,6 +62,8 @@ const Select = ({
 					}}
 					defaultValue={defaultValue}
 					disabled={disabled}
+					sx={{ ...style, fontSize }}
+					size={size}
 				>
 					<MenuItem value="">&nbsp;</MenuItem>
 					{values.map((selection, index) => (

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { TopicDTO } from "../../../dtos/TopicDTO";
-import { Box, Typography } from "@mui/material";
-import ThreadGridCard from "../../../components/ThreadGridCard/ThreadGridCard";
-import Button from "../../../components/Button";
+import { TopicDTO } from "../../dtos/TopicDTO";
+import { Box } from "@mui/material";
+import ThreadGridCard from "../../components/ThreadGridCard/ThreadGridCard";
+import Button from "../../components/Button";
 import {
 	NavigateBeforeRounded as NavigateBeforeRoundedIcon,
 	NavigateNextRounded as NavigateNextRoundedIcon,
@@ -12,17 +12,17 @@ import { AnimatePresence, motion } from "motion/react";
 interface Prop {
 	topic: TopicDTO;
 }
-const TopicCardMini = ({ topic }: Prop) => {
+const TopicCardsViewer = ({ topic }: Prop) => {
 	const [isScrolling, setIsScrolling] = useState(false);
 	const [showScrollButtons, setShowScrollButtons] = useState(false);
-	const threadGridCardViewerRef = useRef<HTMLDivElement>(null);
-	const threadGridCardRef = useRef<HTMLDivElement>(null);
+	const topicCardsViewerRef = useRef<HTMLDivElement>(null);
+	const topicCardRef = useRef<HTMLDivElement>(null);
 
 	const scrollLeft = () => {
 		if (!isScrolling) {
 			setIsScrolling(true);
-			threadGridCardViewerRef.current?.scrollBy({
-				left: -threadGridCardViewerRef.current.clientWidth,
+			topicCardsViewerRef.current?.scrollBy({
+				left: -topicCardsViewerRef.current.clientWidth,
 				behavior: "smooth",
 			});
 			setTimeout(() => setIsScrolling(false), 550);
@@ -32,26 +32,26 @@ const TopicCardMini = ({ topic }: Prop) => {
 	const scrollRight = () => {
 		if (!isScrolling) {
 			setIsScrolling(true);
-			threadGridCardViewerRef.current?.scrollBy({
-				left: threadGridCardViewerRef.current.clientWidth,
+			topicCardsViewerRef.current?.scrollBy({
+				left: topicCardsViewerRef.current.clientWidth,
 				behavior: "smooth",
 			});
 			setTimeout(() => setIsScrolling(false), 550);
 		}
 	};
 	useEffect(() => {
-		if (threadGridCardRef.current) {
-			threadGridCardRef.current.onmouseenter = () => setShowScrollButtons(true);
-			threadGridCardRef.current.onmouseleave = () =>
+		if (topicCardRef.current) {
+			topicCardRef.current.onmouseenter = () => setShowScrollButtons(true);
+			topicCardRef.current.onmouseleave = () =>
 				setShowScrollButtons(false);
 		}
 		return () => {
-			threadGridCardRef.current &&
-				threadGridCardRef.current.removeEventListener("mouseenter", () =>
+			topicCardRef.current &&
+				topicCardRef.current.removeEventListener("mouseenter", () =>
 					setShowScrollButtons(true)
 				);
-			threadGridCardRef.current &&
-				threadGridCardRef.current.removeEventListener("mouseleave", () =>
+			topicCardRef.current &&
+				topicCardRef.current.removeEventListener("mouseleave", () =>
 					setShowScrollButtons(true)
 				);
 		};
@@ -59,49 +59,34 @@ const TopicCardMini = ({ topic }: Prop) => {
 
 	return (
 		<Box
+			width="100%"
+			height={230}
 			maxWidth="100%"
 			display="flex"
 			flexDirection="column"
 			justifyContent="center"
 			position="relative"
-			ref={threadGridCardRef}
+			ref={topicCardRef}
 		>
 			<Box
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				marginBottom={2}
-			>
-				<Typography
-					fontFamily="Open Sans"
-					color="primary.dark"
-					fontSize={25}
-					fontWeight={700}
-				>
-					{topic.name}
-				</Typography>
-				<Typography
-					fontFamily="Open Sans"
-					color="primary.dark"
-					fontSize={20}
-					fontWeight={500}
-				>
-					{topic.threads.length} Posts
-				</Typography>
-			</Box>
-			<Box
+				position="absolute"
 				display="flex"
 				maxWidth="100%"
 				overflow="auto"
 				py={1}
 				px={1}
-				ref={threadGridCardViewerRef}
+				ref={topicCardsViewerRef}
 				zIndex={1}
+				sx={{
+					"::-webkit-scrollbar": {
+						display: "none",
+					},
+				}}
 			>
 				{topic.threads.map((thread) => (
 					<ThreadGridCard
 						thread={thread}
-						style={{ flexShrink: 0, marginRight: 2, height: "100%" }}
+						style={{ flexShrink: 0, marginRight: 2, height: 200, width: 300 }}
 						showAvatarTooltipText={false}
 					/>
 				))}
@@ -138,10 +123,14 @@ const TopicCardMini = ({ topic }: Prop) => {
 											}
 											buttonStyle={{
 												p: 0,
-
 												outlineColor: "black",
 												outline: 1.5,
 												boxShadow: 7,
+												opacity:
+													topicCardsViewerRef.current?.clientWidth! <
+													topicCardsViewerRef.current?.scrollWidth!
+														? 1
+														: 0,
 											}}
 											backgroundColor="background.default"
 											handleButtonClick={(event) => {
@@ -165,10 +154,14 @@ const TopicCardMini = ({ topic }: Prop) => {
 											}
 											buttonStyle={{
 												p: 0,
-
 												outlineColor: "black",
 												outline: 1.5,
 												boxShadow: 7,
+												opacity:
+													topicCardsViewerRef.current?.clientWidth! <
+													topicCardsViewerRef.current?.scrollWidth!
+														? 1
+														: 0,
 											}}
 											backgroundColor="background.default"
 											handleButtonClick={(event) => {
@@ -187,4 +180,4 @@ const TopicCardMini = ({ topic }: Prop) => {
 	);
 };
 
-export default TopicCardMini;
+export default TopicCardsViewer;

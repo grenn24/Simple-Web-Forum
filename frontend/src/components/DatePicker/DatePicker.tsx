@@ -1,4 +1,3 @@
-
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -8,10 +7,11 @@ import dayjs from "dayjs";
 interface Prop {
 	label: string;
 	handleDateSelect: (value: Date) => void;
+	onClear?: ()=>void;
 	controlled?: boolean;
 	defaultValue?: Date | null | undefined;
 	value?: Date;
-	width?: string | number
+	width?: string | number;
 }
 
 export default function DatePicker({
@@ -20,7 +20,8 @@ export default function DatePicker({
 	controlled = false,
 	defaultValue,
 	value,
-	width
+	width,
+	onClear
 }: Prop) {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -32,6 +33,12 @@ export default function DatePicker({
 						value={dayjs(value)}
 						defaultValue={dayjs(defaultValue)}
 						sx={{ width: width }}
+						slotProps={{
+							textField: {
+								helperText: "MM/DD/YYYY",
+							},
+							field: { clearable: true, onClear: onClear },
+						}}
 					/>
 				) : (
 					<DatePickerBase
@@ -39,6 +46,12 @@ export default function DatePicker({
 						onChange={(date) => date && handleDateSelect(date?.toDate())}
 						defaultValue={dayjs(defaultValue)}
 						sx={{ width: width }}
+						slotProps={{
+							textField: {
+								helperText: "MM/DD/YYYY",
+							},
+							field: { clearable: true, onClear: onClear },
+						}}
 					/>
 				)}
 			</DemoContainer>

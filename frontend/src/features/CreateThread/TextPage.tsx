@@ -1,23 +1,36 @@
-import { Box, TextField } from "@mui/material";
-import EditorBar from "./EditorBar";
-import { FieldErrors, Control, Controller } from "react-hook-form";
+import { Box, TextField, Typography } from "@mui/material";
+import {
+	FieldErrors,
+	Control,
+	Controller,
+	UseFormWatch,
+	FieldValues,
+} from "react-hook-form";
 import SelectChip from "../../components/SelectChip";
-
+import { useAppDispatch, useAppSelector } from "../../utilities/redux";
+import { changeContent, changeTopicsSelected } from "./createThreadSlice";
+import RichTextField from "../../components/RichTextField";
 
 interface Prop {
 	register: (name: string, options?: object) => object;
 	createThread: () => void;
 	errors: FieldErrors;
 	control: Control;
-	topicsSelected: string[];
-	setTopicsSelected: (topics: string[]) => void;
-	isUploading: boolean
+	isUploading: boolean;
+	watch: UseFormWatch<FieldValues>;
 }
 
-const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected }: Prop) => {
+const TextPage = ({ register, errors, control, watch }: Prop) => {
+	const { topicsSelected, content } = useAppSelector((state) => ({
+		topicsSelected: state.createThread.topicsSelected,
+		content: state.createThread.content,
+	}));
 
+	const dispatch = useAppDispatch();
+	const handleSelectTopic = (topics: string[]) =>
+		dispatch(changeTopicsSelected(topics));
 	return (
-		<Box >
+		<Box>
 			<Controller
 				name="title"
 				control={control}
@@ -29,15 +42,26 @@ const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected 
 						fullWidth
 						required
 						autoComplete="off"
-						{...register("title", { required: "Thread title is required" })}
+						{...register("title", {
+							required: "Thread title is required",
+							validate: {
+								validTitle: (x: string) => /^.{0,299}$/.test(x),
+							},
+						})}
 						error={!!errors.title}
 						helperText={errors.title?.message as string}
 					/>
 				)}
 			/>
+			<Typography
+				fontSize={15}
+				marginLeft={1}
+				fontWeight={500}
+				color={errors.title?.type === "validTitle" ? "red" : "inherit"}
+			>
+				{watch("title")?.length ? watch("title")?.length : 0}/300 Characters
+			</Typography>
 
-			<br />
-			<br />
 			<br />
 			<Controller
 				name="topics"
@@ -53,7 +77,7 @@ const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected 
 							"Exchange",
 						]}
 						topicsSelected={topicsSelected}
-						setTopicsSelected={setTopicsSelected}
+						setTopicsSelected={handleSelectTopic}
 					/>
 				)}
 			/>
@@ -61,23 +85,10 @@ const TextPage = ({ register,errors, control, topicsSelected, setTopicsSelected 
 			<br />
 			<br />
 			<br />
-			<EditorBar />
-			<br />
-			<br />
-			<Controller
-				name="content"
-				control={control}
-				defaultValue=""
-				render={() => (
-					<TextField
-						label="Content"
-						multiline
-						variant="outlined"
-						minRows={4}
-						fullWidth
-						{...register("content")}
-					/>
-				)}
+
+			<RichTextField
+				editorState={content}
+				setEditorState={(editorState) => dispatch(changeContent(editorState))}
 			/>
 		</Box>
 	);

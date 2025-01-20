@@ -3,7 +3,7 @@ import whiteBackground from "../../assets/image/white-background.jpg";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
-import { useAppSelector } from "../../utilities/reduxHooks";
+import { useAppSelector } from "../../utilities/redux";
 import { AnimatePresence } from "motion/react";
 import { motion } from "motion/react";
 

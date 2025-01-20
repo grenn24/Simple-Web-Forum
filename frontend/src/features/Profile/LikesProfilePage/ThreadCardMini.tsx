@@ -1,5 +1,5 @@
 import { Box, Divider, Typography } from "@mui/material";
-import { dateToTimeYear, dateToYear } from "../../../utilities/dateToString";
+import { dateToYear } from "../../../utilities/dateToString";
 import LikeDTO from "../../../dtos/LikeDTO";
 import { useState } from "react";
 import playerGenerator from "../../../utilities/playerGenerator";
@@ -7,11 +7,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import Button from "../../../components/Button";
 import { Delete, postJSON } from "../../../utilities/api";
 import likeSound from "../../../assets/audio/like-sound.mp3";
+import { formatDistanceToNow } from "date-fns";
 
 import {
 	FavoriteRounded as FavoriteRoundedIcon,
 	FavoriteBorderRounded as FavoriteBorderRoundedIcon,
 } from "@mui/icons-material";
+import RichTextField from "../../../components/RichTextField";
 
 interface Prop {
 	like: LikeDTO;
@@ -31,7 +33,7 @@ const ThreadCardMini = ({ like }: Prop) => {
 	return (
 		<Box key={like.likeID}>
 			<Box display="flex" justifyContent="space-between" alignItems="center">
-				<Typography fontFamily="Open Sans" fontSize={22} fontWeight={600}>
+				<Typography fontSize={22} fontWeight={760} color="primary.dark">
 					{like.thread.title}
 				</Typography>
 				<Box display="flex" flexDirection="column">
@@ -85,9 +87,13 @@ const ThreadCardMini = ({ like }: Prop) => {
 					);
 				})}
 			</Typography>
-			<Typography marginTop={2} marginBottom={1} fontSize={17}>
-				{like.thread.content}
-			</Typography>
+			<Box marginTop={2} marginBottom={1} fontSize={15} fontWeight={400}>
+				<RichTextField
+					editorState={like.thread.content}
+					showBorders={false}
+					editable={false}
+				/>
+			</Box>
 			<Box display="flex" justifyContent="space-between" alignItems="center">
 				<Button
 					component="button"
@@ -140,7 +146,9 @@ const ThreadCardMini = ({ like }: Prop) => {
 					fontWeight={600}
 					fontStyle="text.secondary"
 				>
-					{dateToTimeYear(like.createdAt, "short")}
+					{formatDistanceToNow(like.createdAt, {
+						addSuffix: true,
+					})}
 				</Typography>
 			</Box>
 		</Box>

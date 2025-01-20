@@ -43,6 +43,9 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter.GET("/:authorID", func(context *gin.Context) {
 		authorController.GetAuthorByID(context, db)
 	})
+	authorRouter.GET("/:authorID/activity", func(context *gin.Context) {
+		authorController.GetAuthorActivityByAuthorID(context, db)
+	})
 	authorRouter.PUT("/:authorID", func(context *gin.Context) {
 		authorController.UpdateAuthor(context, db)
 	})

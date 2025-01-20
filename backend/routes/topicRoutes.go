@@ -28,11 +28,11 @@ func TopicRoutes(router *gin.RouterGroup, db *sql.DB) {
 	topicRouter.POST("", func(context *gin.Context) {
 		topicController.CreateTopic(context, db)
 	})
-	topicRouter.GET("/:topicID/threads", func(context *gin.Context) {
+	topicRouter.GET("/:topicID", func(context *gin.Context) {
 		threadController.GetThreadsByTopicID(context, db)
 	})
-	topicRouter.GET("/threads", func(context *gin.Context) {
-		topicController.GetAllTopicsWithThreads(context, db)
+	topicRouter.GET("/trending", func(context *gin.Context) {
+		topicController.GetTrendingTopics(context, db)
 	})
 	topicRouter.GET("/search", func(context *gin.Context) {
 		topicController.SearchTopics(context, db)

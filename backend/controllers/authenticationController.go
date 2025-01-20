@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/grenn24/simple-web-forum/dtos"
@@ -14,6 +15,52 @@ import (
 
 type AuthenticationController struct {
 	AuthenticationService *services.AuthenticationService
+}
+
+// Handle OAuth requests, for both login and sign-up
+func (authenticationController *AuthenticationController) OAuth(context *gin.Context, db *sql.DB) {
+	authenticationService := authenticationController.AuthenticationService
+	var jwtToken string
+	var refreshToken string
+	var responseErr *dtos.Error
+	provider := context.Query("provider")
+	if provider == "google" {
+		authorisationHeader := context.GetHeader("Authorization")
+		accessToken := strings.Split(authorisationHeader, " ")[1]
+		jwtToken, refreshToken, responseErr = authenticationService.GoogleOAuth(accessToken)
+		if responseErr != nil {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+	}
+	if provider == "github" {
+		resBody := make(map[string]string)
+		err := context.ShouldBind(&resBody)
+		// Check for JSON binding errors
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			})
+			return
+		}
+		authCode := resBody["authorisationCode"]
+	
+		jwtToken, refreshToken, responseErr = authenticationService.GitHubOAuth(authCode)
+		if responseErr != nil {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+	}
+	// Send the cookies containing the newly created jwt and refresh tokens
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+	context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("refreshToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", refreshToken, os.Getenv("REFRESH_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status:  "success",
+		Message: "Authenticated successfully!",
+	})
 }
 
 // Issue authentication tokens (jwt and refresh token)
@@ -135,8 +182,14 @@ func (authenticationController *AuthenticationController) SignUp(context *gin.Co
 	if birthday := context.PostForm("birthday"); birthday == "" {
 		signUpRequest.Birthday = nil
 	} else {
-		birthday := utils.DateStringToTime(birthday)
+		birthday := utils.ParseDateString(context.PostForm("birthday"))
 		signUpRequest.Birthday = &birthday
+	}
+	if gender := context.PostForm("gender"); gender == "" {
+		signUpRequest.Gender = nil
+	} else {
+		gender := context.PostForm("gender")
+		signUpRequest.Gender = &gender
 	}
 	// Check if avatar icon was uploaded
 	if avatarIcon, err := context.FormFile("avatar_icon"); err != nil {
@@ -274,8 +327,9 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 		// Refresh token valid, create new jwt tokens and return back to client
 		jwtToken, _ = utils.RefreshJwtToken(refreshToken)
 		context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
-		context.JSON(http.StatusOK, dtos.Success{
-			Status:  "success",
+			context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:  "error",
+			ErrorCode: "TOKEN_REFRESHED",
 			Message: "The existing jwt token is invalid/expired, please make another request with the new jwt tokens returned",
 		})
 		return
@@ -307,8 +361,9 @@ func (authenticationController *AuthenticationController) ValidateJwtToken(conte
 			return
 		}
 		context.Writer.Header().Add("Set-Cookie", fmt.Sprintf("jwtToken=%v; Max-Age=%v; Path=/api; Domain=%v; HttpOnly; Secure; SameSite=None", jwtToken, os.Getenv("JWT_TOKEN_MAX_AGE"), os.Getenv("DOMAIN_NAME")))
-		context.JSON(http.StatusOK, dtos.Success{
-			Status:  "success",
+			context.JSON(http.StatusBadRequest, dtos.Error{
+			Status:  "error",
+			ErrorCode: "TOKEN_REFRESHED",
 			Message: "The existing jwt token is invalid/expired, please make another request with the new jwt tokens returned",
 		})
 		return

@@ -25,5 +25,6 @@ export default tseslint.config(
       ]
       
     },
+    "node": true
   },
 )

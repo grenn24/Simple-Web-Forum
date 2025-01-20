@@ -1,3 +1,4 @@
+
 export function dateToTimeYear(date: Date, type: "short" | "long") {
 	const timeYear = date
 		.toLocaleTimeString("en-SG", {
@@ -17,7 +18,7 @@ export function dateToTimeYear(date: Date, type: "short" | "long") {
 
 export function dateToYear(date: Date, type: "short" | "long") {
 	const year = date
-		.toLocaleTimeString("en-SG", {
+		.toLocaleDateString("en-SG", {
 			month: type === "short" ? "numeric" : "long",
 			day: "numeric",
 			year: "numeric",

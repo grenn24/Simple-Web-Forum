@@ -3,7 +3,7 @@ import LeftNavigationBar from "./LeftNavigationBar";
 import { Outlet } from "react-router-dom";
 import TopHeader from "./TopHeader";
 import Divider from "@mui/material/Divider";
-import { useAppSelector } from "../../utilities/reduxHooks";
+import { useAppSelector } from "../../utilities/redux";
 import CircularProgressWithLabel from "../../components/CircularProgressWithLabel/CircularProgressWithLabel";
 import { Typography } from "@mui/material";
 import Snackbar from "../../components/Snackbar";
@@ -84,9 +84,7 @@ export default function MainBody({
 										/>
 										{/*Upload error snackbar*/}
 										<Snackbar
-											openSnackbar={
-												(upload.uploadStatus as string) === "error"
-											}
+											openSnackbar={(upload.uploadStatus as string) === "error"}
 											message="An error occurred during the upload, please try again."
 											duration={2000}
 											undoButton={false}

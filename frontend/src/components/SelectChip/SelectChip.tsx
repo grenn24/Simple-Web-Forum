@@ -10,7 +10,7 @@ import {
 	Select,
 	SelectChangeEvent,
 } from "@mui/material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
 	removeElementFromArray,
 	removeFromArray,
@@ -33,7 +33,7 @@ function getStyles(name: string, personName: readonly string[], theme: Theme) {
 		fontWeight: personName.includes(name)
 			? theme.typography.fontWeightMedium
 			: theme.typography.fontWeightRegular,
-		color: theme.palette.primary.dark
+		color: theme.palette.primary.dark,
 	};
 }
 
@@ -50,6 +50,7 @@ export default function SelectChip({
 }: SelectChipProp) {
 	const theme = useTheme();
 	const [customTopicField, setCustomTopicField] = useState("");
+	const selectRef = useRef<HTMLElement>();
 
 	const handleTopicSelect = (
 		event: SelectChangeEvent<typeof topicsSelected>
@@ -72,11 +73,15 @@ export default function SelectChip({
 			//check if custom topics are already inside topics selected
 			customTopics.forEach((customTopic, index) => {
 				if (customTopic == "" || checkAnagrams(topicsSelected, customTopic)) {
+		
+				} else {
+					setTopicsSelected([...topicsSelected, customTopic]);
 					customTopics = removeFromArray(customTopics, index);
 				}
 			});
-			setTopicsSelected([...topicsSelected, ...customTopics]);
-			setCustomTopicField("");
+
+			setCustomTopicField(customTopics.join(","));
+			selectRef.current?.blur();
 		}
 	};
 
@@ -85,10 +90,10 @@ export default function SelectChip({
 			<FormControl fullWidth style={{ userSelect: "none" }}>
 				<InputLabel id="demo-multiple-chip-label">Topics</InputLabel>
 				<Select
-
+					ref={selectRef}
 					labelId="demo-multiple-chip-label"
 					multiple
-					value={topicsSelected} //multiple values
+					value={topicsSelected}
 					onChange={handleTopicSelect}
 					input={<OutlinedInput id="select-multiple-chip" label="Topics" />}
 					renderValue={

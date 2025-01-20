@@ -8,6 +8,7 @@ type Error struct {
 
 type Success struct {
 	Status   string  `json:"status"`
+	SuccessCode     any     `json:"successCode,omitempty"`
 	Message  string  `json:"message"`
 	Data     any     `json:"data,omitempty"`
 }

@@ -49,6 +49,17 @@ func (likeRepository *LikeRepository) GetAllLikes() ([]*models.Like, error) {
 	return likes, err
 }
 
+func (likeRepository *LikeRepository) GetLikeByID(likeID int) (*models.Like, error) {
+	row := likeRepository.DB.QueryRow("SELECT * FROM \"like\" WHERE like_id = $1", likeID)
+	like := new(models.Like)
+	err := row.Scan(&like.LikeID, &like.ThreadID, &like.AuthorID, &like.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return like, err
+}
+
 func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, authorID int) (*models.Like, error) {
 	row := likeRepository.DB.QueryRow("SELECT * FROM \"like\" WHERE thread_id = $1 AND author_id = $2 ", threadID, authorID)
 
@@ -60,11 +71,31 @@ func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, auth
 }
 
 func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex int) ([]*dtos.LikeDTO, error) {
-	sortOrder := []string{"\"like\".created_at DESC", "", "thread.like_count DESC", "thread.created_at DESC", "thread.created_at ASC"}
+	sortOrder := []string{"\"like\".created_at DESC", "thread.popularity DESC", "thread.like_count DESC", "thread.created_at DESC", "thread.created_at ASC"}
 
 	rows, err := likeRepository.DB.Query(`
-		SELECT DISTINCT "like".like_id, "like".created_at, like_author.author_id, like_author.name, like_author.username, like_author.avatar_icon_link, thread.thread_id, thread.title, thread.content, thread.created_at,
-		thread.image_title, thread.image_link, thread.like_count, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link,
+		SELECT DISTINCT
+			"like".like_id,
+			"like".created_at,
+			like_author.author_id,
+			like_author.name,
+			like_author.username,
+			like_author.avatar_icon_link,
+			thread.thread_id,
+			thread.title,
+			thread.content,
+			thread.created_at,
+		
+			thread.image_link,
+		
+			thread.video_link,
+			thread.like_count,
+			thread.comment_count,
+			thread.popularity,
+			thread_author.author_id,
+			thread_author.name,
+			thread_author.username,
+			thread_author.avatar_icon_link,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -75,7 +106,7 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 		INNER JOIN thread ON "like".thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = "like".author_id
-		WHERE like_author.author_id = $1
+		WHERE like_author.author_id = $1 AND thread.visibility = 'public'
 		ORDER BY 
 	`+sortOrder[sortIndex], authorID)
 
@@ -106,9 +137,13 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			&like.Thread.Title,
 			&like.Thread.Content,
 			&like.Thread.CreatedAt,
-			&like.Thread.ImageTitle,
+			
 			pq.Array(&like.Thread.ImageLink),
+		
+			pq.Array(&like.Thread.VideoLink),
 			&like.Thread.LikeCount,
+			&like.Thread.CommentCount,
+			&like.Thread.Popularity,
 			&like.Thread.Author.AuthorID,
 			&like.Thread.Author.Name,
 			&like.Thread.Author.Username,
@@ -121,7 +156,6 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			return nil, err
 		}
 
-		like.Thread.Content = utils.TruncateString(like.Thread.Content, 30)
 
 		// Append the scanned like to likes slice
 		likes = append(likes, like)
@@ -180,4 +214,31 @@ func (likeRepository *LikeRepository) DeleteLikeByThreadAuthorID(threadID int, a
 	rowsDeleted, _ := result.RowsAffected()
 
 	return int(rowsDeleted), err
+}
+
+func (likeRepository *LikeRepository) DeleteLikeByID(likeID int) (int, error) {
+
+	result, err := likeRepository.DB.Exec("DELETE FROM \"like\" WHERE like_id = $1", likeID)
+
+	// Check for any deletion errors
+	if err != nil {
+		return 0, err
+	}
+
+	rowsDeleted, _ := result.RowsAffected()
+
+	return int(rowsDeleted), err
+}
+
+func (likeRepository *LikeRepository) DeleteAllLikes() error {
+
+	_, err := likeRepository.DB.Exec("DELETE FROM \"like\"")
+
+	// Check for any deletion errors
+	if err != nil {
+		return err
+	}
+
+	return err
+
 }

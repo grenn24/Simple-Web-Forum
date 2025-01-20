@@ -1,34 +1,56 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { get } from "../../../utilities/api";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { parseThreads } from "../../../utilities/parseApiResponse";
 import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import List from "../../../components/List";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import ThreadCardMini from "./ThreadCardMini";
+import threadSortOrder from "./threadSortOrder";
 
 const ThreadsSearchPage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [threads, setThreads] = useState<ThreadDTO[]>([]);
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
+	const sort = searchParams.get("sort");
+	const boxRef = useRef();
+	let currentSortIndex = 0;
+	threadSortOrder.forEach((label, index) => {
+		if (label === sort) {
+			currentSortIndex = index;
+		}
+	});
+	const location = useLocation();
+
+	
 	const navigate = useNavigate();
-	useEffect(
-		() =>{setIsLoading(true);
-			get(
-				"/threads/search?query=" + query,
-				(res) => {
-					const responseBody = res.data.data;
-					setThreads(parseThreads(responseBody));
-					setIsLoading(false);
-				},
-				(err) => console.log(err)
-			);},
-		[query]
-	);
+	useEffect(() => {
+	
+		
+
+
+		setIsLoading(true);
+		get(
+			`/threads/search?query=${query}&sort=${currentSortIndex}`,
+			(res) => {
+				const responseBody = res.data.data;
+				setThreads([...threads, ...parseThreads(responseBody)]);
+				setIsLoading(false);
+				window.scrollTo(0, Number(sessionStorage.getItem(location.key)));
+			},
+			(err) => console.log(err)
+		);
+	}, [query, sort]);
 
 	return (
-		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
+		<Box
+			width="100%"
+			display="flex"
+			flexDirection="column"
+			alignItems="center"
+			ref={boxRef}
+		>
 			{isLoading ? (
 				<CircularProgress size={80} />
 			) : threads.length === 0 ? (

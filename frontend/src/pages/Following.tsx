@@ -32,7 +32,8 @@ const Following = () => {
 	// Retrieve followed threads from api (re-fetch whenever sorting order is changed)
 	useEffect(
 		() =>
-			get<ThreadDTO[]>(
+			{setIsLoading(true);
+				get<ThreadDTO[]>(
 				"./authors/user/follows?sort=" + currentSortIndex,
 				(res) => {
 					const responseBody = res.data.data;
@@ -41,7 +42,7 @@ const Following = () => {
 					setIsLoading(false);
 				},
 				(err) => console.log(err)
-			),
+			);},
 		[sort]
 	);
 
@@ -53,6 +54,9 @@ const Following = () => {
 					p: { xs: 1.5, sm: 3 },
 					minHeight: "100%",
 				}}
+				position="absolute"
+				width="100%"
+				boxSizing="border-box"
 				flexGrow={1}
 				display="flex"
 				flexDirection="column"
@@ -73,7 +77,7 @@ const Following = () => {
 						fontFamily="Open Sans"
 						fontWeight={700}
 						fontSize={30}
-						color="primary.dark"
+						color="text.primary"
 					>
 						Following
 					</Typography>
@@ -89,7 +93,7 @@ const Following = () => {
 				>
 					<Button
 						buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-						color="primary.dark"
+						color="text.primary"
 						buttonStyle={{ mx: 0, p: 0 }}
 						handleButtonClick={() => navigate(-1)}
 						toolTipText="Back"
@@ -119,7 +123,7 @@ const Following = () => {
 				<Box
 					sx={{
 						width: { xs: "100%", sm: "100%", md: "80%", lg: "65%", xl: "50%" },
-						marginBottom: 3,
+						my: 3,
 					}}
 					display="flex"
 					flexDirection="column"
@@ -130,12 +134,15 @@ const Following = () => {
 					{isLoading ? (
 						<Box width="100%">
 							<ThreadCardLoading bodyHeight={180} />
+							<br />
+							<br />
+							<ThreadCardLoading bodyHeight={180} />
 						</Box>
 					) : followedThreads.length !== 0 ? (
 						followedThreads.map((followedThread) => (
 							<Box width="100%" key={followedThread.threadID}>
 								<ThreadCard thread={followedThread} />
-								<Divider />
+								<Divider sx={{ my: 3 }} />
 							</Box>
 						))
 					) : (

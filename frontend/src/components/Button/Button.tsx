@@ -33,7 +33,7 @@ interface Prop {
 	iconPosition?: "start" | "end";
 	type?: string;
 	loadingStatus?: boolean;
-	fullWidth?:boolean
+	fullWidth?: boolean;
 }
 const Button = ({
 	role = "undefined",
@@ -60,7 +60,7 @@ const Button = ({
 	iconPosition = "start",
 	type,
 	loadingStatus,
-	fullWidth
+	fullWidth,
 }: Prop) => {
 	const buttonWithoutTooltipText = (
 		<>
@@ -91,6 +91,7 @@ const Button = ({
 							"& .MuiSvgIcon-root": {
 								borderColor: borderColor,
 							},
+
 						}}
 						onClick={handleButtonClick}
 					>
