@@ -3,7 +3,7 @@ Creator: Hoo Di Heng
 
 ### Tech Stack  
 **Front-End:**  
-React, TypeScript, Axios, Redux, MUI, Framer Motion, react-oauth/google
+React, TypeScript, Axios, Redux, MUI, Framer Motion, react-oauth/google, draft-js
 **Back-End:**  
 GoLang, Gin, Gorilla/Websocket, Cron 
 **Database:**   
@@ -17,11 +17,21 @@ https://simple-web-forum.web.app (Backup)
 Backend API Server: https://nus-gossips-6a2501962208.herokuapp.com/api
 
 ### API Endpoints 
+- /authentication  
+For login, sign up, validation requests
+
 Protected routes require jwt user token
 - /threads/:threadID (protected)  
 Perform CRUD operations on threads or thread-specific resources
 - /authors/:authorID (protected)   
 Perform CRUD operations on authors or author-specific resources (e.g. likes, comments, bookmarks, follows)
+- /topics/:topicID (protected)  
+- /discussions/:discussionID (protected)   
+
+Admin routes require jwt admin token
+- /admin  
+Reset Database  
+Additional control handlers on existing protected routes
 
 ### Core Features
 - Thread: start a thread on any topic  
