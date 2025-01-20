@@ -17,11 +17,17 @@ https://simple-web-forum.web.app (Backup)
 Backend API Server: https://nus-gossips-6a2501962208.herokuapp.com/api
 
 ### API Endpoints 
+- /authentication  
+For login, sign up, validation requests
+
 Protected routes require jwt user token
 - /threads/:threadID (protected)  
 Perform CRUD operations on threads or thread-specific resources
 - /authors/:authorID (protected)   
 Perform CRUD operations on authors or author-specific resources (e.g. likes, comments, bookmarks, follows)
+- /topics/:topicID (protected)  
+- /discussions/:discussionID (protected)   
+
 
 ### Core Features
 - Thread Creation: start a thread on any topic  
