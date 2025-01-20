@@ -3,7 +3,7 @@ Creator: Hoo Di Heng
 
 ### Tech Stack  
 **Front-End:**  
-React, TypeScript, Axios, Redux, MUI, Framer Motion  
+React, TypeScript, Axios, Redux, MUI, Framer Motion, draft-js  
 **Back-End:**  
 GoLang, Gin, Gorilla/Websocket  
 **Database:**   
