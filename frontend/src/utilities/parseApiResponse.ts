@@ -1,6 +1,7 @@
 import ArchiveDTO from "../dtos/ArchiveDTO";
 import { AuthorDTO } from "../dtos/AuthorDTO";
 import { CommentDTO } from "../dtos/CommentDTO";
+import { DiscussionDTO, DiscussionJoinRequestDTO } from "../dtos/DiscussionDTO";
 import LikeDTO from "../dtos/LikeDTO";
 import { ThreadDTO } from "../dtos/ThreadDTO";
 import { TopicDTO } from "../dtos/TopicDTO";
@@ -144,4 +145,40 @@ export function parseArchive(archive: any): ArchiveDTO {
 
 export function parseArchives(archives: any): ArchiveDTO[] {
 	return archives ? archives.map((archive: any) => parseArchive(archive)) : [];
+}
+
+export function parseDiscussion(discussion: any): DiscussionDTO {
+	return {
+		discussionID: discussion.discussion_id,
+		name: discussion.name,
+		description: discussion.description,
+		creator: parseAuthor(discussion.creator),
+		createdAt: new Date(discussion.created_at),
+		BackgroundImageLink: discussion.background_image_link,
+		threads: parseThreads(discussion.threads),
+		members: parseAuthors(discussion.members),
+		isJoined: discussion.is_joined,
+		isRequested: discussion.is_requested,
+	};
+}
+
+export function parseDiscussions(discussions: any): DiscussionDTO[] {
+	return discussions
+		? discussions.map((discussion: any) => parseDiscussion(discussion))
+		: [];
+}
+
+export function parseDiscussionJoinRequest(request: any) : DiscussionJoinRequestDTO {
+	return {
+		requestID: request.request_id,
+		author: parseAuthor(request.author),
+		discussionID: request.discussion_id,
+		createdAt: new Date(request.created_at)
+	};
+}
+
+export function parseDiscussionJoinRequests(requests: any): DiscussionJoinRequestDTO[] {
+	return requests
+		? requests.map((request: any) => parseDiscussionJoinRequest(request))
+		: [];
 }

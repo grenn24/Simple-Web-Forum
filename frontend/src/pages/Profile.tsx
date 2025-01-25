@@ -37,6 +37,8 @@ import FileInput from "../components/FileInput";
 import CameraInput from "../components/CameraInput";
 import { compressImageFile } from "../utilities/fileManipulation";
 import Select from "../components/Select";
+import tabMenuLabels from "../features/Profile/tabMenuLabels";
+import faculty from "../features/Profile/faculty";
 
 const Profile = () => {
 	const {
@@ -50,12 +52,7 @@ const Profile = () => {
 	} = useForm();
 	const [searchParams, _] = useSearchParams();
 	const type = searchParams.get("type");
-	let currentTabIndex = 0;
-	profileTabMenuLabels.forEach((label, index) => {
-		if (label === type) {
-			currentTabIndex = index;
-		}
-	});
+
 	const navigate = useNavigate();
 	const theme = useTheme();
 	const [author, setAuthor] = useState<AuthorDTO>({} as AuthorDTO);
@@ -79,7 +76,7 @@ const Profile = () => {
 		useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const [openCameraInput, setOpenCameraInput] = useState(false);
-	const [faculty, setFaculty] = useState<string>("");
+	const [selectedFaculty, setSelectedFaculty] = useState<string>("");
 
 	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
 	useEffect(() => {
@@ -92,7 +89,7 @@ const Profile = () => {
 				setAuthor(author);
 				setFollowStatus(author.followStatus);
 				setIsLoading(false);
-				author.faculty && setFaculty(author.faculty);
+				author.faculty && setSelectedFaculty(author.faculty);
 			},
 			(err) => console.log(err)
 		);
@@ -129,7 +126,7 @@ const Profile = () => {
 			formData.append("name", data.name);
 			formData.append("username", data.username);
 			formData.append("biography", data.biography);
-			formData.append("faculty", faculty);
+			formData.append("faculty", selectedFaculty);
 			putFormData(
 				"/authors/user",
 				formData,
@@ -139,7 +136,7 @@ const Profile = () => {
 						const author = parseAuthor(responseBody);
 						setAuthor(author);
 						setFollowStatus(author.followStatus);
-						author.faculty && setFaculty(author.faculty);
+						author.faculty && setSelectedFaculty(author.faculty);
 					});
 					setIsEditing(false);
 					setIsUploading(false);
@@ -492,7 +489,7 @@ const Profile = () => {
 						</Typography>
 					</Box>
 					{isEditing ? (
-						<Box display="flex" alignItems="center" width="50%">
+						<Box display="flex" alignItems="center" justifyContent="flex-end" width="50%">
 							<Typography
 								fontFamily="Open Sans"
 								fontSize={18}
@@ -506,19 +503,9 @@ const Profile = () => {
 								style={{ height: 40 }}
 								fontSize={18}
 								size="small"
-								defaultValue={author.faculty}
-								handleSelect={(faculty) => setFaculty(faculty)}
-								values={[
-									"Computing",
-									"Business",
-									"Dentistry",
-									"Law",
-									"Medicine",
-									"Science",
-									"Arts and Social Sciences",
-									"Public Health",
-									"Engineering",
-								]}
+								currentItemIndex={faculty.findIndex((faculty)=>faculty===selectedFaculty)}
+								handleSelect={(index) => index !== -1 ? setSelectedFaculty(faculty[index]) : setSelectedFaculty("")}
+								selectItemsArray={faculty}
 							/>
 						</Box>
 					) : (
@@ -586,7 +573,9 @@ const Profile = () => {
 					tabLabelArray={profileTabMenuLabels}
 					tabPageArray={profileTabMenuPages}
 					variant={screenSizeGreaterThanXS ? "fullWidth" : "scrollable"}
-					defaultPageIndex={currentTabIndex}
+					defaultPageIndex={
+						type ? tabMenuLabels.findIndex((element) => element === type) : 0
+					}
 					handleTabLabelClick={(newTabIndex) =>
 						navigate("?type=" + profileTabMenuLabels[newTabIndex])
 					}

@@ -96,6 +96,46 @@ func (authorController *AuthorController) GetAuthorActivityByAuthorID(context *g
 	})
 }
 
+func (authorController *AuthorController) GetDiscussionsJoinedByUser(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
+	userAuthorID := utils.GetUserAuthorID(context)
+
+	discussions, responseErr := authorService.GetDiscussionsJoinedByAuthorID(userAuthorID)
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   discussions,
+	})
+}
+
+func (authorController *AuthorController) GetDiscussionsCreatedByUser(context *gin.Context, db *sql.DB) {
+	authorService := authorController.AuthorService
+
+	userAuthorID := utils.GetUserAuthorID(context)
+
+	discussions, responseErr := authorService.GetDiscussionsCreatedByAuthorID(userAuthorID)
+
+	if responseErr != nil {
+		if responseErr.ErrorCode == "INTERNAL_SERVER_ERROR" {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   discussions,
+	})
+}
+
 func (authorController *AuthorController) SearchAuthors(context *gin.Context, db *sql.DB) {
 	authorService := authorController.AuthorService
 	userAuthorID := utils.GetUserAuthorID(context)

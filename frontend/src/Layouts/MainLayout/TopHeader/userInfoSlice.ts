@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-	avatarIconLink:"",
-	name:"",
-    username:""
+	avatarIconLink: "",
+	name: "",
+	username: "",
+	authorID: 0,
 };
 export const userInfoSlice = createSlice({
 	// Name of slice
@@ -23,16 +24,15 @@ export const userInfoSlice = createSlice({
 		changeAvatarIconLink: (state, action) => {
 			state.avatarIconLink = action.payload;
 		},
+		changeAuthorID: (state, action) => {
+			state.authorID = action.payload;
+		},
 	},
 });
 
 // Action creators are generated for each reducer function using create slice
-export const {
-	reset,
-	changeName,
-	changeUsername,
-    changeAvatarIconLink
-} = userInfoSlice.actions;
+export const { reset, changeName, changeUsername, changeAvatarIconLink,changeAuthorID } =
+	userInfoSlice.actions;
 
 const userInfoSliceReducer = userInfoSlice.reducer;
 

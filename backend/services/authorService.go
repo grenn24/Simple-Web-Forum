@@ -103,6 +103,32 @@ func (authorService *AuthorService) SearchAuthors(userAuthorID int, query string
 	return authors, nil
 }
 
+func (authorService *AuthorService) GetDiscussionsCreatedByAuthorID(authorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
+	discussionRepository := &repositories.DiscussionRepository{DB: authorService.DB}
+	discussions, err := discussionRepository.GetDiscussionsByCreatorAuthorID(authorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return discussions, nil
+}
+
+func (authorService *AuthorService) GetDiscussionsJoinedByAuthorID(authorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
+	discussionRepository := &repositories.DiscussionRepository{DB: authorService.DB}
+	discussions, err := discussionRepository.GetDiscussionsByMemberAuthorID(authorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return discussions, nil
+}
+
 func (authorService *AuthorService) CreateAuthor(author *models.Author) *dtos.Error {
 	authorRepository := &repositories.AuthorRepository{DB: authorService.DB}
 

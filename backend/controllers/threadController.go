@@ -184,9 +184,11 @@ func (threadController *ThreadController) GetTrendingThreads(context *gin.Contex
 func (threadController *ThreadController) CreateThread(context *gin.Context, db *sql.DB, progressChannels map[string]chan float64, errorChannels map[string]chan *dtos.Error, mutex *sync.Mutex) {
 	threadService := threadController.ThreadService
 	contentType := context.GetHeader("Content-Type")
-	// Declare a pointer to a new instance of a thread struct
-	thread := new(models.Thread)
+
 	if strings.Split(contentType, ";")[0] == "multipart/form-data" {
+		// Declare a pointer to a new instance of a thread struct
+		thread := new(models.Thread)
+
 		// Create the progress and error channels
 		uploadID := context.PostForm("upload_id")
 		if uploadID == "" {

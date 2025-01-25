@@ -73,12 +73,6 @@ const Thread = () => {
 
 	const [searchParams, _] = useSearchParams();
 	const commentSort = searchParams.get("comment-sort");
-	let currentSortIndex = 0;
-	commentSortOrder.forEach((value, index) => {
-		if (value === commentSort) {
-			currentSortIndex = index;
-		}
-	});
 	const [threadContent, setThreadContent] = useState(new EditorState());
 	const [likeCount, setLikeCount] = useState(0);
 	const [likeStatus, setLikeStatus] = useState(false);
@@ -101,7 +95,13 @@ const Thread = () => {
 	useEffect(
 		() =>
 			get<ThreadDTO>(
-				`/threads/${threadID}/expanded?comment-sort=` + currentSortIndex,
+				`/threads/${threadID}/expanded?comment-sort=${
+					commentSort
+						? String(
+								commentSortOrder.findIndex((element) => element === commentSort)
+						  )
+						: "0"
+				}`,
 				(res) => {
 					const responseBody = res.data.data;
 					const thread = parseThread(responseBody);
@@ -391,7 +391,7 @@ const Thread = () => {
 													}
 													fontFamily="Open Sans"
 													buttonStyle={{
-														p:0,
+														p: 0,
 														marginLeft: 0,
 														marginRight: 1.5,
 													}}
@@ -434,7 +434,7 @@ const Thread = () => {
 										sx={{
 											display: "flex",
 											justifyContent: "flex-start",
-											py:0
+											py: 0,
 										}}
 									>
 										<Button
@@ -659,7 +659,7 @@ const Thread = () => {
 										)}
 										menuStyle={{ fontFamily: "Open Sans" }}
 									>
-										{commentSortOrder[currentSortIndex]}
+										{commentSortOrder[commentSort ? commentSortOrder.findIndex(element=>element===commentSort): 0]}
 									</Menu>
 								</Box>
 								<List

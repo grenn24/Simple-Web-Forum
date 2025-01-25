@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Box, Tab, Tabs } from "@mui/material";
+import { Box, SxProps, Tab, Tabs } from "@mui/material";
+import { Theme } from "@emotion/react";
 
 interface TabPageProp {
 	children?: React.ReactNode;
@@ -33,7 +34,8 @@ interface TabMenuProp {
 	variant?: "standard" | "scrollable" | "fullWidth";
 	padding?: number | object;
 	defaultPageIndex?: number;
-	handleTabLabelClick?: (index:number)=>void
+	handleTabLabelClick?: (index:number)=>void;
+	tabHeaderStyle?: SxProps<Theme>
 }
 
 export default function TabMenu({
@@ -43,6 +45,7 @@ export default function TabMenu({
 	padding = 0,
 	variant = "fullWidth",
 	handleTabLabelClick,
+	tabHeaderStyle
 }: TabMenuProp) {
 	const [currentTabIndex, setCurrentTabIndex] = useState(
 		defaultPageIndex ? defaultPageIndex : 0
@@ -66,7 +69,8 @@ export default function TabMenu({
 					"& .MuiTabs-indicator": {
 						border: 1.5,
 					},
-					marginBottom: 3,
+					marginBottom: 2,
+					...tabHeaderStyle
 				}}
 			>
 				{tabLabelArray.map((label) => (

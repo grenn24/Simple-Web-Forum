@@ -9,70 +9,54 @@ import {
 } from "@mui/material";
 
 interface Prop {
-	value?: string; // for controlled fields
 	controlled?: boolean;
-	values: string[];
+	selectItemsArray: string[] | number[] | JSX.Element[];
 	label?: string;
-	defaultValue?: string;
-	handleSelect: (selectedValue: string) => void;
-	disabled?:boolean;
+	defaultItemIndex?: number;
+	currentItemIndex?: number;
+	handleSelect: (index: number) => void;
+	disabled?: boolean;
 	style?: SxProps<Theme>;
-	size?: "small" | "medium"
-	fontSize?: string | number
+	size?: "small" | "medium";
+	fontSize?: string | number;
+	showEmptyItem?: boolean;
+	fullWidth?: boolean
 }
 const Select = ({
-	value,
-	values,
-	defaultValue,
-	controlled = false,
-	label,
+	selectItemsArray,
 	handleSelect,
+	defaultItemIndex,
+	currentItemIndex,
+	label,
 	disabled,
 	style,
 	size,
-	fontSize
+	fontSize,
+	showEmptyItem = true,
+	fullWidth = false
 }: Prop) => {
 	return (
-		<FormControl fullWidth>
+		<FormControl fullWidth={fullWidth}>
 			<InputLabel>{label}</InputLabel>
-			{controlled ? (
-				<SelectBase
-					value={value}
-					label={label}
-					onChange={(event: SelectChangeEvent) => {
-						handleSelect(event.target.value);
-					}}
-					defaultValue={defaultValue}
-					disabled={disabled}
-					sx={{ ...style, fontSize }}
-					size={size}
-				>
-					<MenuItem value="">&nbsp;</MenuItem>
-					{values.map((selection, index) => (
-						<MenuItem key={index} value={selection}>
-							{selection}
-						</MenuItem>
-					))}
-				</SelectBase>
-			) : (
-				<SelectBase
-					label={label}
-					onChange={(event: SelectChangeEvent) => {
-						handleSelect(event.target.value);
-					}}
-					defaultValue={defaultValue}
-					disabled={disabled}
-					sx={{ ...style, fontSize }}
-					size={size}
-				>
-					<MenuItem value="">&nbsp;</MenuItem>
-					{values.map((selection, index) => (
-						<MenuItem key={index} value={selection}>
-							{selection}
-						</MenuItem>
-					))}
-				</SelectBase>
-			)}
+			<SelectBase
+				value={String(currentItemIndex)}
+				label={label}
+				onChange={(event: SelectChangeEvent) => {
+					handleSelect(Number(event.target.value));
+	
+				}}
+				defaultValue={String(defaultItemIndex)}
+				disabled={disabled}
+				sx={{ ...style, fontSize }}
+				size={size}
+			>
+				{showEmptyItem && <MenuItem value={String(-1)}>&nbsp;</MenuItem>}
+				{selectItemsArray.map((item, index) => (
+					<MenuItem key={index} value={String(index)}>
+						{item}
+					</MenuItem>
+				))}
+			</SelectBase>
 		</FormControl>
 	);
 };

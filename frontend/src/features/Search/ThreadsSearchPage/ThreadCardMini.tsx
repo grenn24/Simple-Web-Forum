@@ -37,7 +37,11 @@ const ThreadCardMini = ({ thread }: Prop) => {
 						</Typography>
 					</Box>
 				</Box>
-				<Typography fontSize={25} fontWeight={700}>
+				<Typography
+					fontSize={25}
+					fontWeight={760}
+					color="primary.dark"
+				>
 					{thread.title}
 				</Typography>
 				<Box display="flex" marginBottom={1}>

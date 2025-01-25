@@ -15,34 +15,35 @@ import { get } from "../utilities/api";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";
+import { removeFromArray } from "../utilities/arrayManipulation";
 
 const Bookmarked = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchParams, _] = useSearchParams();
 	const sort = searchParams.get("sort");
-	let currentSortIndex = 0;
-	sortOrder.forEach((value, index) => {
-		if (value === sort) {
-			currentSortIndex = index;
-		}
-	});
+
 	const navigate = useNavigate();
 	const [bookmarkedThreads, setBookmarkedThreads] = useState<ThreadDTO[]>([]);
 
 	// Retrieve bookmarked threads from api (re-fetch whenever sorting order is changed)
 	useEffect(() => {
-		{setIsLoading(true);
-			
+		{
+			setIsLoading(true);
+
 			get<ThreadDTO[]>(
-			"/authors/user/bookmarks?sort=" + currentSortIndex,
-			(res) => {
-				const responseBody = res.data.data;
-				const threads = parseThreads(responseBody, true);
-				setBookmarkedThreads(threads);
-				setIsLoading(false);
-			},
-			(err) => console.log(err)
-		);};
+				"/authors/user/bookmarks?sort=" +
+					(sort
+						? String(sortOrder.findIndex((element) => element === sort))
+						: "0"),
+				(res) => {
+					const responseBody = res.data.data;
+					const threads = parseThreads(responseBody, true);
+					setBookmarkedThreads(threads);
+					setIsLoading(false);
+				},
+				(err) => console.log(err)
+			);
+		}
 	}, [sort]);
 
 	return (
@@ -116,7 +117,11 @@ const Bookmarked = () => {
 					toolTipText="Sort Options"
 					menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 				>
-					{sortOrder[currentSortIndex]}
+					{
+						sortOrder[
+							sort ? sortOrder.findIndex((element) => element === sort) : 0
+						]
+					}
 				</Menu>
 			</Box>
 			<Box
@@ -134,9 +139,9 @@ const Bookmarked = () => {
 						<ThreadCardLoading bodyHeight={180} />
 					</Box>
 				) : bookmarkedThreads.length !== 0 ? (
-					bookmarkedThreads.map((bookmarkedThread) => (
+					bookmarkedThreads.map((bookmarkedThread,index) => (
 						<Box width="100%" key={bookmarkedThread.threadID}>
-							<ThreadCard thread={bookmarkedThread} />
+							<ThreadCard thread={bookmarkedThread}  handleDeleteThread={()=>setBookmarkedThreads(removeFromArray(bookmarkedThreads,index))} />
 							<Divider sx={{ my: 3 }} />
 						</Box>
 					))

@@ -1,10 +1,10 @@
 import SearchIcon from "@mui/icons-material/Search";
 import { styled, alpha } from "@mui/material/styles";
 import InputBase from "@mui/material/InputBase";
-import { useNavigate } from "react-router-dom";
 
 interface Prop {
 	placeholder: string;
+	handleKeyDown ?: (event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>)=>void
 }
 
 const Search = styled("div")(({ theme }) => ({
@@ -51,8 +51,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 	},
 }));
 
-const SearchBar = ({ placeholder }: Prop) => {
-	const navigate = useNavigate();
+const SearchBar = ({ placeholder , handleKeyDown}: Prop) => {
 
 	return (
 		<Search>
@@ -60,14 +59,10 @@ const SearchBar = ({ placeholder }: Prop) => {
 				<SearchIcon style={{ color: "rgb(0, 0, 0, 0.5)" }} />
 			</SearchIconWrapper>
 			<StyledInputBase
+			type="search"
 				placeholder={placeholder}
 				inputProps={{ "aria-label": "search" }}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" && e.currentTarget.value !== "") {
-						navigate(`/Search?query=${e.currentTarget.value}&type=threads`);
-						(document.activeElement as HTMLElement)?.blur();
-					}
-				}}
+				onKeyDown={handleKeyDown}
 			/>
 		</Search>
 	);

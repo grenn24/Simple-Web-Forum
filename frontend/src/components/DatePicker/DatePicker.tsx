@@ -12,6 +12,7 @@ interface Prop {
 	defaultValue?: Date | null | undefined;
 	value?: Date;
 	width?: string | number;
+	maxDate?: Date;
 }
 
 export default function DatePicker({
@@ -21,7 +22,8 @@ export default function DatePicker({
 	defaultValue,
 	value,
 	width,
-	onClear
+	onClear,
+	maxDate
 }: Prop) {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -39,6 +41,7 @@ export default function DatePicker({
 							},
 							field: { clearable: true, onClear: onClear },
 						}}
+						maxDate={dayjs(maxDate)}
 					/>
 				) : (
 					<DatePickerBase
@@ -52,6 +55,7 @@ export default function DatePicker({
 							},
 							field: { clearable: true, onClear: onClear },
 						}}
+						maxDate={dayjs(maxDate)}
 					/>
 				)}
 			</DemoContainer>

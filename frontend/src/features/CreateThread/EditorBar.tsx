@@ -93,12 +93,10 @@ export default function EditorBar({
 		const blockKey = selection.getStartKey();
 		const block = contentState.getBlockForKey(blockKey);
 		const blockType = block.getType();
-		console.log(blockType);
-		if (blockType === "left") setAlignment(blockType);
+		if (blockType === "left" || blockType === "unstyled") setAlignment("left");
 		if (blockType === "center") setAlignment(blockType);
 		if (blockType === "right") setAlignment(blockType);
-		if (blockType === "justify")  setAlignment(blockType);
-		
+		if (blockType === "justify") setAlignment(blockType);
 	}, [editorState]);
 
 	return (

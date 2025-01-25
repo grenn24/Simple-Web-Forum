@@ -91,7 +91,6 @@ const Button = ({
 							"& .MuiSvgIcon-root": {
 								borderColor: borderColor,
 							},
-
 						}}
 						onClick={handleButtonClick}
 					>
@@ -148,7 +147,22 @@ const Button = ({
 	);
 
 	return (
-		<Tooltip title={toolTipText}>
+		<Tooltip
+			title={toolTipText}
+			placement="bottom"
+			slotProps={{
+				popper: {
+					modifiers: [
+						{
+							name: "offset",
+							options: {
+								offset: [0, 4],
+							},
+						},
+					],
+				},
+			}}
+		>
 			<span>{buttonWithoutTooltipText}</span>
 		</Tooltip>
 	);

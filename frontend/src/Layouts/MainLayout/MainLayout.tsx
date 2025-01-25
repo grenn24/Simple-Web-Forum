@@ -37,7 +37,7 @@ export default function MainBody({
 			<Box
 				sx={{
 					display: "flex",
-					marginTop: `80px`,
+					marginTop: `70px`,
 					flexDirection: "row",
 				}}
 			>

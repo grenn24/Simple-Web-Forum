@@ -127,4 +127,12 @@ func AuthorRoutes(router *gin.RouterGroup, db *sql.DB) {
 	authorRouter.GET("/user/archives", func(context *gin.Context) {
 		archiveController.GetArchivesByUser(context, db)
 	})
+
+	// Author Specific Discussions
+	authorRouter.GET("/user/discussions/joined", func(context *gin.Context) {
+		authorController.GetDiscussionsJoinedByUser(context, db)
+	})
+	authorRouter.GET("/user/discussions/created", func(context *gin.Context) {
+		authorController.GetDiscussionsCreatedByUser(context, db)
+	})
 }

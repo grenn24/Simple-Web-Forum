@@ -24,17 +24,21 @@ import {
 	changeGender,
 } from "./signUpSlice";
 import { motion } from "motion/react";
+import genders from "./genders";
+import faculties from "./faculties";
 
 const SignUpStage2 = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const [disableFacultySelect, setDisableFacultySelect] = useState(false);
-	const { currentSignUpStage, birthday, faculty, gender } = useAppSelector((state) => ({
-		currentSignUpStage: state.signUp.currentSignUpStage,
-		birthday: state.signUp.birthday,
-		faculty: state.signUp.faculty,
-		gender: state.signUp.gender,
-	}));
+	const { currentSignUpStage, birthday, faculty, gender } = useAppSelector(
+		(state) => ({
+			currentSignUpStage: state.signUp.currentSignUpStage,
+			birthday: state.signUp.birthday,
+			faculty: state.signUp.faculty,
+			gender: state.signUp.gender,
+		})
+	);
 
 	// check if current sign up stage is at 0
 	useEffect(() => {
@@ -46,12 +50,16 @@ const SignUpStage2 = () => {
 	const handleBirthdaySelect = (date: Date) => {
 		dispatch(changeBirthday(date));
 	};
-	const handleFacultySelect = (faculty: string) => {
-		dispatch(changeFaculty(faculty));
+	const handleFacultySelect = (index: number) => {
+				index !== -1
+					? dispatch(changeFaculty(faculties[index]))
+					: dispatch(changeFaculty(""));
 	};
-	const handleGenderSelect = (gender: string)=>{
-		dispatch(changeGender(gender));
-	}
+	const handleGenderSelect = (index: number) => {
+		index !== -1
+			? dispatch(changeGender(genders[index]))
+			: dispatch(changeGender(""));
+	};
 	return (
 		<motion.div
 			initial={{ opacity: 0 }}
@@ -101,9 +109,9 @@ const SignUpStage2 = () => {
 						</Box>
 						<Select
 							label="Gender"
-							defaultValue={gender}
+							currentItemIndex={genders.findIndex((value) => value === gender)}
+							selectItemsArray={genders}
 							handleSelect={handleGenderSelect}
-							values={["Male", "Female"]}
 						/>
 						<br />
 						<br />
@@ -112,25 +120,15 @@ const SignUpStage2 = () => {
 							handleDateSelect={handleBirthdaySelect}
 							defaultValue={birthday}
 							width="100%"
-							onClear={()=>dispatch(changeBirthday(null))}
+							onClear={() => dispatch(changeBirthday(null))}
 						/>
 						<br />
 						<br />
 						<Select
 							label="Faculty"
-							defaultValue={faculty}
+							currentItemIndex={faculties.findIndex((value) => value === faculty)}
 							handleSelect={handleFacultySelect}
-							values={[
-								"Computing",
-								"Business",
-								"Dentistry",
-								"Law",
-								"Medicine",
-								"Science",
-								"Arts and Social Sciences",
-								"Public Health",
-								"Engineering",
-							]}
+							selectItemsArray={faculties}
 							disabled={disableFacultySelect}
 						/>
 						<br />

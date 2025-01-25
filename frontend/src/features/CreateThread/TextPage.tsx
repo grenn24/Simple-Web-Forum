@@ -21,9 +21,10 @@ interface Prop {
 }
 
 const TextPage = ({ register, errors, control, watch }: Prop) => {
-	const { topicsSelected, content } = useAppSelector((state) => ({
+	const { topicsSelected, content, discussionID } = useAppSelector((state) => ({
 		topicsSelected: state.createThread.topicsSelected,
 		content: state.createThread.content,
+		discussionID: state.createThread.discussionID
 	}));
 
 	const dispatch = useAppDispatch();
@@ -45,7 +46,7 @@ const TextPage = ({ register, errors, control, watch }: Prop) => {
 						{...register("title", {
 							required: "Thread title is required",
 							validate: {
-								validTitle: (x: string) => /^.{0,299}$/.test(x),
+								validTitle: (x: string) => /^.{0,50}$/.test(x),
 							},
 						})}
 						error={!!errors.title}
@@ -59,7 +60,7 @@ const TextPage = ({ register, errors, control, watch }: Prop) => {
 				fontWeight={500}
 				color={errors.title?.type === "validTitle" ? "red" : "inherit"}
 			>
-				{watch("title")?.length ? watch("title")?.length : 0}/300 Characters
+				{watch("title")?.length ? watch("title")?.length : 0}/50 Characters
 			</Typography>
 
 			<br />
@@ -78,6 +79,7 @@ const TextPage = ({ register, errors, control, watch }: Prop) => {
 						]}
 						topicsSelected={topicsSelected}
 						setTopicsSelected={handleSelectTopic}
+						disabled={discussionID === 0 ? false : true}
 					/>
 				)}
 			/>

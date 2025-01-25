@@ -41,12 +41,14 @@ interface SelectChipProp {
 	predefinedTopics: string[];
 	topicsSelected: string[];
 	setTopicsSelected: (topics: string[]) => void;
+	disabled?: boolean
 }
 
 export default function SelectChip({
 	predefinedTopics,
 	topicsSelected,
 	setTopicsSelected,
+	disabled=false
 }: SelectChipProp) {
 	const theme = useTheme();
 	const [customTopicField, setCustomTopicField] = useState("");
@@ -88,9 +90,10 @@ export default function SelectChip({
 	return (
 		<>
 			<FormControl fullWidth style={{ userSelect: "none" }}>
-				<InputLabel id="demo-multiple-chip-label">Topics</InputLabel>
+				<InputLabel id="demo-multiple-chip-label" disabled={disabled}>Topics</InputLabel>
 				<Select
 					ref={selectRef}
+					disabled={disabled}
 					labelId="demo-multiple-chip-label"
 					multiple
 					value={topicsSelected}

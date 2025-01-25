@@ -8,12 +8,12 @@ import {
 } from "@mui/material";
 import Button from "../components/Button";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TabMenu from "../components/TabMenu";
 import TextPage from "../features/CreateThread/TextPage";
 import ImagePage from "../features/CreateThread/ImagePage";
 import { useForm } from "react-hook-form";
-import { postFormData } from "../utilities/api";
+import { get, postFormData } from "../utilities/api";
 import { useEffect, useState } from "react";
 import Snackbar from "../components/Snackbar";
 import { createWebsocket } from "../utilities/websocket";
@@ -26,14 +26,22 @@ import {
 	changeOpenImageUploadedSnackbar,
 	changeOpenVideoUploadedSnackbar,
 	resetFields,
+	changeDiscussionID,
 } from "../features/CreateThread/createThreadSlice";
 import VideoPage from "../features/CreateThread/VideoPage";
 import { convertToRaw } from "draft-js";
+import { DiscussionDTO } from "../dtos/DiscussionDTO";
+import { parseDiscussions } from "../utilities/parseApiResponse";
+import Select from "../components/Select";
 
 const CreateThread = () => {
+	const location = useLocation();
 	const navigate = useNavigate();
 	const [isUploading, setIsUploading] = useState(false);
-
+	const [discussionsJoined, setDiscussionsJoined] = useState<DiscussionDTO[]>(
+		[]
+	);
+	const [selectItemIndex, setSelectItemIndex] = useState(-1);
 	const [openThreadUploadStartedSnackbar, setOpenThreadUploadStartedSnackbar] =
 		useState(false);
 	const [openThreadUploadErrorSnackbar, setOpenThreadUploadErrorSnackbar] =
@@ -53,7 +61,6 @@ const CreateThread = () => {
 	});
 	const dispatch = useAppDispatch();
 	const {
-		uploads,
 		isCompressingImages,
 		openImageUploadedSnackbar,
 		openVideoUploadedSnackbar,
@@ -61,6 +68,7 @@ const CreateThread = () => {
 		videosSelected,
 		topicsSelected,
 		content,
+		discussionID,
 	} = useAppSelector((state) => ({
 		uploads: state.createThread.uploads,
 		isCompressingImages: state.createThread.isCompressingImages,
@@ -70,11 +78,47 @@ const CreateThread = () => {
 		videosSelected: state.createThread.videosSelected,
 		topicsSelected: state.createThread.topicsSelected,
 		content: state.createThread.content,
+		discussionID: state.createThread.discussionID,
 	}));
+
+	useEffect(() => {
+		get(
+			"/authors/user/discussions/joined",
+			(res) => {
+				const responseBody = res.data.data;
+				const discussionsJoined = parseDiscussions(responseBody);
+				console.log(discussionID);
+				setDiscussionsJoined(discussionsJoined);
+				if (location.state) {
+					
+					dispatch(changeDiscussionID(Number(location.state?.discussionID)));
+					setSelectItemIndex(
+						discussionsJoined.findIndex(
+							(discussion) =>
+								discussion.discussionID === Number(location.state?.discussionID)
+						) + 1
+					);
+				} else {
+					setSelectItemIndex(
+						discussionID
+							? discussionsJoined.findIndex(
+									(discussion) => discussion.discussionID === discussionID
+							  ) + 1
+							: 0
+					);
+				}
+			},
+			(err) => console.log(err)
+		);
+	}, [location.state]);
 
 	const createThread = handleSubmit((data) => {
 		const uploadID = uuidv4();
-		if (watch("title") !== "" && !isCompressingImages) {
+		if (watch("title") === "" || isCompressingImages) {
+			setOpenThreadTitleMissingSnackbar(true);
+			return;
+		}
+		if (discussionID === 0) {
 			setIsUploading(true);
 			const formData = new FormData();
 			formData.append("upload_id", uploadID);
@@ -158,15 +202,92 @@ const CreateThread = () => {
 				}
 			);
 		} else {
-			setOpenThreadTitleMissingSnackbar(true);
+			setIsUploading(true);
+			const formData = new FormData();
+			formData.append("upload_id", uploadID);
+			formData.append("title", data.title);
+			formData.append(
+				"content",
+				JSON.stringify(convertToRaw(content.getCurrentContent()))
+			);
+			imagesSelected.forEach((image: File) => formData.append("images", image));
+			videosSelected.forEach((video: File) => formData.append("videos", video));
+			postFormData(
+				`/discussions/${discussionID}/threads`,
+				formData,
+				() => {
+					dispatch(resetFields());
+					reset();
+					setValue("title", "");
+					setIsUploading(false);
+					setOpenThreadUploadStartedSnackbar(true);
+					const websocket = createWebsocket("/threads/upload-progress");
+
+					websocket.onopen = () => {
+						websocket.send(
+							JSON.stringify({
+								upload_id: uploadID,
+							})
+						);
+						dispatch(
+							addUpload({
+								uploadID: uploadID,
+								title: data.title,
+								uploadStatus: "incomplete",
+								progress: 0,
+							})
+						);
+					};
+					websocket.onmessage = (event) => {
+						const upload = JSON.parse(event.data);
+						if (upload.status === "incomplete") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									title: data.title,
+									uploadStatus: upload.status,
+									progress: upload.progress,
+								})
+							);
+						}
+						if (upload.status === "complete") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									title: data.title,
+									uploadStatus: upload.status,
+									progress: upload.progress,
+								})
+							);
+						}
+						if (upload.status === "error") {
+							dispatch(
+								editUpload({
+									uploadID: uploadID,
+									title: data.title,
+									uploadStatus: upload.status,
+								})
+							);
+						}
+					};
+					websocket.onclose = () => {
+						websocket.close();
+						setTimeout(() => dispatch(deleteUpload(uploadID)), 2000);
+					};
+				},
+				(err) => {
+					console.log(err);
+					setOpenThreadUploadErrorSnackbar(true);
+					setIsUploading(false);
+				}
+			);
 		}
 	});
 
 	useEffect(() => {
 		window.addEventListener("beforeunload", (event) => event.preventDefault());
-		return window.removeEventListener(
-			"beforeunload",
-			(event) => event.preventDefault()
+		return window.removeEventListener("beforeunload", (event) =>
+			event.preventDefault()
 		);
 	}, []);
 
@@ -187,7 +308,7 @@ const CreateThread = () => {
 				fontFamily="Open Sans"
 				fontWeight={700}
 				fontSize={30}
-				color="primary.dark"
+				color="text.primary"
 				width="100%"
 				marginBottom={2}
 			>
@@ -205,9 +326,36 @@ const CreateThread = () => {
 			>
 				<Button
 					buttonIcon={<ArrowBackRoundedIcon sx={{ fontSize: 35 }} />}
-					color="primary.dark"
+					color="text.primary"
 					buttonStyle={{ mx: 0, p: 0 }}
 					handleButtonClick={() => navigate(-1)}
+				/>
+
+				<Select
+					selectItemsArray={[
+						"Public",
+						...discussionsJoined?.map((discussion) => discussion.name),
+					]}
+					handleSelect={(index) => {
+						setSelectItemIndex(index);
+						if (index) {
+							dispatch(
+								changeDiscussionID(discussionsJoined[index - 1].discussionID)
+							);
+						} else {
+							dispatch(changeDiscussionID(0));
+						}
+					}}
+					label="Discussion"
+					size="medium"
+					style={{
+						width: 250,
+						height: 50,
+						background: "rgb(220,220,220,1)",
+						border: 0,
+					}}
+					showEmptyItem={false}
+					currentItemIndex={selectItemIndex}
 				/>
 			</Box>
 			<Container
@@ -274,6 +422,7 @@ const CreateThread = () => {
 				{/*Image compressing snackbar*/}
 				<Snackbar
 					openSnackbar={isCompressingImages}
+					
 					message="Compressing Images"
 					undoButton={false}
 					actionIcon={<CircularProgress size={27} sx={{ marginRight: 1.5 }} />}

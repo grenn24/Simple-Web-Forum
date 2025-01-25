@@ -14,17 +14,14 @@ const AuthorsSearchPage = () => {
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
 	const sort = searchParams.get("sort");
-	let currentSortIndex = 0;
-	authorSortOrder.forEach((label, index) => {
-		if (label === sort) {
-			currentSortIndex = index;
-		}
-	});
+
 	const navigate = useNavigate();
 	useEffect(() => {
 		setIsLoading(true);
 		get(
-			`/authors/search?query=${query}&sort=${currentSortIndex}`,
+			`/authors/search?query=${query}&sort=${
+				sort ? authorSortOrder.findIndex((element) => element === sort) : 0
+			}`,
 			(res) => {
 				const responseBody = res.data.data;
 				setAuthors(parseAuthors(responseBody));

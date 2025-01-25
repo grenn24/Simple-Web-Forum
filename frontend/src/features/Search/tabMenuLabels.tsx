@@ -1,1 +1,7 @@
-export const tabMenuLabels = ["Threads", "Topics", "Comments", "Authors"];
+export const tabMenuLabels = [
+	"Threads",
+	"Topics",
+	"Discussions",
+	"Comments",
+	"Authors",
+];

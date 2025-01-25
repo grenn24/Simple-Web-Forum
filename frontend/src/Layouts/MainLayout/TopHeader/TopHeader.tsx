@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { parseAuthor } from "../../../utilities/parseApiResponse";
 import { useAppDispatch, useAppSelector } from "../../../utilities/redux";
 import {
+	changeAuthorID,
 	changeAvatarIconLink,
 	changeName,
 	changeUsername,
@@ -48,6 +49,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					dispatch(changeUsername(user.username));
 					dispatch(changeName(user.name));
 					dispatch(changeAvatarIconLink(user.avatarIconLink));
+					dispatch(changeAuthorID(user.authorID))
 				},
 				(err) => console.log(err)
 			),
@@ -113,7 +115,6 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 								xl: "none",
 							},
 							px: 1.5,
-				
 						}}
 						handleButtonClick={() => {
 							openLeftNavBar();
@@ -126,7 +127,15 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							)
 						}
 					/>
-					<SearchBar placeholder="Search for anything" />
+					<SearchBar
+						placeholder="Search for anything"
+						handleKeyDown={(e) => {
+							if (e.key === "Enter" && e.currentTarget.value !== "") {
+								navigate(`/Search?query=${e.currentTarget.value}&type=Threads`);
+								(document.activeElement as HTMLElement)?.blur();
+							}
+						}}
+					/>
 					<Box
 						display="flex"
 						alignItems="center"
@@ -138,7 +147,6 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 							color="text.primary"
 							borderRadius={50}
 							fontSize={20}
-							
 							buttonIcon={
 								<AddRoundedIcon
 									sx={{
@@ -146,7 +154,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 									}}
 								/>
 							}
-							buttonStyle={{ height: "80%", px:1.3 }}
+							buttonStyle={{ height: "80%", px: 1.3 }}
 							toolTipText="Create Thread"
 							handleButtonClick={() => {
 								navigate("../Create-Thread");

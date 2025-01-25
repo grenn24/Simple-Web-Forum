@@ -24,6 +24,8 @@ import { useForm } from "react-hook-form";
 import { get, putFormData } from "../../../utilities/api";
 import { useParams } from "react-router-dom";
 import { parseAuthor } from "../../../utilities/parseApiResponse";
+import faculty from "../faculty";
+import gender from "../gender";
 
 interface Prop {
 	openProfileInfoDialog: boolean;
@@ -40,26 +42,27 @@ const ProfileInfo = ({
 		setError,
 	} = useForm({ mode: "onChange" });
 	const { authorID } = useParams();
-	const [isLoading,setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [author, setAuthor] = useState({} as AuthorDTO);
-	const [faculty, setFaculty] = useState("");
-	const [gender, setGender] = useState("");
-	const [birthday, setBirthday] = useState<Date|null>(null);
+	const [selectedFaculty, setSelectedFaculty] = useState("");
+	const [selectedGender, setSelectedGender] = useState("");
+	const [birthday, setBirthday] = useState<Date | null>(null);
 	const handleUpdateProfileInfo = handleSubmit((data) => {
 		setIsLoading(true);
 		const formData = new FormData();
 		formData.append("name", data.name);
 		formData.append("username", data.username);
-		formData.append("faculty", faculty);
-		formData.append("gender", gender);
+		formData.append("faculty", selectedFaculty);
+		formData.append("gender", selectedGender);
 		birthday
 			? formData.append("birthday", birthday.toLocaleDateString("en-sg"))
 			: formData.append("birthday", "");
 		putFormData(
 			`/authors/${author.authorID}`,
 			formData,
-			() => {setIsEditing(false);
+			() => {
+				setIsEditing(false);
 				setIsLoading(false);
 			},
 			(err) => {
@@ -89,9 +92,9 @@ const ProfileInfo = ({
 				const responseBody = res.data.data;
 				const author = parseAuthor(responseBody);
 				setAuthor(author);
-				author.faculty && setFaculty(author.faculty);
+				author.faculty && setSelectedFaculty(author.faculty);
 				author.birthday && setBirthday(author.birthday);
-				author.gender && setGender(author.gender);
+				author.gender && setSelectedGender(author.gender);
 			},
 			(err) => console.log(err)
 		);
@@ -112,7 +115,9 @@ const ProfileInfo = ({
 		>
 			<DialogTitle id="alert-dialog-title">
 				<Box display="flex" justifyContent="space-between" alignItems="center">
-					<Typography fontFamily="Open Sans" fontSize={24}>Profile Info</Typography>
+					<Typography fontFamily="Open Sans" fontSize={24}>
+						Profile Info
+					</Typography>
 					{author.isUser && (
 						<Button
 							disableHoverEffect
@@ -122,7 +127,6 @@ const ProfileInfo = ({
 							}
 							loadingStatus={isLoading}
 							fontFamily="Open Sans"
-						
 						>
 							{isEditing ? "Save" : "Edit All"}
 						</Button>
@@ -215,19 +219,16 @@ const ProfileInfo = ({
 					{isEditing ? (
 						<Select
 							label="Faculty"
-							defaultValue={author.faculty}
-							handleSelect={(faculty) => setFaculty(faculty)}
-							values={[
-								"Computing",
-								"Business",
-								"Dentistry",
-								"Law",
-								"Medicine",
-								"Science",
-								"Arts and Social Sciences",
-								"Public Health",
-								"Engineering",
-							]}
+							currentItemIndex={faculty.findIndex(
+								(faculty) => faculty === selectedFaculty
+							)}
+							handleSelect={(index) =>
+								index !== -1
+									? setSelectedFaculty(faculty[index])
+									: setSelectedFaculty("")
+							}
+							selectItemsArray={faculty}
+							fullWidth
 						/>
 					) : (
 						<Typography>{author.faculty}</Typography>
@@ -246,9 +247,13 @@ const ProfileInfo = ({
 					{isEditing ? (
 						<Select
 							label="Gender"
-							defaultValue={author.gender}
-							handleSelect={(gender) => setGender(gender)}
-							values={["Male", "Female"]}
+							currentItemIndex={["Male", "Female"].findIndex(gender=>gender===selectedGender)}
+							handleSelect={(index) =>
+								index !== -1
+									? setSelectedGender(gender[index])
+									: setSelectedGender("")}
+							selectItemsArray={gender}
+							fullWidth
 						/>
 					) : (
 						<Typography>{author.gender}</Typography>
@@ -272,6 +277,7 @@ const ProfileInfo = ({
 								defaultValue={author.birthday}
 								width="100%"
 								onClear={() => setBirthday(null)}
+								maxDate={new Date()}
 							/>
 						</Box>
 					) : (

@@ -13,6 +13,7 @@ const initialState = {
 	imagesSelected: [] as File[],
 	videosSelected: [] as File[],
 	topicsSelected: [] as string[],
+	discussionID: 0,
 	content: EditorState.createEmpty(),
 	isCompressingImages: false,
 	openImageUploadedSnackbar: false,
@@ -73,7 +74,7 @@ export const createThreadSlice = createSlice({
 			const topic: string = action.payload;
 			state.topicsSelected = [...state.topicsSelected, topic];
 		},
-		changeContent:(state,action)=>{
+		changeContent: (state, action) => {
 			state.content = action.payload;
 		},
 		changeImagesSelected: (state, action) => {
@@ -97,17 +98,21 @@ export const createThreadSlice = createSlice({
 		changeOpenVideoUploadedSnackbar: (state, action) => {
 			state.openVideoUploadedSnackbar = action.payload;
 		},
-		resetFields:(state)=>{
-			state.imagesSelected = [],
-			state.videosSelected = [],
-			state.content = EditorState.createEmpty(),
-			state.topicsSelected = []
-		}
+		changeDiscussionID: (state, action) => {
+			state.discussionID = action.payload;
+		},
+		resetFields: (state) => {
+			(state.imagesSelected = []),
+				(state.videosSelected = []),
+				(state.content = EditorState.createEmpty()),
+				(state.topicsSelected = []),
+				(state.discussionID = 0)
+		},
 	},
 });
 
 // Action creators are generated for each reducer function using create slice
-export const { reset, addUpload, deleteUpload, editUpload, addImage, addVideo, changeImagesSelected, changeVideosSelected, changeIsCompressingImages , changeContent, changeOpenImageUploadedSnackbar, changeOpenVideoUploadedSnackbar, changeTopicsSelected, resetFields} =
+export const { reset, addUpload, deleteUpload, editUpload, addImage, addVideo, changeImagesSelected, changeVideosSelected, changeIsCompressingImages , changeContent, changeOpenImageUploadedSnackbar, changeOpenVideoUploadedSnackbar, changeTopicsSelected, changeDiscussionID,resetFields} =
 	createThreadSlice.actions;
 
 const createThreadSliceReducer = createThreadSlice.reducer;

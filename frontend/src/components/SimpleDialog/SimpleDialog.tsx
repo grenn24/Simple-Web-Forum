@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle} from "@mui/material";
+import { Breakpoint, Dialog, DialogTitle} from "@mui/material";
 import {AnimatePresence, motion} from "motion/react"
 
 interface Prop {
@@ -10,6 +10,7 @@ interface Prop {
 	backdropBlur?: string | number;
 	borderRadius?: string | number;
 	fullWidth?: boolean;
+	maxWidth?: Breakpoint | false;
 	width?: number;
 	dialogTitleFontSize?: number;
 	dialogTitleFontFamily?: string;
@@ -26,6 +27,7 @@ const SimpleDialog = ({
 	backdropBlur,
 	borderRadius,
 	fullWidth,
+	maxWidth,
 	width,
 	dialogTitleFontSize,
 	dialogTitleFontFamily,
@@ -48,7 +50,7 @@ const SimpleDialog = ({
 			}}
 			onClick={(event) => event.stopPropagation()}
 			fullWidth={fullWidth}
-		
+			maxWidth={maxWidth}
 		>
 			<AnimatePresence>
 				<motion.div

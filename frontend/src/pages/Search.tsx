@@ -18,10 +18,10 @@ import {
 import TabMenu from "../components/TabMenu";
 import { tabMenuLabels } from "../features/Search/tabMenuLabels";
 import { tabMenuPages } from "../features/Search/tabMenuPages";
-import { useState } from "react";
 import sortOrders from "../features/Search/sortOrders";
 import sortIcons from "../features/Search/sortIcons";
 import Menu from "../components/Menu";
+import { useState } from "react";
 
 const Search = () => {
 	const [searchParams, _] = useSearchParams();
@@ -29,21 +29,10 @@ const Search = () => {
 	const query = searchParams.get("query");
 	const [searchBarValue, setSearchBarValue] = useState(query);
 	const sort = searchParams.get("sort");
-	let currentTabIndex = 0;
-	tabMenuLabels.forEach((label, index) => {
-		if (label === type) {
-			currentTabIndex = index;
-		}
-	});
-	let currentSortIndex = 0;
-	sortOrders[currentTabIndex].forEach((label, index) => {
-		if (label === sort) {
-			currentSortIndex = index;
-		}
-	});
 
 	const navigate = useNavigate();
 	const theme = useTheme();
+
 	return (
 		<Box
 			sx={{
@@ -81,7 +70,6 @@ const Search = () => {
 						value={searchBarValue}
 						size="small"
 						placeholder="Search for ... anything"
-						defaultValue={query}
 						onKeyDown={(e) => {
 							const input = e.target as HTMLInputElement;
 							if (e.key === "Enter" && input.value !== "") {
@@ -137,11 +125,19 @@ const Search = () => {
 					toolTipText="Back"
 				/>
 				<Menu
-					menuExpandedItemsArray={sortOrders[currentTabIndex]}
-					menuExpandedIconsArray={sortIcons[currentTabIndex]}
-					menuExpandedDataValuesArray={sortOrders[currentTabIndex].map(
-						(sort) => sort
-					)}
+					menuExpandedItemsArray={
+						sortOrders[
+							type ? tabMenuLabels.findIndex((element) => element === type) : 0
+						]
+					}
+					menuExpandedIconsArray={
+						sortIcons[
+							type ? tabMenuLabels.findIndex((element) => element === type) : 0
+						]
+					}
+					menuExpandedDataValuesArray={sortOrders[
+						type ? tabMenuLabels.findIndex((element) => element === type) : 0
+					].map((sort) => sort)}
 					menuIcon={<SortRoundedIcon sx={{ fontSize: 20 }} />}
 					menuStyle={{
 						borderRadius: 30,
@@ -152,14 +148,30 @@ const Search = () => {
 						color: "primary.dark",
 					}}
 					handleMenuExpandedItemsClick={Array(
-						sortOrders[currentTabIndex].length
+						sortOrders[
+							type ? tabMenuLabels.findIndex((element) => element === type) : 0
+						].length
 					).fill((event: React.MouseEvent<HTMLElement>) =>
-						navigate(`?query=${query}&type=${type}&sort=${event.currentTarget.dataset?.value}`)
+						navigate(
+							`?query=${query}&type=${type}&sort=${event.currentTarget.dataset?.value}`
+						)
 					)}
 					toolTipText="Sort Options"
 					menuExpandedPosition={{ vertical: "top", horizontal: "right" }}
 				>
-					{sortOrders[currentTabIndex][currentSortIndex]}
+					{
+						sortOrders[
+							type ? tabMenuLabels.findIndex((element) => element === type) : 0
+						][
+							sort
+								? sortOrders[
+										type
+											? tabMenuLabels.findIndex((element) => element === type)
+											: 0
+								  ].findIndex((element) => element === sort)
+								: 0
+						]
+					}
 				</Menu>
 			</Box>
 			<Box
@@ -171,7 +183,9 @@ const Search = () => {
 				<TabMenu
 					tabLabelArray={tabMenuLabels}
 					tabPageArray={tabMenuPages}
-					defaultPageIndex={currentTabIndex}
+					defaultPageIndex={
+						type ? tabMenuLabels.findIndex((element) => element === type) : 0
+					}
 					handleTabLabelClick={(newTabIndex) =>
 						navigate("?query=" + query + "&type=" + tabMenuLabels[newTabIndex])
 					}

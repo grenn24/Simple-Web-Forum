@@ -71,9 +71,10 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 interface Prop {
 	thread: ThreadDTO;
+	handleDeleteThread?: ()=>void
 }
 
-const ThreadCard = ({ thread }: Prop) => {
+const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 	const [openDeleteThreadDialog, setOpenDeleteThreadDialog] = useState(false);
 	const [openShareDialog, setOpenShareDialog] = useState(false);
 	const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -97,7 +98,7 @@ const ThreadCard = ({ thread }: Prop) => {
 			<Card elevation={3}>
 				<CardActionArea
 					sx={{ borderRadius: 0 }}
-					onClick={() => navigate(`../Thread/${thread.threadID}`)}
+					onClick={() => navigate(`/Thread/${thread.threadID}`)}
 					disableRipple
 				>
 					<CardHeader
@@ -161,7 +162,7 @@ const ThreadCard = ({ thread }: Prop) => {
 						})}
 					/>
 
-					<CardContent sx={{paddingTop:0}}>
+					<CardContent sx={{ paddingTop: 0 }}>
 						<Typography variant="h5" color="primary.dark" fontWeight={760}>
 							{thread.title}
 						</Typography>
@@ -283,14 +284,17 @@ const ThreadCard = ({ thread }: Prop) => {
 							<ExpandMoreIcon
 								sx={{
 									color: "primary.dark",
-									display: thread.content ? "block" : "none",
+									display:
+										thread.content
+											? "block"
+											: "none",
 								}}
 							/>
 						</ExpandMore>
 					</CardActions>
 
 					<Collapse in={expandCardContent} timeout="auto" unmountOnExit>
-						<CardContent sx={{py:0}}>
+						<CardContent sx={{ py: 0 }}>
 							<Divider />
 						</CardContent>
 
@@ -322,13 +326,14 @@ const ThreadCard = ({ thread }: Prop) => {
 					handleListItemsClick={[
 						(event) => {
 							event.stopPropagation();
-							navigate(-1);
 							Delete(
 								`threads/${thread.threadID}`,
 								{},
 								() => {},
 								(err) => console.log(err)
 							);
+							handleDeleteThread && handleDeleteThread();
+							setOpenDeleteThreadDialog(false);
 						},
 						(event) => {
 							event.stopPropagation();

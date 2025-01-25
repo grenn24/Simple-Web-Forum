@@ -6,6 +6,7 @@ import userInfoSliceReducer from "./Layouts/MainLayout/TopHeader/userInfoSlice";
 import { enableMapSet } from "immer";
 import storage from "redux-persist/lib/storage";
 import persistReducer from "redux-persist/lib/persistReducer";
+import createDiscussionSliceReducer from "./features/Discussions/createDiscussionSlice";
 
 // Enable map state variables
 enableMapSet();
@@ -21,6 +22,7 @@ const store = configureStore({
 		signUp: signUpSliceReducer,
 		createThread: createThreadSliceReducer,
 		userInfo: persistReducer(persistConfig,userInfoSliceReducer),
+		createDiscussion: createDiscussionSliceReducer,
 	},
 });
 

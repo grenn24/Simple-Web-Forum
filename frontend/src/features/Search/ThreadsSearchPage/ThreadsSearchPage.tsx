@@ -15,27 +15,18 @@ const ThreadsSearchPage = () => {
 	const query = searchParams.get("query");
 	const sort = searchParams.get("sort");
 	const boxRef = useRef();
-	let currentSortIndex = 0;
-	threadSortOrder.forEach((label, index) => {
-		if (label === sort) {
-			currentSortIndex = index;
-		}
-	});
 	const location = useLocation();
 
-	
 	const navigate = useNavigate();
 	useEffect(() => {
-	
-		
-
-
 		setIsLoading(true);
 		get(
-			`/threads/search?query=${query}&sort=${currentSortIndex}`,
+			`/threads/search?query=${query}&sort=${
+				sort ? threadSortOrder.findIndex((element) => element === sort) : 0
+			}`,
 			(res) => {
 				const responseBody = res.data.data;
-				setThreads([...threads, ...parseThreads(responseBody)]);
+				setThreads(parseThreads(responseBody));
 				setIsLoading(false);
 				window.scrollTo(0, Number(sessionStorage.getItem(location.key)));
 			},

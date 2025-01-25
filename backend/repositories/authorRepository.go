@@ -436,7 +436,7 @@ func (authorRepository *AuthorRepository) CreateAuthor(author *models.Author) (i
 
 	row := authorRepository.DB.QueryRow(`
 		INSERT INTO author (name, username, email, password_hash, avatar_icon_link, biography, birthday, faculty, gender)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING author_id
 	`, author.Name, author.Username, author.Email, author.PasswordHash, author.AvatarIconLink, author.Biography, author.Birthday, author.Faculty, author.Gender)
 	// Check for errors while returning author id

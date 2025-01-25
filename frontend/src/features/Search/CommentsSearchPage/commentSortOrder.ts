@@ -1,2 +1,2 @@
-const commentortOrder = ["New Comments", "Old Comments"];
-export default commentortOrder;
+const commentSortOrder = ["New Comments", "Old Comments"];
+export default commentSortOrder;

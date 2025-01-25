@@ -14,17 +14,13 @@ const TopicsSearchPage = () => {
 	const [searchParams, _] = useSearchParams();
 	const query = searchParams.get("query");
 	const sort = searchParams.get("sort");
-	let currentSortIndex = 0;
-	topicSortOrder.forEach((label, index) => {
-		if (label === sort) {
-			currentSortIndex = index;
-		}
-	});
 	const navigate = useNavigate();
 	useEffect(() => {
 		setIsLoading(true);
 		get(
-			`/topics/search?query=${query}&sort=${currentSortIndex}`,
+			`/topics/search?query=${query}&sort=${
+				sort ? topicSortOrder.findIndex((element) => element === sort) : 0
+			}`,
 			(res) => {
 				const responseBody = res.data.data;
 				setTopics(parseTopics(responseBody));
@@ -32,7 +28,7 @@ const TopicsSearchPage = () => {
 			},
 			(err) => console.log(err)
 		);
-	}, [query,sort]);
+	}, [query, sort]);
 
 	return (
 		<Box width="100%" display="flex" flexDirection="column" alignItems="center">
@@ -61,7 +57,7 @@ const TopicsSearchPage = () => {
 					listItemTextStyle={{ flexGrow: 1, maxWidth: "100%" }}
 					divider
 					disableRipple
-					listStyle={{ flexGrow: 1, maxWidth: "100%", width:"100%" }}
+					listStyle={{ flexGrow: 1, maxWidth: "100%", width: "100%" }}
 				/>
 			)}
 		</Box>

@@ -44,7 +44,7 @@ func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) 
 		INNER JOIN thread ON thread_archive.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		INNER JOIN author AS archive_author ON thread_archive.author_id = archive_author.author_id
-		WHERE thread_archive.author_id = $1 AND thread.visiblity = 'public'
+		WHERE thread_archive.author_id = $1 AND thread.visibility = 'public'
 	`, authorID)
 
 	if err != nil {

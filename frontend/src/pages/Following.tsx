@@ -15,36 +15,33 @@ import { ThreadDTO } from "../dtos/ThreadDTO";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";
+import { removeFromArray } from "../utilities/arrayManipulation";
 
 const Following = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [searchParams, _] = useSearchParams();
 	const sort = searchParams.get("sort");
-	let currentSortIndex = 0;
-	sortOrder.forEach((value, index) => {
-		if (value === sort) {
-			currentSortIndex = index;
-		}
-	});
+
 	const navigate = useNavigate();
 	const [followedThreads, setFollowedThreads] = useState<ThreadDTO[]>([]);
 
 	// Retrieve followed threads from api (re-fetch whenever sorting order is changed)
-	useEffect(
-		() =>
-			{setIsLoading(true);
-				get<ThreadDTO[]>(
-				"./authors/user/follows?sort=" + currentSortIndex,
-				(res) => {
-					const responseBody = res.data.data;
-					const threads = parseThreads(responseBody);
-					setFollowedThreads(threads);
-					setIsLoading(false);
-				},
-				(err) => console.log(err)
-			);},
-		[sort]
-	);
+	useEffect(() => {
+		setIsLoading(true);
+		get<ThreadDTO[]>(
+			"./authors/user/follows?sort=" +
+				(sort
+					? String(sortOrder.findIndex((element) => element === sort))
+					: "0"),
+			(res) => {
+				const responseBody = res.data.data;
+				const threads = parseThreads(responseBody);
+				setFollowedThreads(threads);
+				setIsLoading(false);
+			},
+			(err) => console.log(err)
+		);
+	}, [sort]);
 
 	return (
 		<>
@@ -117,7 +114,11 @@ const Following = () => {
 						)}
 						toolTipText="Sort Options"
 					>
-						{sortOrder[currentSortIndex]}
+						{
+							sortOrder[
+								sort ? sortOrder.findIndex((element) => element === sort) : 0
+							]
+						}
 					</Menu>
 				</Box>
 				<Box
@@ -139,9 +140,9 @@ const Following = () => {
 							<ThreadCardLoading bodyHeight={180} />
 						</Box>
 					) : followedThreads.length !== 0 ? (
-						followedThreads.map((followedThread) => (
+						followedThreads.map((followedThread,index) => (
 							<Box width="100%" key={followedThread.threadID}>
-								<ThreadCard thread={followedThread} />
+								<ThreadCard thread={followedThread}  handleDeleteThread={()=>setFollowedThreads(removeFromArray(followedThreads,index))} />
 								<Divider sx={{ my: 3 }} />
 							</Box>
 						))

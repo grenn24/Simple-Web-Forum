@@ -11,7 +11,7 @@ interface Prop {
 	handleMenuExpandedItemsClick?: ((event: React.MouseEvent<HTMLElement>) => void)[];
 	handleMenuIconClick?: (event: React.MouseEvent<HTMLElement>) => void;
 	closeMenuOnExpandedItemsClick?: boolean;
-	menuIcon: JSX.Element;
+	menuIcon?: JSX.Element;
 	menuIconDataValue?: string;
 	toolTipText?: string;
 	defaultSelectedItemIndex?: number;
@@ -56,6 +56,7 @@ const Menu = ({
 			<Tooltip title={toolTipText ? toolTipText : ""}>
 				{!children ? (
 					<IconButton
+				
 						onClick={(event: React.MouseEvent<HTMLElement>) => {
 							setShowMenuExpanded(event.currentTarget);
 							handleMenuIconClick && handleMenuIconClick(event);

@@ -5,7 +5,7 @@ import { removeFromArray } from "../../utilities/arrayManipulation";
 import { openFileInNewWindow } from "../../utilities/fileManipulation";
 import Snackbar from "../../components/Snackbar";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch } from "../../utilities/redux";
 import { ActionCreatorWithPayload } from "@reduxjs/toolkit";
 
@@ -18,8 +18,10 @@ const UploadedFilesList = ({ filesSelected, setFilesSelected }: Prop) => {
 	const dispatch = useAppDispatch();
 	const files = Array.from(filesSelected).map((file: File) => file);
 	const [fileDeleted, setfileDeleted] = useState<File>({} as File);
-	const [openfileDeletedSnackbar, setOpenfileDeletedSnackbar] =
+	const [openFileDeletedSnackbar, setOpenfileDeletedSnackbar] =
 		useState(false);
+
+		useEffect(()=>console.log(openFileDeletedSnackbar),[]);
 	return (
 		files.length !== 0 && (
 			<>
@@ -98,7 +100,7 @@ const UploadedFilesList = ({ filesSelected, setFilesSelected }: Prop) => {
 				))}
 				{/*File Deleted Snackbar*/}
 				<Snackbar
-					openSnackbar={openfileDeletedSnackbar}
+					openSnackbar={openFileDeletedSnackbar}
 					setOpenSnackbar={setOpenfileDeletedSnackbar}
 					message="File deleted"
 					duration={3000}

@@ -99,15 +99,24 @@ func (adminService *AdminService) InitialiseDatabase() error {
 			name TEXT NOT NULL,
 			description TEXT NOT NULL DEFAULT '',
 			creator_author_id INTEGER NOT NULL REFERENCES author(author_id),
-			discussion_icon_link TEXT,
+			background_icon_link TEXT,
 			created_at TIMESTAMP NOT NULL DEFAULT NOW()
 		);
 
-		CREATE TABLE IF NOT EXISTS discussionMember (
+		CREATE TABLE IF NOT EXISTS discussion_member (
 			discussion_member_id SERIAL PRIMARY KEY,
 			discussion_id INTEGER NOT NULL REFERENCES discussion(discussion_id) ON DELETE CASCADE,
 			member_author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
-			UNIQUE (discussion_id, member_author_id)
+			UNIQUE (discussion_id, member_author_id),
+			created_at TIMESTAMP NOT NULL DEFAULT NOW()
+		);
+
+		CREATE TABLE IF NOT EXISTS discussion_join_request (
+			request_id SERIAL PRIMARY KEY,
+			discussion_id INTEGER NOT NULL REFERENCES discussion(discussion_id) ON DELETE CASCADE,
+			author_id INTEGER NOT NULL REFERENCES author(author_id) ON DELETE CASCADE,
+			created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+			UNIQUE (discussion_id, author_id)
 		);
 
 		CREATE TABLE IF NOT EXISTS follow (
@@ -155,9 +164,15 @@ func (adminService *AdminService) InitialiseDatabase() error {
 		END;
 		$$ LANGUAGE PLPGSQL;
 
-		CREATE TRIGGER update_popularity
-		AFTER INSERT OR UPDATE
+		CREATE OR REPLACE TRIGGER update_popularity_after_thread_insert
+		AFTER INSERT
 		ON thread
+		FOR EACH STATEMENT
+		EXECUTE PROCEDURE update_popularity();
+
+		CREATE OR REPLACE TRIGGER update_popularity_after_threadTopicJunction_insert
+		AFTER INSERT
+		ON threadTopicJunction
 		FOR EACH STATEMENT
 		EXECUTE PROCEDURE update_popularity();
 	`)

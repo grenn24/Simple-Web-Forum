@@ -82,11 +82,14 @@ func (authenticationService *AuthenticationService) GoogleOAuth(accessToken stri
 			// Check if username already exists, then modify the username with an uuid string
 			if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
 				user.Username = user.Username + "_" + uuid.NewString()
-			}
-			return "", "", &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
+				authorID, _ = authorRepository.CreateAuthor(user)
+				user.AuthorID = authorID
+			} else {
+				return "", "", &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 			}
 		}
 		user.AuthorID = authorID
@@ -129,7 +132,7 @@ func (authenticationService *AuthenticationService) GitHubOAuth(authCode string)
 			Message:   err.Error(),
 		}
 	}
-	
+
 	request, err := http.NewRequest("POST", `https://github.com/login/oauth/access_token`, strings.NewReader(string(requestBodyJSON)))
 	if err != nil {
 		return "", "", &dtos.Error{
@@ -150,7 +153,6 @@ func (authenticationService *AuthenticationService) GitHubOAuth(authCode string)
 		}
 	}
 	defer response.Body.Close()
-
 
 	responseBodyJSON, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -206,6 +208,7 @@ func (authenticationService *AuthenticationService) GitHubOAuth(authCode string)
 	// Unmarshal the JSON byte slice into a user info struct
 	gitHubUserInfo := new(dtos.GitHubUserInfo)
 	err = json.Unmarshal(body, &gitHubUserInfo)
+
 	if err != nil {
 		return "", "", &dtos.Error{
 			Status:    "error",
@@ -213,8 +216,12 @@ func (authenticationService *AuthenticationService) GitHubOAuth(authCode string)
 			Message:   err.Error(),
 		}
 	}
-
-	user := authorRepository.GetAuthorByEmail(gitHubUserInfo.Email)
+	var user *models.Author
+	if gitHubUserInfo.Email == "" {
+		user = authorRepository.GetAuthorByEmail(gitHubUserInfo.Url)
+	} else {
+		user = authorRepository.GetAuthorByEmail(gitHubUserInfo.Email)
+	}
 	// If user records does not exist in database, create a new author with the email given
 	if user == nil {
 		user = new(models.Author)
@@ -232,11 +239,14 @@ func (authenticationService *AuthenticationService) GitHubOAuth(authCode string)
 			// Check if username already exists, then modify the username with an uuid string
 			if err.Error() == "pq: duplicate key value violates unique constraint \"author_username_lowercase\"" {
 				user.Username = user.Username + "_" + uuid.NewString()
-			}
-			return "", "", &dtos.Error{
-				Status:    "error",
-				ErrorCode: "INTERNAL_SERVER_ERROR",
-				Message:   err.Error(),
+				authorID, _ = authorRepository.CreateAuthor(user)
+				user.AuthorID = authorID
+			} else {
+				return "", "", &dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				}
 			}
 		}
 		user.AuthorID = authorID

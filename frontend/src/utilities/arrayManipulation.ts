@@ -4,7 +4,20 @@ export function removeFromArray(array: any[], indexToRemove: number) {
 	return filteredArray;
 }
 
-export function removeElementFromArray(array: any[], target : any) {
+export function removeElementFromArray(array: any[], target: any) {
 	const filteredArray = array.filter((value, _) => value !== target);
 	return filteredArray;
+}
+
+export function arrayContains(
+	array: any[],
+	target: any,
+	predicate: (x: any, y: any) => boolean
+) {
+	for (const element of array) {
+		if (predicate(target, element)) {
+			return true;
+		}
+	}
+	return false;
 }
