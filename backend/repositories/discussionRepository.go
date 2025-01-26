@@ -461,7 +461,7 @@ func (discussionRepository *DiscussionRepository) GetDiscussionsByCreatorAuthorI
 	return discussions, err
 }
 
-func (discussionRepository *DiscussionRepository) UpdateDiscussion(discussion *models.Discussion, discussionID int) error {
+func (discussionRepository *DiscussionRepository) UpdateDiscussion(discussion *dtos.DiscussionDTO, discussionID int) error {
 	if discussion.Name != "" {
 		_, err := discussionRepository.DB.Exec(`UPDATE discussion SET name = $1 WHERE discussion_id = $2`, discussion.Name, discussionID)
 		if err != nil {

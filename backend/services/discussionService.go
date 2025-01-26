@@ -374,10 +374,11 @@ func (discussionService *DiscussionService) UpdateDiscussion(discussion *models.
 				Message:   err.Error(),
 			}
 		}
+		fmt.Println(backgroundImageLink)
 		existingDiscussion.BackgroundImageLink = &backgroundImageLink
 	}
 
-	err = discussionRepository.UpdateDiscussion(discussion, discussionID)
+	err = discussionRepository.UpdateDiscussion(existingDiscussion, discussionID)
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
