@@ -38,6 +38,7 @@ const SignUpStage3 = () => {
 	}));
 
 	const [openCameraInput, setOpenCameraInput] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const handleUploadAvatarIcon = (files: FileList) => {
 		compressImageFile(files[0], 2)
@@ -52,6 +53,7 @@ const SignUpStage3 = () => {
 		birthday,
 		biography,
 		faculty,
+		gender,
 		avatarIcon,
 	} = useAppSelector((state) => ({
 		name: state.signUp.name,
@@ -60,6 +62,7 @@ const SignUpStage3 = () => {
 		birthday: state.signUp.birthday,
 		biography: state.signUp.biography,
 		faculty: state.signUp.faculty,
+		gender:state.signUp.gender,
 		password: state.signUp.password,
 		avatarIcon: state.signUp.avatarIcon,
 	}));
@@ -71,21 +74,25 @@ const SignUpStage3 = () => {
 	}, []);
 
 	const handleCreateAccount = () => {
+		setIsLoading(true);
 		const formData = new FormData();
 		formData.append("name", name);
 		formData.append("username", username);
 		formData.append("email", email);
 		formData.append("password", password);
 		formData.append("biography", biography);
+		formData.append("faculty", faculty);
+		formData.append("gender",gender)
 		// omit if falsy (stored as null in db if empty)
 		avatarIcon && formData.append("avatar_icon", avatarIcon);
-		formData.append("faculty", faculty);
+		
 		birthday &&
 			formData.append("birthday", birthday.toLocaleDateString("en-sg"));
 		postFormData(
 			"/authentication/sign-up",
 			formData,
 			() => {
+				setIsLoading(false);
 				dispatch(reset());
 				navigate("/");
 			},
@@ -207,6 +214,7 @@ const SignUpStage3 = () => {
 								iconPosition="end"
 								color="primary.dark"
 								handleButtonClick={handleCreateAccount}
+								loadingStatus={isLoading}
 							>
 								Create Account
 							</Button>

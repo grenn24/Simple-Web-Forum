@@ -112,6 +112,7 @@ const SignUpStage2 = () => {
 							currentItemIndex={genders.findIndex((value) => value === gender)}
 							selectItemsArray={genders}
 							handleSelect={handleGenderSelect}
+							fullWidth
 						/>
 						<br />
 						<br />
@@ -126,10 +127,13 @@ const SignUpStage2 = () => {
 						<br />
 						<Select
 							label="Faculty"
-							currentItemIndex={faculties.findIndex((value) => value === faculty)}
+							currentItemIndex={faculties.findIndex(
+								(value) => value === faculty
+							)}
 							handleSelect={handleFacultySelect}
 							selectItemsArray={faculties}
 							disabled={disableFacultySelect}
+							fullWidth
 						/>
 						<br />
 						<br />
