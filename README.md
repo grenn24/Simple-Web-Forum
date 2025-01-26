@@ -60,6 +60,11 @@ Allows for custom topic creation
 4. On successful setup, a message "Server is running" will be displayed on the terminal
 
 ### Environment Variables
+- DB_user (local deployment only)
+- DB_password (local deployment only)
+- DB_host (local deployment only)
+- DB_port (local deployment only)
+- DB_name (local deployment only)
 - AWS_ACCESS_KEY
 - AWS_S3_BUCKET
 - AWS_SECRET_ACCESS_KEY
