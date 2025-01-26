@@ -55,10 +55,11 @@ Allows for custom topic creation
 ### Local Setup  
 1. git clone "https://github.com/grenn24/Simple-Web-Forum.git"
 2. cd to /backend
-3. Create a .env file with all the env variables listed below
-4. Ammend the connection details for local deployment
-5. In the terminal, type "go run main.go"
-6. On successful setup, a message "Server is running" will be displayed on the terminal
+3. Set up an SQL server either on local machine
+4. Create a .env file with all the env variables listed below
+5. Ammend the db connection details needed for local deployment in main.go
+6. In the terminal, type "go run main.go"
+7. On successful setup, a message "Server is running" will be displayed on the terminal
 
 ### Environment Variables
 - DB_user       (local deployment only)
