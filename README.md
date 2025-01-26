@@ -44,7 +44,6 @@ Allows for custom topic creation
 - Discussions: Join discussion groups to share threads with trusted friends
 - Follow: Follow topics or authors whom you are interested in, and receive thread updates from them
 - Profile: Customise your bio, avatar and activity status
-- Conversations: Message other authors you meet privately, and make new friends
 
 ### Authentication
 - Tokens encapsulate information about the current user (e.g. author id) in the payload
