@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/grenn24/simple-web-forum/dtos"
-	"github.com/grenn24/simple-web-forum/models"
+	_ "github.com/grenn24/simple-web-forum/models"
 )
 
 type DiscussionRepository struct {
