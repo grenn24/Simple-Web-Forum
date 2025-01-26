@@ -99,6 +99,7 @@ func main() {
 	utils.InitialiseDatabase(nil, db)
 
 	//Run the server
+	fmt.Printf("Server is running on %v%v:%v\n", os.Getenv("PROTOCOL"),os.Getenv("DOMAIN_NAME"), os.Getenv("PORT"))
 	router.Run(":" + os.Getenv("PORT"))
-	fmt.Println("Server is running on port" + os.Getenv("PORT"))
+	
 }

@@ -55,22 +55,25 @@ Allows for custom topic creation
 ### Local Setup  
 1. git clone "https://github.com/grenn24/Simple-Web-Forum.git"
 2. cd to /backend
-3. Create a .env file with the env variables listed below
-3. In the terminal, type "go run main.go"
-4. On successful setup, a message "Server is running" will be displayed on the terminal
+3. Create a .env file with all the env variables listed below
+4. Ammend the connection details for local deployment
+5. In the terminal, type "go run main.go"
+6. On successful setup, a message "Server is running" will be displayed on the terminal
 
 ### Environment Variables
-- DB_user (local deployment only)
-- DB_password (local deployment only)
-- DB_host (local deployment only)
-- DB_port (local deployment only)
-- DB_name (local deployment only)
+- DB_user       (local deployment only)
+- DB_password   (local deployment only)
+- DB_host       (local deployment only)
+- DB_port       (local deployment only)
+- DB_name       (local deployment only)
+- PORT
+- DOMAIN_NAME   (http://localhost for local deployment)
+- PROTOCOL      (http:// for local deployment)
 - AWS_ACCESS_KEY
 - AWS_S3_BUCKET
 - AWS_SECRET_ACCESS_KEY
-- DOMAIN_NAME
 - GITHUB_CLIENT_ID
 - GITHUB_CLIENT_SECRET
-- JWT_TOKEN_MAX_AGE   (in seconds)
-- REFRESH_TOKEN_MAX_AGE   (in seconds)
-- SECRET_KEY       (jwt token)
+- JWT_TOKEN_MAX_AGE         (in seconds)
+- REFRESH_TOKEN_MAX_AGE     (in seconds)
+- SECRET_KEY                (jwt token)
