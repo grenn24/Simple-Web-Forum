@@ -251,4 +251,5 @@ func main() {
 
 	//Run the server
 	router.Run(":" + os.Getenv("PORT"))
+	fmt.Println("Server is running on port" + os.Getenv("PORT"))
 }

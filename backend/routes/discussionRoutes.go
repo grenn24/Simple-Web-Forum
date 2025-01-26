@@ -22,6 +22,10 @@ func DiscussionRoutes(router *gin.RouterGroup, db *sql.DB) {
 		discussionController.CreateDiscussion(context, db)
 	})
 
+	discussionRouter.GET("/popular", func(context *gin.Context) {
+		discussionController.GetPopularDiscussions(context, db)
+	})
+
 	discussionRouter.GET("/search", func(context *gin.Context) {
 		discussionController.SearchDiscussions(context, db)
 	})

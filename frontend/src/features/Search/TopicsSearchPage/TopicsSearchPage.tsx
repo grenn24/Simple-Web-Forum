@@ -5,7 +5,7 @@ import { parseTopics } from "../../../utilities/parseApiResponse";
 import { get } from "../../../utilities/api";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../../components/List";
-import TopicCardMini from "./TopicCardsViewer";
+import TopicCard from "./TopicCard";
 import topicSortOrder from "./topicSortOrder";
 
 const TopicsSearchPage = () => {
@@ -47,7 +47,7 @@ const TopicsSearchPage = () => {
 			) : (
 				<List
 					listItemsArray={topics.map((topic, index) => (
-						<TopicCardMini key={index} topic={topic} />
+						<TopicCard key={index} topic={topic} />
 					))}
 					listItemsDataValues={topics.map((topic) => String(topic.topicID))}
 					handleListItemsClick={topics.map(

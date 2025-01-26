@@ -6,7 +6,6 @@ import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import { get } from "../../../utilities/api";
 import { parseThreads } from "../../../utilities/parseApiResponse";
 import ThreadCardMini from "./ThreadCardMini";
-import { useAppSelector } from "../../../utilities/redux";
 
 const PostsPage = () => {
 	const navigate = useNavigate();

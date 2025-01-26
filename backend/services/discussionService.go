@@ -326,6 +326,19 @@ func (discussionService *DiscussionService) DeleteMemberByAuthorIDDiscussionID(m
 	return nil
 }
 
+func (discussionService *DiscussionService) GetPopularDiscussions( userAuthorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
+	discussionRepository := &repositories.DiscussionRepository{DB: discussionService.DB}
+	discussions, err := discussionRepository.GetPopularDiscussions( userAuthorID)
+	if err != nil {
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	return discussions, nil
+}
+
 func (discussionService *DiscussionService) SearchDiscussions(query string, page int, limit int, sortIndex int, userAuthorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
 	discussionRepository := &repositories.DiscussionRepository{DB: discussionService.DB}
 	discussions, err := discussionRepository.SearchDiscussions(query, page, limit, sortIndex, userAuthorID)

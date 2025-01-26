@@ -52,4 +52,8 @@ Allows for custom topic creation
 - Longer lived refresh tokens are used by the api to refresh jwt tokens once the jwt token expires
 - Supports OAuth
 
-### Setup  
+### Local Setup  
+1. git clone "https://github.com/grenn24/Simple-Web-Forum.git"
+2. cd to /backend
+3. Using terminal, type "go run main.go"
+4. On successful setup, a string "Server is running" will be displayed on the terminal

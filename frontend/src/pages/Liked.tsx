@@ -5,7 +5,7 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortIcons from "../features/Liked/sortIcons";

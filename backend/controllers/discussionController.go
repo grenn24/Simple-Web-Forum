@@ -38,6 +38,24 @@ func (discussionController *DiscussionController) GetThreadsByDiscussionID(conte
 	})
 }
 
+func (discussionController *DiscussionController) GetPopularDiscussions(context *gin.Context, db *sql.DB) {
+
+	discussionService := discussionController.DiscussionService
+
+	userAuthorID := utils.GetUserAuthorID(context)
+	discussions, responseErr := discussionService.GetPopularDiscussions(userAuthorID)
+
+	if responseErr != nil {
+		context.JSON(http.StatusInternalServerError, responseErr)
+		return
+	}
+
+	context.JSON(http.StatusOK, dtos.Success{
+		Status: "success",
+		Data:   discussions,
+	})
+}
+
 func (discussionController *DiscussionController) GetDiscussionByID(context *gin.Context, db *sql.DB) {
 
 	discussionService := discussionController.DiscussionService

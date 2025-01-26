@@ -23,7 +23,75 @@ func (discussionRepository *DiscussionRepository) CreateDiscussion(discussion *d
 	// Check for errors while returning discussion id
 	err := row.Scan(&discussionID)
 
-	return int(discussionID),err
+	return int(discussionID), err
+}
+
+func (discussionRepository *DiscussionRepository) GetAllDiscussions(sortIndex int, userAuthorID int) (*dtos.DiscussionDTO, error) {
+	discussion := new(dtos.DiscussionDTO)
+	discussion.Creator = new(dtos.AuthorDTO)
+	rows, err := discussionRepository.DB.Query(`
+		SELECT
+			discussion.discussion_id,
+			discussion.name,
+			discussion.description,
+			discussion.background_image_link,
+			discussion.created_at,
+			discussion.creator_author_id,
+			author.name,
+			author.username,
+			author.avatar_icon_link,
+			CASE 
+				WHEN discussion_member.discussion_id IS NOT NULL AND discussion_member.member_author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_joined,
+			CASE 
+				WHEN discussion_join_request.discussion_id IS NOT NULL AND discussion_join_request.author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_requested
+		FROM discussion
+		INNER JOIN author ON discussion.creator_author_id = author.author_id
+		LEFT JOIN discussion_member ON discussion_member.discussion_id = discussion.discussion_id AND discussion_member.member_author_id = $1
+		LEFT JOIN discussion_join_request ON discussion_join_request.discussion_id = discussion.discussion_id AND discussion_join_request.author_id = $1
+	`, userAuthorID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	discussions := make([]*dtos.DiscussionDTO, 0)
+
+	for rows.Next() {
+		discussion := new(dtos.DiscussionDTO)
+		discussion.Creator = new(dtos.AuthorDTO)
+
+		err := rows.Scan(
+			&discussion.DiscussionID,
+			&discussion.Name,
+			&discussion.Description,
+			&discussion.BackgroundImageLink,
+			&discussion.CreatedAt,
+			&discussion.Creator.AuthorID,
+			&discussion.Creator.Name,
+			&discussion.Creator.Username,
+			&discussion.Creator.AvatarIconLink,
+			&discussion.IsJoined,
+			&discussion.IsRequested,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned discussion to discussions slice
+		discussions = append(discussions, discussion)
+	}
+	return discussion, err
 }
 
 func (discussionRepository *DiscussionRepository) GetDiscussionByID(discussionID int, userAuthorID int) (*dtos.DiscussionDTO, error) {
@@ -70,6 +138,82 @@ func (discussionRepository *DiscussionRepository) GetDiscussionByID(discussionID
 		&discussion.IsRequested,
 	)
 	return discussion, err
+}
+
+func (discussionRepository *DiscussionRepository) GetPopularDiscussions(userAuthorID int) ([]*dtos.DiscussionDTO, error) {
+	discussion := new(dtos.DiscussionDTO)
+	discussion.Creator = new(dtos.AuthorDTO)
+	rows, err := discussionRepository.DB.Query(`
+		SELECT
+			discussion.discussion_id,
+			discussion.name,
+			discussion.description,
+			discussion.background_image_link,
+			discussion.created_at,
+			discussion.creator_author_id,
+			author.name,
+			author.username,
+			author.avatar_icon_link,
+			CASE 
+				WHEN discussion_member.discussion_id IS NOT NULL AND discussion_member.member_author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_joined,
+			CASE 
+				WHEN discussion_join_request.discussion_id IS NOT NULL AND discussion_join_request.author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_requested
+		FROM discussion
+		INNER JOIN author ON discussion.creator_author_id = author.author_id
+		LEFT JOIN discussion_member ON discussion_member.discussion_id = discussion.discussion_id AND discussion_member.member_author_id = $1
+		LEFT JOIN discussion_join_request ON discussion_join_request.discussion_id = discussion.discussion_id AND discussion_join_request.author_id = $1
+		LEFT JOIN (
+			SELECT 
+				discussion_id,
+				COUNT(*) AS member_count
+			FROM discussion_member
+			GROUP BY discussion_id
+		) as subquery ON subquery.discussion_id = discussion.discussion_id
+		ORDER BY subquery.member_count DESC
+	`, userAuthorID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//Close rows after finishing query
+	defer rows.Close()
+
+	discussions := make([]*dtos.DiscussionDTO, 0)
+
+	for rows.Next() {
+		discussion := new(dtos.DiscussionDTO)
+		discussion.Creator = new(dtos.AuthorDTO)
+
+		err := rows.Scan(
+			&discussion.DiscussionID,
+			&discussion.Name,
+			&discussion.Description,
+			&discussion.BackgroundImageLink,
+			&discussion.CreatedAt,
+			&discussion.Creator.AuthorID,
+			&discussion.Creator.Name,
+			&discussion.Creator.Username,
+			&discussion.Creator.AvatarIconLink,
+			&discussion.IsJoined,
+			&discussion.IsRequested,
+		)
+
+		// Check for any scanning errors
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the scanned discussion to discussions slice
+		discussions = append(discussions, discussion)
+	}
+	return discussions, err
 }
 
 func (discussionRepository *DiscussionRepository) GetDiscussionByThreadID(threadID int, userAuthorID int) (*dtos.DiscussionDTO, error) {

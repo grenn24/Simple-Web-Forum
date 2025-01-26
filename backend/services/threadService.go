@@ -123,12 +123,14 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	if err != nil {
 		if err == sql.ErrNoRows {
 			threadExpanded.Discussion = nil
+		} else {
+			return nil, &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
 		}
-		return nil, &dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
-		}
+
 	} else {
 		threadExpanded.Discussion = discussion
 	}

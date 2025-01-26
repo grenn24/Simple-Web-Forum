@@ -1,11 +1,9 @@
 import { Box, Divider, Typography } from "@mui/material";
 import Button from "../components/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-	ArrowBackRounded as ArrowBackRoundedIcon,
-} from "@mui/icons-material";
+import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import DynamicDrawer from "../components/DynamicDrawer";
-import DiscoverPage from "../features/Discussions/DiscoverPage";
+import DiscoverPage from "../features/Discussions/DiscoverDiscussionsPage/DiscoverPage";
 import drawerItemTextArray from "../features/Discussions/drawerItemTextArray";
 import drawerItemIconArray from "../features/Discussions/drawerItemIconArray";
 import DiscussionsJoinedPage from "../features/Discussions/DiscussionsJoinedPage";

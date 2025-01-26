@@ -8,11 +8,13 @@ import {
 	NavigateNextRounded as NavigateNextRoundedIcon,
 } from "@mui/icons-material";
 import { AnimatePresence, motion } from "motion/react";
+import DiscussionCard from "../../../components/DiscussionCard";
+import { DiscussionDTO } from "../../../dtos/DiscussionDTO";
 
 interface Prop {
-	topic: TopicDTO;
+	discussions:DiscussionDTO[]
 }
-const TopicCardMini = ({ topic }: Prop) => {
+const DiscussionCardsViewer = ({ discussions }: Prop) => {
 	const [isScrolling, setIsScrolling] = useState(false);
 	const [showScrollButtons, setShowScrollButtons] = useState(false);
 	const topicCardsViewerRef = useRef<HTMLDivElement>(null);
@@ -59,29 +61,6 @@ const TopicCardMini = ({ topic }: Prop) => {
 	return (
 		<>
 			<Box
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				marginBottom={2}
-			>
-				<Typography
-					fontFamily="Open Sans"
-					color="primary.dark"
-					fontSize={25}
-					fontWeight={700}
-				>
-					{topic.name}
-				</Typography>
-				<Typography
-					fontFamily="Open Sans"
-					color="primary.dark"
-					fontSize={20}
-					fontWeight={500}
-				>
-					{topic.threads.length} Posts
-				</Typography>
-			</Box>
-			<Box
 				maxWidth="100%"
 				display="flex"
 				flexDirection="column"
@@ -94,18 +73,15 @@ const TopicCardMini = ({ topic }: Prop) => {
 					position="absolute"
 					display="flex"
 					maxWidth="100%"
+					
 					overflow="auto"
 					py={1}
 					px={1}
 					ref={topicCardsViewerRef}
 					zIndex={1}
 				>
-					{topic.threads.map((thread) => (
-						<ThreadGridCard
-							thread={thread}
-							style={{ flexShrink: 0, marginRight: 2, height: "auto" }}
-							showAvatarTooltipText={false}
-						/>
+					{discussions.map((discussion) => (
+						<DiscussionCard discussion={discussion} />
 					))}
 				</Box>
 				<Box
@@ -198,4 +174,4 @@ const TopicCardMini = ({ topic }: Prop) => {
 	);
 };
 
-export default TopicCardMini;
+export default DiscussionCardsViewer;

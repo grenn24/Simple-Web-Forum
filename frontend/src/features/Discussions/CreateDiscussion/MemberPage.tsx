@@ -3,8 +3,6 @@ import {
 	DataGrid,
 	GridActionsCellItem,
 	GridColDef,
-	GridRowId,
-	GridRowSelectionModel,
 	GridRowsProp,
 	GridToolbarContainer,
 } from "@mui/x-data-grid";
@@ -17,7 +15,6 @@ import {
 	Typography,
 } from "@mui/material";
 import {
-	AddRounded as AddRoundedIcon,
 	SearchRounded as SearchRoundedIcon,
 	CloseRounded as CloseRoundedIcon,
 	SyncRounded as SyncRoundedIcon,
@@ -237,17 +234,9 @@ const MemberPage = () => {
 				onRowSelectionModelChange={(newSelection) => {
 					// Add selected authors to state variable
 					newSelection.forEach((id) => {
-						if (
-							!arrayContains(
-								selectedAuthors,
-								authors[Number(id)],
-								(x, y) => x.authorID === y.authorID
-							)
-						) {
-							dispatch(
-								changeSelectedAuthors([...selectedAuthors, authors[Number(id)]])
-							);
-						}
+						dispatch(
+							changeSelectedAuthors([...selectedAuthors, authors[Number(id)]])
+						);
 					});
 				}}
 				onRowClick={(rowInfo) => {
