@@ -50,7 +50,6 @@ const Discussions = () => {
 						fontWeight={700}
 						fontSize={30}
 						color="text.primary"
-	
 					>
 						Discussions
 					</Typography>
@@ -102,6 +101,8 @@ const Discussions = () => {
 					pagePadding={0}
 					expandable={false}
 					drawerItemTooltipTextArray={drawerItemTextArray}
+					
+
 				/>
 			</Box>
 		</>

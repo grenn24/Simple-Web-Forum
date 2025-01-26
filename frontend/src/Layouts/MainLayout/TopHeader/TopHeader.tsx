@@ -49,7 +49,7 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					dispatch(changeUsername(user.username));
 					dispatch(changeName(user.name));
 					dispatch(changeAvatarIconLink(user.avatarIconLink));
-					dispatch(changeAuthorID(user.authorID))
+					dispatch(changeAuthorID(user.authorID));
 				},
 				(err) => console.log(err)
 			),
@@ -66,14 +66,17 @@ export const TopHeader = ({ openLeftNavBar, leftNavBarStatus }: Prop) => {
 					backdropFilter: "blur(6px)",
 					height: "auto",
 					zIndex: 1201,
-					width: "100%",
-					py: 1,
-					px: 1,
+					boxSizing: "border-box",
+					maxWidth: "100%",
+					width: "100vw",
+					p:1,
+					left:0
 				}}
 				id="AppBar"
 			>
 				<Box
 					sx={{
+
 						width: "100%",
 						display: "flex",
 						flexDirection: "row",

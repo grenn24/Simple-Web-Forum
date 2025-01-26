@@ -231,20 +231,13 @@ const MemberPage = () => {
 				onRowDoubleClick={(rowInfo) =>
 					navigate(`/Profile/${rowInfo.row.authorID}`)
 				}
-				onRowSelectionModelChange={(newSelection) => {
-					// Add selected authors to state variable
-					newSelection.forEach((id) => {
-						dispatch(
-							changeSelectedAuthors([...selectedAuthors, authors[Number(id)]])
-						);
-					});
-				}}
+	
 				onRowClick={(rowInfo) => {
 					if (
 						arrayContains(
 							selectedAuthors,
 							rowInfo.row.authorID,
-							(x, y) => x.authorID === y
+							(x:AuthorDTO, y) => x.authorID === y
 						)
 					) {
 						dispatch(
@@ -253,6 +246,10 @@ const MemberPage = () => {
 									(author) => author.authorID !== rowInfo.row.authorID
 								)
 							)
+						);
+					} else {
+						dispatch(
+							changeSelectedAuthors([...selectedAuthors, authors[Number(rowInfo.id)]])
 						);
 					}
 				}}

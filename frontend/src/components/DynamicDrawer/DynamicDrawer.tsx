@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
+import { styled, useTheme, Theme, CSSObject, SxProps } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -29,6 +29,7 @@ interface Prop {
 	drawerItemTooltipTextArray?: string[];
 	expandable?: boolean;
 	pagePadding?: string | number;
+	style?: SxProps<Theme>
 }
 
 const drawerWidth = 280;
@@ -126,7 +127,7 @@ export default function DynamicDrawer({
 	position = "fixed",
 	drawerItemTooltipTextArray,
 	expandable = true,
-	pagePadding
+	pagePadding,
 }: Prop) {
 	const theme = useTheme();
 	const [open, setOpen] = useState(false);
@@ -175,6 +176,7 @@ export default function DynamicDrawer({
 					"& .MuiDrawer-paper": {
 						position: position,
 					},
+				
 				}}
 			>
 				{showHeader && (
@@ -192,7 +194,7 @@ export default function DynamicDrawer({
 					</>
 				)}
 
-				<List sx={{py:0}}>
+				<List sx={{ py: 0 }}>
 					{drawerItemTextArray.map((text, index) => (
 						<Tooltip
 							title={
@@ -204,7 +206,7 @@ export default function DynamicDrawer({
 								<ListItem
 									key={text}
 									disablePadding
-									sx={{ display: "block"}}
+									sx={{ display: "block" }}
 									onClick={() => {
 										expandable && setOpen(!open);
 										setCurrentPage(index);
