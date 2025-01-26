@@ -35,7 +35,7 @@ Additional control handlers on existing protected routes
 
 ### Core Features
 - Thread: start a thread on any topic  
-Post up to 30 images/gifs for each thread
+Post up to 30 images/gifs and 1 video for each thread  
 Keep track of upload progress  
 Thread popularity dynamically calculated using formula
 - Topics: Assign threads to topics you like  
