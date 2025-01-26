@@ -472,6 +472,10 @@ func (discussionRepository *DiscussionRepository) UpdateDiscussion(discussion *m
 	if err != nil {
 		return err
 	}
+	_, err = discussionRepository.DB.Exec(`UPDATE discussion SET background_image_link = $1 WHERE discussion_id = $2`, discussion.BackgroundImageLink, discussionID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

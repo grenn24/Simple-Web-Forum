@@ -161,8 +161,8 @@ func (discussionController *DiscussionController) CreateDiscussion(context *gin.
 		discussion.Creator.AuthorID = userAuthorID
 		discussion.Name = context.PostForm("name")
 		discussion.Description = context.PostForm("description")
-	
-		err := json.Unmarshal([]byte(context.PostForm("members")), &discussion.Members )
+
+		err := json.Unmarshal([]byte(context.PostForm("members")), &discussion.Members)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, dtos.Error{
 				Status:    "error",
@@ -365,42 +365,54 @@ func (discussionController *DiscussionController) SearchDiscussions(context *gin
 func (discussionController *DiscussionController) UpdateDiscussion(context *gin.Context, db *sql.DB) {
 	discussionService := discussionController.DiscussionService
 	discussionID := utils.ConvertStringToInt(context.Param("discussionID"), context)
-	// Declare a pointer to a new instance of a discussion struct
-	discussion := new(models.Discussion)
-	discussion.DiscussionID = discussionID
-	err := context.ShouldBind(discussion)
+	contentType := context.GetHeader("Content-Type")
+	if strings.Split(contentType, ";")[0] == "multipart/form-data" {
+		// Declare a pointer to a new instance of a discussion struct
+		discussion := new(models.Discussion)
+		discussion.DiscussionID = discussionID
+		discussion.Name = context.PostForm("name")
+		discussion.Description = context.PostForm("description")
 
-	// Check for JSON binding errors
-	if err != nil {
-		context.JSON(http.StatusInternalServerError, dtos.Error{
-			Status:    "error",
-			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   err.Error(),
+		// Check if the binded struct contains necessary fields
+		if discussion.Name == "" {
+			context.JSON(http.StatusBadRequest, dtos.Error{
+				Status:    "error",
+				ErrorCode: "MISSING_REQUIRED_FIELDS",
+				Message:   "Missing required discussion name",
+			})
+			return
+		}
+
+		backgroundImage, err := context.FormFile("background_image")
+		if err != nil {
+			// Check for internal server errors
+			if err.Error() != "http: no such file" {
+				context.JSON(http.StatusInternalServerError, dtos.Error{
+					Status:    "error",
+					ErrorCode: "INTERNAL_SERVER_ERROR",
+					Message:   err.Error(),
+				})
+				return
+			}
+			discussion.BackgroundImage = nil
+		} else {
+			discussion.BackgroundImage = backgroundImage
+		}
+
+		responseErr := discussionService.UpdateDiscussion(discussion, discussionID)
+
+		if responseErr != nil {
+			context.JSON(http.StatusInternalServerError, responseErr)
+			return
+		}
+
+		context.JSON(http.StatusOK, dtos.Success{
+			Status:  "success",
+			Message: "Discussion updated successfully!",
 		})
-		return
+
 	}
 
-	// Check if the binded struct contains necessary fields
-	if discussion.Name == "" {
-		context.JSON(http.StatusBadRequest, dtos.Error{
-			Status:    "error",
-			ErrorCode: "MISSING_REQUIRED_FIELDS",
-			Message:   "Missing required discussion name",
-		})
-		return
-	}
-
-	responseErr := discussionService.UpdateDiscussion(discussion, discussionID)
-
-	if responseErr != nil {
-		context.JSON(http.StatusInternalServerError, responseErr)
-		return
-	}
-
-	context.JSON(http.StatusOK, dtos.Success{
-		Status:  "success",
-		Message: "Discussion updated successfully!",
-	})
 }
 
 func (discussionController *DiscussionController) AddUserToDiscussion(context *gin.Context, db *sql.DB) {

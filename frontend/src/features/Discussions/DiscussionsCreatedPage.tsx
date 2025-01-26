@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DiscussionDTO } from "../../dtos/DiscussionDTO";
 import { parseDiscussions } from "../../utilities/parseApiResponse";
 import { get } from "../../utilities/api";
-import { Box, CircularProgress, Divider, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import List from "../../components/List";
 import DiscussionCardMini from "../Search/DiscussionsSearchPage/DiscussionCardMini";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +32,7 @@ const DiscussionsCreatedPage = () => {
 			alignItems="center"
 		>
 			{isLoading ? (
-				<Box marginTop={10}>
+				<Box marginTop={30}>
 					<CircularProgress size={80} />
 				</Box>
 			) : (
@@ -41,15 +41,12 @@ const DiscussionsCreatedPage = () => {
 						textAlign="left"
 						fontFamily="Open Sans"
 						fontWeight={700}
-						fontSize={20}
+						fontSize={21}
 						marginLeft={1.5}
 						color="text.primary"
 					>
 						Discussions Created By You
 					</Typography>
-					<Box width={300}>
-						<Divider />
-					</Box>
 
 					{discussions.length === 0 ? (
 						<Box

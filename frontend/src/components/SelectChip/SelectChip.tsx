@@ -90,7 +90,9 @@ export default function SelectChip({
 	return (
 		<>
 			<FormControl fullWidth style={{ userSelect: "none" }}>
-				<InputLabel id="demo-multiple-chip-label" disabled={disabled}>Topics</InputLabel>
+				<InputLabel id="demo-multiple-chip-label" disabled={disabled}>
+					Topics
+				</InputLabel>
 				<Select
 					ref={selectRef}
 					disabled={disabled}
@@ -102,12 +104,22 @@ export default function SelectChip({
 					renderValue={
 						topicsSelected
 							? (selected) => (
-									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+									<Box
+										sx={{
+											display: "flex",
+											flexWrap: "wrap",
+											gap: 0.5,
+										}}
+									>
 										{selected.map((value) => (
 											<Chip
 												key={value}
 												label={value}
+												onMouseDown={(event) => {
+													event.stopPropagation();
+												}}
 												onDelete={() => {
+													console.log("drsgh");
 													setTopicsSelected(
 														removeElementFromArray(topicsSelected, value)
 													);
@@ -137,7 +149,7 @@ export default function SelectChip({
 						sx={{
 							py: 0,
 							"&.Mui-focusVisible": {
-								backgroundColor: "transparent", // Change focus background color
+								backgroundColor: "transparent",
 							},
 							"&:hover": {
 								backgroundColor: "transparent",

@@ -113,13 +113,13 @@ const Thread = () => {
 					setBookmarkStatus(thread.bookmarkStatus);
 					setIsLoading(false);
 					// Check if isEditing or isCommenting was passed in during navigation
-					setIsCommenting(location.state?.isCommenting);
-					setIsEditing(location.state?.isEditing);
+					location.state && setIsCommenting(location.state?.isCommenting);
+					location.state && setIsEditing(location.state?.isEditing);
 					setThreadContent(thread.content);
 				},
 				(err) => console.log(err)
 			),
-		[isUploadingThread, isUploadingComment, commentSort]
+		[isUploadingThread, isUploadingComment, commentSort, isEditing]
 	);
 
 	const {

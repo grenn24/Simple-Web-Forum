@@ -58,7 +58,8 @@ const TextPage = ({ register, errors, control, watch }: Prop) => {
 				fontSize={15}
 				marginLeft={1}
 				fontWeight={500}
-				color={errors.title?.type === "validTitle" ? "red" : "inherit"}
+				color={errors.title?.type === "validTitle" ? "red" : "primary.dark"}
+
 			>
 				{watch("title")?.length ? watch("title")?.length : 0}/50 Characters
 			</Typography>

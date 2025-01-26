@@ -19,7 +19,8 @@ const InfoPage = () => {
 				autoComplete="off"
 				value={name}
 				onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-					event.target.value.length <= 20 && dispatch(changeName(event.target.value));
+					event.target.value.length <= 20 &&
+						dispatch(changeName(event.target.value));
 				}}
 				error={name === ""}
 				helperText={name === "" ? "Name is required" : ""}
@@ -29,6 +30,7 @@ const InfoPage = () => {
 				fontSize={15}
 				marginLeft={1}
 				fontWeight={500}
+				color="primary.dark"
 			>
 				{name.length}/20 Characters
 			</Typography>
@@ -43,13 +45,15 @@ const InfoPage = () => {
 				multiline
 				value={description}
 				onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-					event.target.value.length <= 200 && dispatch(changeDescription(event.target.value));
+					event.target.value.length <= 200 &&
+						dispatch(changeDescription(event.target.value));
 				}}
 			/>
 			<Typography
 				fontSize={15}
 				marginLeft={1}
 				fontWeight={500}
+				color="primary.dark"
 			>
 				{description.length}/200 Characters
 			</Typography>

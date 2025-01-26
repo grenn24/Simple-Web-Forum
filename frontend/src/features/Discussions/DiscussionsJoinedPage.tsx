@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Divider, Typography } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { DiscussionDTO } from "../../dtos/DiscussionDTO";
 import { get } from "../../utilities/api";
@@ -32,7 +32,7 @@ const DiscussionsJoinedPage = () => {
 			alignItems="center"
 		>
 			{isLoading ? (
-				<Box marginTop={10}>
+				<Box marginTop={30}>
 					<CircularProgress size={80} />
 				</Box>
 			) : (
@@ -42,14 +42,12 @@ const DiscussionsJoinedPage = () => {
 						marginLeft={1.5}
 						fontFamily="Open Sans"
 						fontWeight={700}
-						fontSize={20}
+						fontSize={21}
 						color="text.primary"
 					>
 						Discussions Joined
 					</Typography>
-					<Box width={210}>
-						<Divider />
-					</Box>
+
 					{discussions.length === 0 ? (
 						<Box
 							width="100%"
@@ -88,7 +86,7 @@ const DiscussionsJoinedPage = () => {
 								() => (e: React.MouseEvent<HTMLElement>) =>
 									navigate(`/Discussions/${e.currentTarget.dataset.value}`)
 							)}
-							listItemTextStyle={{ flexGrow: 1 , maxWidth:"100%"}}
+							listItemTextStyle={{ flexGrow: 1, maxWidth: "100%" }}
 							disableRipple
 							listStyle={{ width: "100%" }}
 							listItemPadding={1.7}

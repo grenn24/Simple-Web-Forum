@@ -130,7 +130,7 @@ const MemberPage = () => {
 					/>,
 				];
 			},
-		},
+		}
 	];
 
 	const Toolbar = () => {

@@ -326,9 +326,9 @@ func (discussionService *DiscussionService) DeleteMemberByAuthorIDDiscussionID(m
 	return nil
 }
 
-func (discussionService *DiscussionService) GetPopularDiscussions( userAuthorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
+func (discussionService *DiscussionService) GetPopularDiscussions(userAuthorID int) ([]*dtos.DiscussionDTO, *dtos.Error) {
 	discussionRepository := &repositories.DiscussionRepository{DB: discussionService.DB}
-	discussions, err := discussionRepository.GetPopularDiscussions( userAuthorID)
+	discussions, err := discussionRepository.GetPopularDiscussions(userAuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -355,7 +355,29 @@ func (discussionService *DiscussionService) SearchDiscussions(query string, page
 func (discussionService *DiscussionService) UpdateDiscussion(discussion *models.Discussion, discussionID int) *dtos.Error {
 	discussionRepository := &repositories.DiscussionRepository{DB: discussionService.DB}
 
-	err := discussionRepository.UpdateDiscussion(discussion, discussionID)
+	existingDiscussion, err := discussionRepository.GetDiscussionByID(discussionID, 0)
+	if err != nil {
+		return &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	}
+	existingDiscussion.Name = discussion.Name
+	existingDiscussion.Description = discussion.Description
+	if discussion.BackgroundImage != nil {
+		backgroundImageLink, err := utils.PostFileHeaderToS3Bucket(discussion.BackgroundImage, "background_image")
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
+		}
+		existingDiscussion.BackgroundImageLink = &backgroundImageLink
+	}
+
+	err = discussionRepository.UpdateDiscussion(discussion, discussionID)
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
@@ -386,7 +408,7 @@ func (discussionService *DiscussionService) DeleteDiscussionByID(discussionID in
 		}
 	}
 	discussion, _ := discussionRepository.GetDiscussionByID(discussionID, 0)
-	if (discussion.BackgroundImageLink != nil) {
+	if discussion.BackgroundImageLink != nil {
 		utils.DeleteFileFromS3Bucket(*discussion.BackgroundImageLink)
 	}
 	return nil

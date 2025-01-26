@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TopicDTO } from "../../../dtos/TopicDTO";
-import { Box, Typography } from "@mui/material";
-import ThreadGridCard from "../../../components/ThreadGridCard/ThreadGridCard";
+import { Box } from "@mui/material";
 import Button from "../../../components/Button";
 import {
 	NavigateBeforeRounded as NavigateBeforeRoundedIcon,
@@ -67,13 +65,12 @@ const DiscussionCardsViewer = ({ discussions }: Prop) => {
 				justifyContent="center"
 				position="relative"
 				ref={topicCardRef}
-				height={200}
+				height={300}
 			>
 				<Box
 					position="absolute"
 					display="flex"
 					maxWidth="100%"
-					
 					overflow="auto"
 					py={1}
 					px={1}
@@ -81,7 +78,10 @@ const DiscussionCardsViewer = ({ discussions }: Prop) => {
 					zIndex={1}
 				>
 					{discussions.map((discussion) => (
-						<DiscussionCard discussion={discussion} />
+						<DiscussionCard
+							discussion={discussion}
+							style={{ marginRight: 2, flexShrink: 0, height: 300, width: 300 }}
+						/>
 					))}
 				</Box>
 				<Box
@@ -95,7 +95,7 @@ const DiscussionCardsViewer = ({ discussions }: Prop) => {
 				>
 					<Box
 						display="flex"
-						width="100%"
+						width="96%"
 						justifyContent="space-between"
 						alignItems="center"
 					>

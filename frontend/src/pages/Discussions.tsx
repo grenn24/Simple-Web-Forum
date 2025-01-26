@@ -3,7 +3,7 @@ import Button from "../components/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowBackRounded as ArrowBackRoundedIcon } from "@mui/icons-material";
 import DynamicDrawer from "../components/DynamicDrawer";
-import DiscoverPage from "../features/Discussions/DiscoverDiscussionsPage/DiscoverPage";
+import DiscoverDiscussionsPage from "../features/Discussions/DiscoverDiscussionsPage/DiscoverDiscussionsPage";
 import drawerItemTextArray from "../features/Discussions/drawerItemTextArray";
 import drawerItemIconArray from "../features/Discussions/drawerItemIconArray";
 import DiscussionsJoinedPage from "../features/Discussions/DiscussionsJoinedPage";
@@ -24,7 +24,8 @@ const Discussions = () => {
 			<Box
 				sx={{
 					bgcolor: "background.default",
-					p: { xs: 1.5, sm: 3 },
+					px: { xs: 1.5, sm: 3 },
+					paddingTop: { xs: 1.5, sm: 3 },
 				}}
 				flexGrow={1}
 				width="100%"
@@ -49,6 +50,7 @@ const Discussions = () => {
 						fontWeight={700}
 						fontSize={30}
 						color="text.primary"
+	
 					>
 						Discussions
 					</Typography>
@@ -87,7 +89,7 @@ const Discussions = () => {
 					drawerItemTextArray={drawerItemTextArray}
 					drawerItemIconArray={drawerItemIconArray}
 					pageArray={[
-						<DiscoverPage />,
+						<DiscoverDiscussionsPage />,
 						<DiscussionsJoinedPage />,
 						<DiscussionsCreatedPage />,
 					]}

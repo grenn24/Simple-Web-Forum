@@ -12,7 +12,9 @@ import {
 import {
 	SyncRounded as SyncRoundedIcon,
 	CancelRounded as CancelRoundedIcon,
-	AddRounded as AddRoundedIcon
+	AddRounded as AddRoundedIcon,
+	DoneRounded as DoneRoundedIcon,
+	CloseRounded as CloseRoundedIcon
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -116,6 +118,24 @@ const MembersDiscussionPage = () => {
 								/>,
 							];
 						},
+					},
+					{
+						field: "Admin",
+						headerName: "Admin",
+						width: 90,
+						headerAlign: "center",
+						disableColumnMenu: true,
+						sortable: false,
+						renderCell: (params) => (
+							<Box
+								display="flex"
+								justifyContent="center"
+								alignItems="center"
+								height="100%"
+							>
+								{params.row.authorID === discussion.creator.authorID ? <DoneRoundedIcon />:<CloseRoundedIcon /> }
+							</Box>
+						),
 					},
 			  ];
 
