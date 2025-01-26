@@ -28,10 +28,9 @@ const PrivacyPage = () => {
 						<Switch color="secondary" />
 					</Box>,
 				]}
-	
+				listItemTextStyle={{ flexGrow: 1 }}
 				disableRipple
 				divider
-				variant="text"
 			/>
 		</Box>
 	);

@@ -37,8 +37,9 @@ func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) 
 			thread.content,
 			thread.like_count,
 			thread.comment_count,
-			
 			thread.image_link,
+			thread.popularity,
+			thread.visibility,
 			TRUE AS archive_status
 		FROM thread_archive
 		INNER JOIN thread ON thread_archive.thread_id = thread.thread_id
@@ -79,6 +80,8 @@ func (archiveRepository *ArchiveRepository) GetArchivesByAuthorID(authorID int) 
 			&archive.Thread.LikeCount,
 			&archive.Thread.CommentCount,
 			pq.Array(&archive.Thread.ImageLink),
+			&archive.Thread.Popularity,
+			&archive.Thread.Visiblity,
 			&archive.Thread.ArchiveStatus,
 		)
 

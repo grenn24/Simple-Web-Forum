@@ -9,6 +9,6 @@ const MenuExpandedItems = (thread: ThreadDTO, archiveStatus: boolean) =>
 				"Delete",
 				"Report",
 		  ]
-		: ["Archive", "Bookmark", "Report"];
+		: [archiveStatus ? "Unarchive" : "Archive", "Bookmark", "Report"];
 
 export default MenuExpandedItems;

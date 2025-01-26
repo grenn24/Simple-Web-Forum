@@ -1,4 +1,10 @@
-import { Box, CircularProgress, Container, Divider, Typography } from "@mui/material";
+import {
+	Box,
+	CircularProgress,
+	Container,
+	Divider,
+	Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
@@ -9,20 +15,35 @@ import InfoPage from "../features/Discussions/CreateDiscussion/InfoPage";
 import BackgroundPage from "../features/Discussions/CreateDiscussion/BackgroundPage";
 import MemberPage from "../features/Discussions/CreateDiscussion/MemberPage";
 import { postFormData } from "../utilities/api";
-import { changeIsCompressingImage, reset } from "../features/Discussions/createDiscussionSlice";
+import {
+	changeIsCompressingImage,
+	reset,
+} from "../features/Discussions/createDiscussionSlice";
 import Snackbar from "../components/Snackbar";
 
 const CreateDiscussion = () => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const [isUploading, setIsUploading] = useState(false);
-	const [openDiscussionCreatedSnackbar, setOpenDiscussionCreatedSnackbar] = useState(false);
-	
-	const { name, description, backgroundImage,isCompressingImage } = useAppSelector((state) => ({
+	const [openDiscussionCreatedSnackbar, setOpenDiscussionCreatedSnackbar] =
+		useState(false);
+	const [
+		openDiscussionCreateErrorSnackbar,
+		setOpenDiscussionCreateErrorSnackbar,
+	] = useState(false);
+
+	const {
+		name,
+		description,
+		backgroundImage,
+		isCompressingImage,
+		selectedAuthors,
+	} = useAppSelector((state) => ({
 		name: state.createDiscussion.name,
 		description: state.createDiscussion.description,
 		backgroundImage: state.createDiscussion.backgroundImage,
 		isCompressingImage: state.createDiscussion.isCompressingImage,
+		selectedAuthors: state.createDiscussion.selectedAuthors,
 	}));
 
 	const handleCreateDiscussion = () => {
@@ -31,23 +52,33 @@ const CreateDiscussion = () => {
 			const formData = new FormData();
 			formData.append("name", name);
 			formData.append("description", description);
+			formData.append(
+				"members",
+				JSON.stringify(
+					selectedAuthors.map((author) => ({ author_id: author.authorID }))
+				)
+			);
 			backgroundImage && formData.append("background_image", backgroundImage);
 			postFormData(
 				"/discussions",
 				formData,
-				() => {dispatch(reset());
+				() => {
+					dispatch(reset());
 					setIsUploading(false);
 					setOpenDiscussionCreatedSnackbar(true);
 				},
-				(err) => console.log(err)
+				(err) => {
+					console.log(err);
+					setOpenDiscussionCreateErrorSnackbar(true);
+				}
 			);
 		}
 	};
 
-	useEffect(()=>{
+	useEffect(() => {
 		dispatch(changeIsCompressingImage(false));
-		console.log(isCompressingImage)
-	},[])
+		console.log(isCompressingImage);
+	}, []);
 	return (
 		<Box
 			sx={{
@@ -130,7 +161,14 @@ const CreateDiscussion = () => {
 				actionIcon={<CircularProgress size={27} sx={{ marginRight: 1.5 }} />}
 				closeButton={false}
 			/>
-
+			{/*Discussion Create error snackbar*/}
+			<Snackbar
+				openSnackbar={openDiscussionCreateErrorSnackbar}
+				setOpenSnackbar={setOpenDiscussionCreateErrorSnackbar}
+				message="An error occurred while creating the discussion. Please try again."
+				duration={3000}
+				undoButton={false}
+			/>
 		</Box>
 	);
 };

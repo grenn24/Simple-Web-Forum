@@ -190,7 +190,7 @@ const AddMembersDialog = ({
 				value={searchBarValue}
 				size="small"
 				placeholder="Search for authors"
-
+				type="search"
 				onChange={(e) => {
 					setSearchBarValue(e.target.value);
 					handleSearchAuthors(e.target.value);
@@ -217,6 +217,11 @@ const AddMembersDialog = ({
 								<CloseRoundedIcon sx={{ color: "primary.dark" }} />
 							</InputAdornment>
 						),
+					},
+				}}
+				sx={{
+					"& input::-webkit-search-cancel-button": {
+						display: "none",
 					},
 				}}
 			/>

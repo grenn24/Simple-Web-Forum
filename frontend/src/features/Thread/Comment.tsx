@@ -12,6 +12,7 @@ const Comment = ({
 	comment
 }: Prop) => {
 	const navigate = useNavigate();
+	
 	return (
 		<Box display="flex" justifyContent="space-between" alignItems="center">
 			<Box display="flex">

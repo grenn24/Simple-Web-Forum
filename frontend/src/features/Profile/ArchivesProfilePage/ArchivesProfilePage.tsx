@@ -19,7 +19,11 @@ const RemovedPage = () => {
 				`/authors/${authorID === "User" ? "user" : authorID}/archives`,
 				(res) => {
 					const responseBody = res.data.data;
-					const archives = parseArchives(responseBody);
+					const archives = parseArchives(
+						responseBody,
+						false,
+						authorID === "User" ? ["private", "public"] : ["public"]
+					);
 					setArchives(archives);
 					setIsLoading(false);
 				},

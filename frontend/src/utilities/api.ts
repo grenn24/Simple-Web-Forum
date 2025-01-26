@@ -33,11 +33,11 @@ export function get<T>(
 				handleErrorResponse && handleErrorResponse(err);
 			} else if (err.request) {
 				// Request was made but no response was received
-				console.log("No response from server:" + err.request);
+				console.log("No response from server: " + err.request);
 			} else {
 				// An error occurred while setting up the request
 				console.log(
-					"Error while setting up request or handling the response:" +
+					"Error while setting up request or handling the response: " +
 						err.message
 				);
 			}

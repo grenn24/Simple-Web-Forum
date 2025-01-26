@@ -20,7 +20,7 @@ func (discussionService *DiscussionService) GetThreadsByDiscussionID(discussionI
 	bookmarkRepository := &repositories.BookmarkRepository{DB: discussionService.DB}
 	likeRepository := &repositories.LikeRepository{DB: discussionService.DB}
 
-	threads, err := threadRepository.GetThreadsByDiscussionID(discussionID, sortIndex)
+	threads, err := threadRepository.GetThreadsByDiscussionID(userAuthorID, discussionID, sortIndex)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -104,7 +104,7 @@ func (discussionService *DiscussionService) GetMembersByDiscussionID(discussionI
 	return members, nil
 }
 
-func (discussionService *DiscussionService) CreateDiscussion(discussion *models.Discussion, userAuthorID int) *dtos.Error {
+func (discussionService *DiscussionService) CreateDiscussion(discussion *dtos.DiscussionDTO, userAuthorID int) *dtos.Error {
 	discussionRepository := &repositories.DiscussionRepository{DB: discussionService.DB}
 	discussionMemberRepository := &repositories.DiscussionMemberRepository{DB: discussionService.DB}
 	if discussion.BackgroundImage != nil {
@@ -119,7 +119,6 @@ func (discussionService *DiscussionService) CreateDiscussion(discussion *models.
 		discussion.BackgroundImageLink = &backgroundImageLink
 	}
 	discussionID, err := discussionRepository.CreateDiscussion(discussion)
-
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
@@ -128,12 +127,23 @@ func (discussionService *DiscussionService) CreateDiscussion(discussion *models.
 		}
 	}
 
+	// Add the creator and selected authors into the discussion member table
 	err = discussionMemberRepository.CreateMember(userAuthorID, discussionID)
 	if err != nil {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
 			Message:   err.Error(),
+		}
+	}
+	for _, member := range discussion.Members {
+		err = discussionMemberRepository.CreateMember(member.AuthorID, discussionID)
+		if err != nil {
+			return &dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			}
 		}
 	}
 	return nil
@@ -354,13 +364,17 @@ func (discussionService *DiscussionService) DeleteDiscussionByID(discussionID in
 		}
 	}
 
-	// Check for thread not found error
+	// Check for discussion not found error
 	if rowsDeleted == 0 {
 		return &dtos.Error{
 			Status:    "error",
 			ErrorCode: "NOT_FOUND",
 			Message:   fmt.Sprintf("No discussions found with discussion id: %v", discussionID),
 		}
+	}
+	discussion, _ := discussionRepository.GetDiscussionByID(discussionID, 0)
+	if (discussion.BackgroundImageLink != nil) {
+		utils.DeleteFileFromS3Bucket(*discussion.BackgroundImageLink)
 	}
 	return nil
 }

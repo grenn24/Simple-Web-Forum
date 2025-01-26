@@ -169,6 +169,7 @@ const LogIn = () => {
 								error={!!errors.email}
 								helperText={errors.email?.message as string}
 								fullWidth
+								type="email"
 							/>
 
 							<br />

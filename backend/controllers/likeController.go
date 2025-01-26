@@ -45,10 +45,11 @@ func (likeController *LikeController) GetAllLikes(context *gin.Context, db *sql.
 func (likeController *LikeController) GetLikesByAuthorID(context *gin.Context, db *sql.DB) {
 	likeService := likeController.LikeService
 	sortIndex := utils.ConvertStringToInt(context.Query("sort"), context)
+	userAuthorID := utils.GetUserAuthorID(context)
 
 	authorID := context.Param("authorID")
 
-	likes, responseErr := likeService.GetLikesByAuthorID(utils.ConvertStringToInt(authorID, context), sortIndex)
+	likes, responseErr := likeService.GetLikesByAuthorID(utils.ConvertStringToInt(authorID, context), sortIndex, userAuthorID)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
@@ -67,7 +68,7 @@ func (likeController *LikeController) GetLikesByUser(context *gin.Context, db *s
 
 	userAuthorID := utils.GetUserAuthorID(context)
 
-	likes, responseErr := likeService.GetLikesByAuthorID(userAuthorID, sortIndex)
+	likes, responseErr := likeService.GetLikesByAuthorID(userAuthorID, sortIndex, userAuthorID)
 
 	// Check for internal server errors
 	if responseErr != nil {

@@ -19,7 +19,11 @@ const CommentsPage = () => {
 			(res) => {
 				const responseBody = res.data.data;
 				console.log(responseBody);
-				const comments = parseComments(responseBody);
+				const comments = parseComments(
+					responseBody,
+					false,
+					authorID === "User" ? ["private", "public"] : ["public"]
+				);
 				setComments(comments);
 				setIsLoading(false);
 			},

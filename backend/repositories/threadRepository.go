@@ -25,6 +25,7 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 			video_link,
 			like_count,
 			popularity,
+			visibility,
 			comment_count
 		FROM thread
 	`)
@@ -53,6 +54,7 @@ func (threadRepository *ThreadRepository) GetAllThreads() ([]*models.Thread, err
 			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
 			&thread.Popularity,
+			&thread.Visiblity,
 			&thread.CommentCount,
 		)
 
@@ -80,6 +82,7 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 			video_link,
 			like_count,
 			popularity,
+			visibility,
 			comment_count
 		FROM thread
 		WHERE thread_id = $1
@@ -99,13 +102,14 @@ func (threadRepository *ThreadRepository) GetThreadByID(threadID int) (*models.T
 		pq.Array(&thread.VideoLink),
 		&thread.LikeCount,
 		&thread.Popularity,
+		&thread.Visiblity,
 		&thread.CommentCount,
 	)
 
 	return thread, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadDTO, error) {
+func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int, userAuthorID int) ([]*dtos.ThreadDTO, error) {
 	rows, err := threadRepository.DB.Query(fmt.Sprintf(`
 		SELECT
 			thread.thread_id,
@@ -117,16 +121,18 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
+			thread.popularity,
+			thread.visibility,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
 			ELSE FALSE 
 		END AS archive_status
 		FROM thread
-		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = thread.author_id
-		WHERE thread.author_id = %v AND thread.visibility = 'public'
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = %v
+		WHERE thread.author_id = %v
 		ORDER BY thread.created_at DESC
-	`, authorID))
+	`, userAuthorID ,authorID))
 
 	if err != nil {
 		return nil, err
@@ -154,6 +160,8 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
 			&thread.CommentCount,
+			&thread.Popularity,
+			&thread.Visiblity,
 			&thread.ArchiveStatus,
 		)
 
@@ -169,7 +177,7 @@ func (threadRepository *ThreadRepository) GetThreadsByAuthorID(authorID int) ([]
 	return threads, err
 }
 
-func (threadRepository *ThreadRepository) GetThreadsByDiscussionID(discussionID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
+func (threadRepository *ThreadRepository) GetThreadsByDiscussionID(userAuthorID int, discussionID int, sortIndex int) ([]*dtos.ThreadDTO, error) {
 	sortOrder := []string{"thread.popularity DESC","thread.created_at DESC", "thread.created_at ASC"}
 	rows, err := threadRepository.DB.Query(fmt.Sprintf(`
 		SELECT
@@ -185,6 +193,8 @@ func (threadRepository *ThreadRepository) GetThreadsByDiscussionID(discussionID 
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
+			thread.popularity,
+			thread.visibility,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -192,10 +202,10 @@ func (threadRepository *ThreadRepository) GetThreadsByDiscussionID(discussionID 
 		END AS archive_status
 		FROM thread
 		INNER JOIN author ON author.author_id = thread.author_id
-		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = thread.author_id
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = %v
 		WHERE thread.discussion_id = %v
 		ORDER BY 
-	` + sortOrder[sortIndex], discussionID))
+	` + sortOrder[sortIndex], userAuthorID,discussionID))
 
 	if err != nil {
 		return nil, err
@@ -226,6 +236,8 @@ func (threadRepository *ThreadRepository) GetThreadsByDiscussionID(discussionID 
 			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
 			&thread.CommentCount,
+			&thread.Popularity,
+			&thread.Visiblity,
 			&thread.ArchiveStatus,
 		)
 
@@ -255,7 +267,9 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			author.username,
 			author.avatar_icon_link,
 			thread.image_link,
-			thread.video_link
+			thread.video_link,
+			thread.popularity,
+			thread.visibility
 		FROM threadTopicJunction
 		INNER JOIN thread ON threadTopicJunction.thread_id = thread.thread_id
 		INNER JOIN author ON thread.author_id = author.author_id
@@ -292,6 +306,8 @@ func (threadRepository *ThreadRepository) GetThreadsByTopicID(topicID int) ([]*d
 			&thread.Author.AvatarIconLink,
 			pq.Array(&thread.ImageLink),
 			pq.Array(&thread.VideoLink),
+			&thread.Popularity,
+			&thread.Visiblity,
 		)
 
 		// Check for any scanning errors
@@ -407,6 +423,7 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 			thread.like_count,
 			thread.comment_count,
 			thread.popularity,
+			thread.visibility,
 			CASE 
 				WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 				THEN TRUE 
@@ -417,7 +434,7 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
 		LEFT JOIN threadTopicJunction ON threadTopicJunction.thread_id = thread.thread_id
 		LEFT JOIN topic ON threadTopicJunction.topic_id = topic.topic_id
-		WHERE (thread.title ILIKE $2 OR thread.content ILIKE $2 OR topic.name ILIKE $2) AND thread.visibility = 'public'
+		WHERE (thread.title ILIKE $2 OR thread.content ILIKE $2 OR topic.name ILIKE $2)
 		ORDER BY 
 	`+sortOrder[sortIndex]+limitOffset, userAuthorID, "%"+query+"%")
 
@@ -446,13 +463,12 @@ func (threadRepository *ThreadRepository) SearchThreads(userAuthorID int, query 
 			&thread.Author.Name,
 			&thread.Author.Username,
 			&thread.Author.AvatarIconLink,
-
 			pq.Array(&thread.ImageLink),
-
 			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
 			&thread.CommentCount,
 			&thread.Popularity,
+			&thread.Visiblity,
 			&thread.ArchiveStatus,
 		)
 
@@ -484,13 +500,12 @@ func (threadRepository *ThreadRepository) GetTrendingThreads(userAuthorID int, p
 			author.name,
 			author.username,
 			author.avatar_icon_link,
-			
 			thread.image_link,
-			
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
 			thread.popularity,
+			thread.visibility,
 			CASE 
 				WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 				THEN TRUE 
@@ -499,7 +514,6 @@ func (threadRepository *ThreadRepository) GetTrendingThreads(userAuthorID int, p
 		FROM thread
 		INNER JOIN author ON thread.author_id = author.author_id
 		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
-		WHERE visibility = 'public'
 		ORDER BY thread.popularity DESC
 	`+limitOffset, userAuthorID)
 
@@ -528,13 +542,12 @@ func (threadRepository *ThreadRepository) GetTrendingThreads(userAuthorID int, p
 			&thread.Author.Name,
 			&thread.Author.Username,
 			&thread.Author.AvatarIconLink,
-
 			pq.Array(&thread.ImageLink),
-
 			pq.Array(&thread.VideoLink),
 			&thread.LikeCount,
 			&thread.CommentCount,
 			&thread.Popularity,
+			&thread.Visiblity,
 			&thread.ArchiveStatus,
 		)
 

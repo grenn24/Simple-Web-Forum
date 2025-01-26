@@ -238,6 +238,7 @@ const SignUpStage1 = () => {
 							<br />
 							<TextField
 								label="Email"
+								type="email"
 								variant="outlined"
 								{...register("email", {
 									required: "The email field is required",
@@ -305,7 +306,7 @@ const SignUpStage1 = () => {
 										sx={{ width: 20, height: 20, mx: 1 }}
 									/>
 								}
-								handleButtonClick={()=>handleGoogleLogIn()}
+								handleButtonClick={() => handleGoogleLogIn()}
 							>
 								Sign Up with Google
 							</Button>
@@ -320,7 +321,7 @@ const SignUpStage1 = () => {
 										sx={{ width: 20, height: 20, mx: 1 }}
 									/>
 								}
-								handleButtonClick={()=>handleGitHubLogIn()}
+								handleButtonClick={() => handleGitHubLogIn()}
 							>
 								Sign Up with GitHub
 							</Button>

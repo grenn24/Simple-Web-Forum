@@ -86,11 +86,12 @@ func (threadController *ThreadController) GetThreadExpandedByID(context *gin.Con
 }
 
 func (threadController *ThreadController) GetThreadsByAuthorID(context *gin.Context, db *sql.DB) {
-	authorID := context.Param("authorID")
+	authorID := utils.ConvertStringToInt(context.Param("authorID"),context)
+	userAuthorID := utils.GetUserAuthorID(context)
 
 	threadService := threadController.ThreadService
 
-	threads, responseErr := threadService.GetThreadsByAuthorID(utils.ConvertStringToInt(authorID, context))
+	threads, responseErr := threadService.GetThreadsByAuthorID(authorID, userAuthorID)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)
@@ -124,10 +125,10 @@ func (threadController *ThreadController) SearchThreads(context *gin.Context, db
 }
 
 func (threadController *ThreadController) GetThreadsByUser(context *gin.Context, db *sql.DB) {
-
+	userAuthorID := utils.GetUserAuthorID(context)
 	threadService := threadController.ThreadService
 
-	threads, responseErr := threadService.GetThreadsByAuthorID(utils.GetUserAuthorID(context))
+	threads, responseErr := threadService.GetThreadsByAuthorID(userAuthorID, userAuthorID)
 
 	if responseErr != nil {
 		context.JSON(http.StatusInternalServerError, responseErr)

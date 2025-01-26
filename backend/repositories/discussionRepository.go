@@ -12,14 +12,14 @@ type DiscussionRepository struct {
 	DB *sql.DB
 }
 
-func (discussionRepository *DiscussionRepository) CreateDiscussion(discussion *models.Discussion) (int, error) {
+func (discussionRepository *DiscussionRepository) CreateDiscussion(discussion *dtos.DiscussionDTO) (int, error) {
 	var discussionID int64
 	row := discussionRepository.DB.QueryRow(`
 		INSERT INTO discussion
 		(name, description, creator_author_id, background_image_link)
 		VALUES ($1, $2, $3, $4)
 		RETURNING discussion_id
-	`, discussion.Name, discussion.Description, discussion.CreatorAuthorID, discussion.BackgroundImageLink)
+	`, discussion.Name, discussion.Description, discussion.Creator.AuthorID, discussion.BackgroundImageLink)
 	// Check for errors while returning discussion id
 	err := row.Scan(&discussionID)
 
@@ -56,6 +56,53 @@ func (discussionRepository *DiscussionRepository) GetDiscussionByID(discussionID
 		LEFT JOIN discussion_join_request ON discussion_join_request.discussion_id = discussion.discussion_id AND discussion_join_request.author_id = $1
 		WHERE discussion.discussion_id = $2
 	`, userAuthorID, discussionID)
+	err := row.Scan(
+		&discussion.DiscussionID,
+		&discussion.Name,
+		&discussion.Description,
+		&discussion.BackgroundImageLink,
+		&discussion.CreatedAt,
+		&discussion.Creator.AuthorID,
+		&discussion.Creator.Name,
+		&discussion.Creator.Username,
+		&discussion.Creator.AvatarIconLink,
+		&discussion.IsJoined,
+		&discussion.IsRequested,
+	)
+	return discussion, err
+}
+
+func (discussionRepository *DiscussionRepository) GetDiscussionByThreadID(threadID int, userAuthorID int) (*dtos.DiscussionDTO, error) {
+	discussion := new(dtos.DiscussionDTO)
+	discussion.Creator = new(dtos.AuthorDTO)
+	row := discussionRepository.DB.QueryRow(`
+		SELECT
+			discussion.discussion_id,
+			discussion.name,
+			discussion.description,
+			discussion.background_image_link,
+			discussion.created_at,
+			discussion.creator_author_id,
+			author.name,
+			author.username,
+			author.avatar_icon_link,
+			CASE 
+				WHEN discussion_member.discussion_id IS NOT NULL AND discussion_member.member_author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_joined,
+			CASE 
+				WHEN discussion_join_request.discussion_id IS NOT NULL AND discussion_join_request.author_id IS NOT NULL 
+				THEN TRUE 
+			ELSE FALSE
+			END AS is_requested
+		FROM thread
+		INNER JOIN discussion ON thread.discussion_id = discussion.discussion_id
+		INNER JOIN author ON discussion.creator_author_id = author.author_id
+		LEFT JOIN discussion_member ON discussion_member.discussion_id = discussion.discussion_id AND discussion_member.member_author_id = $1
+		LEFT JOIN discussion_join_request ON discussion_join_request.discussion_id = discussion.discussion_id AND discussion_join_request.author_id = $1
+		WHERE thread.thread_id = $2
+	`, userAuthorID, threadID)
 	err := row.Scan(
 		&discussion.DiscussionID,
 		&discussion.Name,

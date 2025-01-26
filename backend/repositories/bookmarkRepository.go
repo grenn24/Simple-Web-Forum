@@ -58,13 +58,12 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			thread_author.name,
 			thread_author.username,
 			thread_author.avatar_icon_link,
-		
 			thread.image_link,
-		
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
 			thread.popularity,
+			thread.visibility,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -101,13 +100,12 @@ func (bookmarkRepository *BookmarkRepository) GetBookmarkedThreadsByAuthorID(aut
 			&bookmarkedThread.Author.Name,
 			&bookmarkedThread.Author.Username,
 			&bookmarkedThread.Author.AvatarIconLink,
-			
 			pq.Array(&bookmarkedThread.ImageLink),
-			
 			pq.Array(&bookmarkedThread.VideoLink),
 			&bookmarkedThread.LikeCount,
 			&bookmarkedThread.CommentCount,
 			&bookmarkedThread.Popularity,
+			&bookmarkedThread.Visiblity,
 			&bookmarkedThread.ArchiveStatus,
 		)
 

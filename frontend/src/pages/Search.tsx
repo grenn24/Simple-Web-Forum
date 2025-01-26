@@ -21,7 +21,7 @@ import { tabMenuPages } from "../features/Search/tabMenuPages";
 import sortOrders from "../features/Search/sortOrders";
 import sortIcons from "../features/Search/sortIcons";
 import Menu from "../components/Menu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Search = () => {
 	const [searchParams, _] = useSearchParams();
@@ -32,6 +32,8 @@ const Search = () => {
 
 	const navigate = useNavigate();
 	const theme = useTheme();
+
+	useEffect(()=>setSearchBarValue(query),[query])
 
 	return (
 		<Box
@@ -66,8 +68,17 @@ const Search = () => {
 						Search
 					</Typography>
 					<TextField
-						sx={{ width: { xs: "70%", md: "40%" } }}
+						sx={{
+							width: {
+								xs: "70%",
+								md: "40%",
+								"& input::-webkit-search-cancel-button": {
+									display: "none",
+								},
+							},
+						}}
 						value={searchBarValue}
+						type="search"
 						size="small"
 						placeholder="Search for ... anything"
 						onKeyDown={(e) => {
@@ -99,6 +110,7 @@ const Search = () => {
 								),
 							},
 						}}
+				
 					/>
 					<Typography
 						whiteSpace="preserve"

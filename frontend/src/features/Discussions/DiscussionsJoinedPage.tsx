@@ -47,7 +47,7 @@ const DiscussionsJoinedPage = () => {
 					>
 						Discussions Joined
 					</Typography>
-					<Box width={260}>
+					<Box width={210}>
 						<Divider />
 					</Box>
 					{discussions.length === 0 ? (

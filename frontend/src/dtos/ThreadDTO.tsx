@@ -2,6 +2,7 @@ import { EditorState } from "draft-js";
 import { AuthorDTO } from "./AuthorDTO";
 import { CommentDTO} from "./CommentDTO";
 import { TopicDTO } from "./TopicDTO";
+import { DiscussionDTO } from "./DiscussionDTO";
 
 
 export interface ThreadDTO {
@@ -15,11 +16,13 @@ export interface ThreadDTO {
 	likeStatus: boolean;
 	comments: CommentDTO[];
 	popularity: number;
+	visibility: string;
 	imageLink: string[];
 	videoLink: string[];
 	topicsTagged: TopicDTO[];
 	bookmarkStatus: boolean;
 	archiveStatus: boolean;
+	discussion: DiscussionDTO
 }
 
 

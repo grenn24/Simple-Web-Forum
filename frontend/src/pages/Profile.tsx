@@ -39,6 +39,7 @@ import { compressImageFile } from "../utilities/fileManipulation";
 import Select from "../components/Select";
 import tabMenuLabels from "../features/Profile/tabMenuLabels";
 import faculty from "../features/Profile/faculty";
+import { useAppSelector } from "../utilities/redux";
 
 const Profile = () => {
 	const {
@@ -77,9 +78,13 @@ const Profile = () => {
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const [openCameraInput, setOpenCameraInput] = useState(false);
 	const [selectedFaculty, setSelectedFaculty] = useState<string>("");
+	const { userAuthorID } = useAppSelector((state) => ({
+		userAuthorID: state.userInfo.authorID,
+	}));
 
 	// Retrieve author information from api (re-fetch if a new edit is submitted or if the author path variable in url is changed)
 	useEffect(() => {
+		userAuthorID === Number(authorID) && navigate("/Profile/User")
 		setIsLoading(true);
 		get(
 			`/authors/${authorID === "User" ? "user" : authorID}`,
@@ -489,7 +494,12 @@ const Profile = () => {
 						</Typography>
 					</Box>
 					{isEditing ? (
-						<Box display="flex" alignItems="center" justifyContent="flex-end" width="50%">
+						<Box
+							display="flex"
+							alignItems="center"
+							justifyContent="flex-end"
+							width="50%"
+						>
 							<Typography
 								fontFamily="Open Sans"
 								fontSize={18}
@@ -503,8 +513,14 @@ const Profile = () => {
 								style={{ height: 40 }}
 								fontSize={18}
 								size="small"
-								currentItemIndex={faculty.findIndex((faculty)=>faculty===selectedFaculty)}
-								handleSelect={(index) => index !== -1 ? setSelectedFaculty(faculty[index]) : setSelectedFaculty("")}
+								currentItemIndex={faculty.findIndex(
+									(faculty) => faculty === selectedFaculty
+								)}
+								handleSelect={(index) =>
+									index !== -1
+										? setSelectedFaculty(faculty[index])
+										: setSelectedFaculty("")
+								}
 								selectItemsArray={faculty}
 							/>
 						</Box>

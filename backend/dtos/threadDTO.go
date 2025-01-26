@@ -20,12 +20,14 @@ type ThreadDTO struct {
 	VideoLink    []string        `json:"video_link"`
 	//Optional JSON Fields
 	Author         *AuthorDTO              `json:"author,omitempty"`
+	Discussion         *DiscussionDTO              `json:"discussion,omitempty"`
 	LikeCount      *int                    `json:"like_count,omitempty"`
 	CommentCount   *int                    `json:"comment_count,omitempty"`
 	LikeStatus     *bool                   `json:"like_status,omitempty"`
 	BookmarkStatus *bool                   `json:"bookmark_status,omitempty"`
 	ArchiveStatus  *bool                   `json:"archive_status,omitempty"`
 	Popularity     *float64                `json:"popularity,omitempty"`
+	Visiblity      *string                 `json:"visibility,omitempty"`
 	Image          []*multipart.FileHeader `json:"image,omitempty"`
 	Video          []*multipart.FileHeader `json:"video,omitempty"`
 }

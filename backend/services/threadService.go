@@ -52,6 +52,7 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: threadService.DB}
 	archiveRepository := &repositories.ArchiveRepository{DB: threadService.DB}
+	discussionRepository := &repositories.DiscussionRepository{DB: threadService.DB}
 
 	// Retrieve expanded thread information
 	threadExpanded := new(dtos.ThreadDTO)
@@ -117,15 +118,30 @@ func (threadService *ThreadService) GetThreadExpandedByID(threadID int, userAuth
 		}
 	}
 
+	// Retrieve discussion
+	discussion, err := discussionRepository.GetDiscussionByThreadID(thread.ThreadID, userAuthorID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			threadExpanded.Discussion = nil
+		}
+		return nil, &dtos.Error{
+			Status:    "error",
+			ErrorCode: "INTERNAL_SERVER_ERROR",
+			Message:   err.Error(),
+		}
+	} else {
+		threadExpanded.Discussion = discussion
+	}
+
 	return threadExpanded, nil
 }
 
-func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.ThreadDTO, *dtos.Error) {
+func (threadService *ThreadService) GetThreadsByAuthorID(authorID int, userAuthorID int) ([]*dtos.ThreadDTO, *dtos.Error) {
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	authorRepository := &repositories.AuthorRepository{DB: threadService.DB}
 
-	threads, err := threadRepository.GetThreadsByAuthorID(authorID)
+	threads, err := threadRepository.GetThreadsByAuthorID(authorID, userAuthorID)
 	if err != nil {
 		return nil, &dtos.Error{
 			Status:    "error",
@@ -148,6 +164,7 @@ func (threadService *ThreadService) GetThreadsByAuthorID(authorID int) ([]*dtos.
 		}
 
 		thread.Author.Name = authorRepository.GetAuthorNameByAuthorID(thread.Author.AuthorID)
+		thread.Author.Username = authorRepository.GetAuthorUsernameByAuthorID(thread.Author.AuthorID)
 		threadsWithTopics = append(threadsWithTopics, thread)
 	}
 
@@ -336,9 +353,8 @@ func (threadService *ThreadService) UpdateThread(thread *models.Thread, threadID
 	threadRepository := &repositories.ThreadRepository{DB: threadService.DB}
 	topicRepository := &repositories.TopicRepository{DB: threadService.DB}
 
-	
 	threadService.RemoveThreadFromAllTopics(threadID)
-	
+
 	for _, topicName := range thread.TopicsTagged {
 		topic, err := topicRepository.GetTopicByName(topicName)
 		if err == sql.ErrNoRows {

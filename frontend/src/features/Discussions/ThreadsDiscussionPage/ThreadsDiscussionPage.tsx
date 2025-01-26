@@ -27,7 +27,7 @@ const ThreadsDiscussionPage = () => {
 			}`,
 			(res) => {
 				const responseBody = res.data.data;
-				setThreads(parseThreads(responseBody));
+				setThreads(parseThreads(responseBody, true, ["private"]));
 
 				setIsLoading(false);
 			},

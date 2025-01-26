@@ -12,10 +12,10 @@ export function removeElementFromArray(array: any[], target: any) {
 export function arrayContains(
 	array: any[],
 	target: any,
-	predicate: (x: any, y: any) => boolean
+	predicate: (element: any, target: any) => boolean
 ) {
 	for (const element of array) {
-		if (predicate(target, element)) {
+		if (predicate(element, target)) {
 			return true;
 		}
 	}

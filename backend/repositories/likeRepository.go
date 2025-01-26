@@ -70,7 +70,7 @@ func (likeRepository *LikeRepository) GetLikeByThreadAuthorID(threadID int, auth
 	return like, err
 }
 
-func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex int) ([]*dtos.LikeDTO, error) {
+func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex int, userAuthorID int) ([]*dtos.LikeDTO, error) {
 	sortOrder := []string{"\"like\".created_at DESC", "thread.popularity DESC", "thread.like_count DESC", "thread.created_at DESC", "thread.created_at ASC"}
 
 	rows, err := likeRepository.DB.Query(`
@@ -85,13 +85,12 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			thread.title,
 			thread.content,
 			thread.created_at,
-		
 			thread.image_link,
-		
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
 			thread.popularity,
+			thread.visibility,
 			thread_author.author_id,
 			thread_author.name,
 			thread_author.username,
@@ -105,10 +104,10 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 		INNER JOIN author AS like_author ON "like".author_id = like_author.author_id
 		INNER JOIN thread ON "like".thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
-		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = "like".author_id
-		WHERE like_author.author_id = $1 AND thread.visibility = 'public'
+		LEFT JOIN thread_archive ON thread_archive.thread_id = thread.thread_id AND thread_archive.author_id = $1
+		WHERE like_author.author_id = $2
 		ORDER BY 
-	`+sortOrder[sortIndex], authorID)
+	`+sortOrder[sortIndex], userAuthorID, authorID)
 
 	if err != nil {
 		return nil, err
@@ -137,13 +136,12 @@ func (likeRepository *LikeRepository) GetLikesByAuthorID(authorID int, sortIndex
 			&like.Thread.Title,
 			&like.Thread.Content,
 			&like.Thread.CreatedAt,
-			
 			pq.Array(&like.Thread.ImageLink),
-		
 			pq.Array(&like.Thread.VideoLink),
 			&like.Thread.LikeCount,
 			&like.Thread.CommentCount,
 			&like.Thread.Popularity,
+			&like.Thread.Visiblity,
 			&like.Thread.Author.AuthorID,
 			&like.Thread.Author.Name,
 			&like.Thread.Author.Username,

@@ -8,31 +8,42 @@ import {
 	GridRowsProp,
 	GridToolbarContainer,
 } from "@mui/x-data-grid";
-import { Avatar, Box, InputAdornment, TextField, Tooltip } from "@mui/material";
+import {
+	Avatar,
+	Box,
+	InputAdornment,
+	TextField,
+	Tooltip,
+	Typography,
+} from "@mui/material";
 import {
 	AddRounded as AddRoundedIcon,
 	SearchRounded as SearchRoundedIcon,
 	CloseRounded as CloseRoundedIcon,
 	SyncRounded as SyncRoundedIcon,
+	RemoveCircleOutlineRounded as RemoveCircleOutlineRoundedIcon,
+	RotateLeftRounded as RotateLeftRoundedIcon,
 } from "@mui/icons-material";
 import { get } from "../../../utilities/api";
 import { AuthorDTO } from "../../../dtos/AuthorDTO";
 import { parseAuthors } from "../../../utilities/parseApiResponse";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button";
-import { useAppSelector } from "../../../utilities/redux";
-
+import { useAppDispatch, useAppSelector } from "../../../utilities/redux";
+import { arrayContains } from "../../../utilities/arrayManipulation";
+import { changeSelectedAuthors } from "../createDiscussionSlice";
 
 const MemberPage = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [rows, setRows] = useState<GridRowsProp>([]);
 	const [searchBarValue, setSearchBarValue] = useState("");
 	const [authors, setAuthors] = useState<AuthorDTO[]>([]);
-	const [members, setMembers] = useState<AuthorDTO[]>([]);
-	const [selectedRows, setSelectedRows] = useState<GridRowSelectionModel>([]);
+	const dispatch = useAppDispatch();
+
 	const navigate = useNavigate();
-	const { userAuthorID } = useAppSelector((state) => ({
+	const { userAuthorID, selectedAuthors } = useAppSelector((state) => ({
 		userAuthorID: state.userInfo.authorID,
+		selectedAuthors: state.createDiscussion.selectedAuthors,
 	}));
 	const handleSearchAuthors = (query: string) => {
 		if (query) {
@@ -64,16 +75,6 @@ const MemberPage = () => {
 			setRows([]);
 		}
 	};
-
-	const handleAddAuthorToDiscussion = (id: GridRowId) => () => {
-		const author = authors[Number(id.valueOf())];
-		setMembers([...members, author]);
-	};
-
-	const handleAddAuthorsToDiscussion = () =>
-		selectedRows.forEach((id) => {
-			handleAddAuthorToDiscussion(id)();
-		});
 
 	const columns: GridColDef[] = [
 		{
@@ -107,13 +108,28 @@ const MemberPage = () => {
 				return [
 					<GridActionsCellItem
 						icon={
-							<Tooltip title="Add to Discussion" placement="right">
-								<AddRoundedIcon />
+							<Tooltip title="Remove Member" placement="right">
+								<RemoveCircleOutlineRoundedIcon />
 							</Tooltip>
 						}
 						label="Remove"
-						onClick={handleAddAuthorToDiscussion(id)}
 						color="inherit"
+						disabled={
+							!arrayContains(
+								selectedAuthors,
+								authors[Number(id)],
+								(x, y) => x.authorID === y.authorID
+							)
+						}
+						onClick={() =>
+							dispatch(
+								changeSelectedAuthors(
+									selectedAuthors.filter(
+										(author) => author.authorID !== authors[Number(id)].authorID
+									)
+								)
+							)
+						}
 					/>,
 				];
 			},
@@ -125,11 +141,11 @@ const MemberPage = () => {
 			<GridToolbarContainer>
 				<Box>
 					<Button
-						buttonIcon={<AddRoundedIcon />}
-						handleButtonClick={handleAddAuthorsToDiscussion}
-						disabled={selectedRows.length === 0}
+						buttonIcon={<RotateLeftRoundedIcon />}
+						handleButtonClick={() => dispatch(changeSelectedAuthors([]))}
+						disabled={selectedAuthors.length === 0}
 					>
-						Add
+						Reset
 					</Button>
 					<Button
 						buttonIcon={<SyncRoundedIcon />}
@@ -142,12 +158,21 @@ const MemberPage = () => {
 		);
 	};
 
+	const Footer = () => (
+		<Box sx={{ px: 2, py: 1, display: "flex" }}>
+			<Typography fontSize={17} fontWeight={600} textAlign="right" width="100%">
+				{selectedAuthors.length} Members Added
+			</Typography>
+		</Box>
+	);
+
 	return (
 		<Box>
 			<TextField
 				fullWidth
 				style={{ marginBottom: 20 }}
 				value={searchBarValue}
+				type="search"
 				size="small"
 				placeholder="Search for authors"
 				onChange={(e) => {
@@ -178,6 +203,11 @@ const MemberPage = () => {
 						),
 					},
 				}}
+				sx={{
+					"& input::-webkit-search-cancel-button": {
+						display: "none",
+					},
+				}}
 			/>
 
 			<DataGrid
@@ -197,8 +227,7 @@ const MemberPage = () => {
 					},
 				}}
 				pageSizeOptions={[10, 25]}
-				slots={{ toolbar: Toolbar }}
-				checkboxSelection
+				slots={{ toolbar: Toolbar, footer: Footer }}
 				localeText={{
 					noRowsLabel: "No authors found",
 				}}
@@ -206,8 +235,48 @@ const MemberPage = () => {
 					navigate(`/Profile/${rowInfo.row.authorID}`)
 				}
 				onRowSelectionModelChange={(newSelection) => {
-					setSelectedRows(newSelection);
+					// Add selected authors to state variable
+					newSelection.forEach((id) => {
+						if (
+							!arrayContains(
+								selectedAuthors,
+								authors[Number(id)],
+								(x, y) => x.authorID === y.authorID
+							)
+						) {
+							dispatch(
+								changeSelectedAuthors([...selectedAuthors, authors[Number(id)]])
+							);
+						}
+					});
 				}}
+				onRowClick={(rowInfo) => {
+					if (
+						arrayContains(
+							selectedAuthors,
+							rowInfo.row.authorID,
+							(x, y) => x.authorID === y
+						)
+					) {
+						dispatch(
+							changeSelectedAuthors(
+								selectedAuthors.filter(
+									(author) => author.authorID !== rowInfo.row.authorID
+								)
+							)
+						);
+					}
+				}}
+				rowSelectionModel={authors
+					.map((_, index) => index)
+					.filter((index) =>
+						arrayContains(
+							selectedAuthors,
+							index,
+							(selectedAuthor: AuthorDTO, index: number) =>
+								selectedAuthor?.authorID === authors[index]?.authorID
+						)
+					)}
 				loading={isLoading}
 			></DataGrid>
 		</Box>

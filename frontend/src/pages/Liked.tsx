@@ -5,7 +5,7 @@ import {
 	ArrowBackRounded as ArrowBackRoundedIcon,
 	SortRounded as SortRoundedIcon,
 } from "@mui/icons-material";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import Button from "../components/Button";
 import Menu from "../components/Menu";
 import sortIcons from "../features/Liked/sortIcons";
@@ -22,6 +22,7 @@ const Liked = () => {
 	const [searchParams, _] = useSearchParams();
 	const sort = searchParams.get("sort");
 
+
 	const navigate = useNavigate();
 	const [likes, setLikes] = useState<LikeDTO[]>([]);
 
@@ -33,7 +34,7 @@ const Liked = () => {
 			"/authors/user/likes?sort=" + (sort ? String(sortOrder.findIndex((element) => element === sort)) : "0"),
 			(res) => {
 				const responseBody = res.data.data;
-				const likes = parseLikes(responseBody, true);
+				const likes = parseLikes(responseBody, true );
 				setLikes(likes);
 				setIsLoading(false);
 			},

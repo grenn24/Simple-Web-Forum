@@ -19,7 +19,11 @@ const LikesPage = () => {
 				`/authors/${authorID === "User" ? "user" : authorID}/likes`,
 				(res) => {
 					const responseBody = res.data.data;
-					const likes = parseLikes(responseBody);
+					const likes = parseLikes(
+						responseBody,
+						false,
+						authorID === "User" ? ["private", "public"] : ["public"]
+					);
 					setLikes(likes);
 					setIsLoading(false);
 				},

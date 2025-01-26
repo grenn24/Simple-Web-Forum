@@ -28,12 +28,12 @@ func (likeService *LikeService) GetAllLikes() ([]*models.Like, *dtos.Error) {
 }
 
 // Retrieve liked threads for a specific author id
-func (likeService *LikeService) GetLikesByAuthorID(authorID int, sortIndex int) ([]*dtos.LikeDTO, *dtos.Error) {
+func (likeService *LikeService) GetLikesByAuthorID(authorID int, sortIndex int, userAuthorID int) ([]*dtos.LikeDTO, *dtos.Error) {
 	likeRepository := &repositories.LikeRepository{DB: likeService.DB}
 	topicRepository := &repositories.TopicRepository{DB: likeService.DB}
 	bookmarkRepository := &repositories.BookmarkRepository{DB: likeService.DB}
 
-	likedThreads, err := likeRepository.GetLikesByAuthorID(authorID, sortIndex)
+	likedThreads, err := likeRepository.GetLikesByAuthorID(authorID, sortIndex, userAuthorID)
 
 	// Check for internal server errors
 	if err != nil {
@@ -119,7 +119,7 @@ func (likeService *LikeService) GetLikeByThreadAuthorID(threadID int, authorID i
 		return nil, &dtos.Error{
 			Status:    "error",
 			ErrorCode: "INTERNAL_SERVER_ERROR",
-			Message:   "Internal server error",
+			Message:   err.Error(),
 		}
 	}
 

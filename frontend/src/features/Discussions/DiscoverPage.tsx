@@ -8,6 +8,7 @@ const DiscoverPage = () => {
 	return (
 		<Box width="100%">
 			<TextField
+				type="search"
 				inputRef={inputRef}
 				placeholder="Search Discussions"
 				size="small"

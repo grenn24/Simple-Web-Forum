@@ -308,6 +308,7 @@ const Thread = () => {
 												]}
 												topicsSelected={topicsSelected}
 												setTopicsSelected={setTopicsSelected}
+												disabled={!!thread.discussion}
 											/>
 										</Typography>
 										<Box my={2}>

@@ -77,8 +77,24 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 	sortOrder := []string{"comment.created_at DESC", "", "comment.created_at ASC"}
 
 	rows, err := commentRepository.DB.Query(`
-		SELECT comment.comment_id, comment.content, comment.created_at, comment_author.author_id, comment_author.name, comment_author.username, comment_author.avatar_icon_link, thread.thread_id, thread.title,
-		thread.content, thread.created_at, thread_author.author_id, thread_author.name, thread_author.username, thread_author.avatar_icon_link
+		SELECT
+			comment.comment_id,
+			comment.content,
+			comment.created_at,
+			comment_author.author_id,
+			comment_author.name,
+			comment_author.username,
+			comment_author.avatar_icon_link,
+			thread.thread_id,
+			thread.title,
+			thread.content,
+			thread.created_at,
+			thread.popularity,
+			thread.visibility,
+			thread_author.author_id,
+			thread_author.name,
+			thread_author.username,
+			thread_author.avatar_icon_link
 		FROM comment 
 		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
@@ -116,6 +132,8 @@ func (commentRepository *CommentRepository) GetCommentsByThreadID(threadID int, 
 			&comment.Thread.Title,
 			&comment.Thread.Content,
 			&comment.Thread.CreatedAt,
+			&comment.Thread.Popularity,
+			&comment.Thread.Visiblity,
 			&comment.Thread.Author.AuthorID,
 			&comment.Thread.Author.Name,
 			&comment.Thread.Author.Username,
@@ -148,6 +166,7 @@ func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) 
 			thread.title,
 			thread.content,
 			thread.created_at,
+			thread.visibility,
 			thread_author.author_id,
 			thread_author.name,
 			thread_author.avatar_icon_link
@@ -155,7 +174,7 @@ func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) 
 		INNER JOIN thread ON comment.thread_id = thread.thread_id
 		INNER JOIN author AS thread_author ON thread.author_id = thread_author.author_id
 		INNER JOIN author AS comment_author ON comment.author_id = comment_author.author_id
-		WHERE comment.author_id = $1 AND thread.visibility = 'public'
+		WHERE comment.author_id = $1
 		ORDER BY comment.created_at DESC`, authorID)
 	if err != nil {
 		return nil, err
@@ -185,6 +204,7 @@ func (commentRepository *CommentRepository) GetCommentsByAuthorID(authorID int) 
 			&comment.Thread.Title,
 			&comment.Thread.Content,
 			&comment.Thread.CreatedAt,
+			&comment.Thread.Visiblity,
 			&comment.Thread.Author.AuthorID,
 			&comment.Thread.Author.Name,
 			&comment.Thread.Author.AvatarIconLink,

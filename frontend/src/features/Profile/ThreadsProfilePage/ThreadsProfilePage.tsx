@@ -6,20 +6,25 @@ import { ThreadDTO } from "../../../dtos/ThreadDTO";
 import { get } from "../../../utilities/api";
 import { parseThreads } from "../../../utilities/parseApiResponse";
 import ThreadCardMini from "./ThreadCardMini";
+import { useAppSelector } from "../../../utilities/redux";
 
 const PostsPage = () => {
 	const navigate = useNavigate();
 	const [threads, setThreads] = useState<ThreadDTO[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-
 	const { authorID } = useParams();
+
 	useEffect(
 		() =>
 			get(
 				`/authors/${authorID === "User" ? "user" : authorID}/threads`,
 				(res) => {
 					const responseBody = res.data.data;
-					const threads: ThreadDTO[] = parseThreads(responseBody);
+					const threads: ThreadDTO[] = parseThreads(
+						responseBody,
+						false,
+						authorID === "User" ? ["public", "private"] : ["public"]
+					);
 					setThreads(threads);
 					setIsLoading(false);
 				},
@@ -61,9 +66,8 @@ const PostsPage = () => {
 						)}
 						listItemTextStyle={{
 							flexGrow: 1,
-		
+
 							width: "100%",
-						
 						}}
 						listItemPadding={1.4}
 						disableRipple

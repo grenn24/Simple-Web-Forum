@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { AuthorDTO } from "../../dtos/AuthorDTO";
 
 
 const initialState = {
@@ -6,6 +7,7 @@ const initialState = {
 	description: "",
 	backgroundImage: null,
 	isCompressingImage: false,
+	selectedAuthors:[] as AuthorDTO[]
 };
 export const createDiscussionSlice = createSlice({
 	// Name of slice
@@ -25,14 +27,17 @@ export const createDiscussionSlice = createSlice({
 		changeBackgroundImage: (state, action) => {
 			state.backgroundImage = action.payload;
 		},
-		changeIsCompressingImage:(state,action)=>{
+		changeIsCompressingImage: (state, action) => {
 			state.isCompressingImage = action.payload;
-		}
+		},
+		changeSelectedAuthors: (state, action) => {
+			state.selectedAuthors = action.payload;
+		},
 	},
 });
 
 // Action creators are generated for each reducer function using create slice
-export const { reset, changeName, changeBackgroundImage, changeDescription, changeIsCompressingImage} =
+export const { reset, changeName, changeBackgroundImage, changeDescription, changeIsCompressingImage,changeSelectedAuthors} =
 	createDiscussionSlice.actions;
 
 const createDiscussionSliceReducer = createDiscussionSlice.reducer;

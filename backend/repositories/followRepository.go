@@ -49,13 +49,12 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			thread_author.name,
 			thread_author.username, 
 			thread_author.avatar_icon_link,  
-		
 			thread.image_link,
-	
 			thread.video_link,
 			thread.like_count,
 			thread.comment_count,
 			thread.popularity,
+			thread.visibility,
 		CASE 
 			WHEN thread_archive.thread_id IS NOT NULL AND thread_archive.author_id IS NOT NULL 
 			THEN TRUE 
@@ -94,13 +93,12 @@ func (followRepository *FollowRepository) GetFollowedThreadsByAuthorID(authorID 
 			&followedThread.Author.Name,
 			&followedThread.Author.Username,
 			&followedThread.Author.AvatarIconLink,
-
 			pq.Array(&followedThread.ImageLink),
-		
 			pq.Array(&followedThread.VideoLink),
 			&followedThread.LikeCount,
 			&followedThread.CommentCount,
 			&followedThread.Popularity,
+			&followedThread.Visiblity,
 			&followedThread.ArchiveStatus,
 		)
 

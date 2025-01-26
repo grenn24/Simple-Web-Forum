@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -136,11 +137,21 @@ func (discussionController *DiscussionController) CreateDiscussion(context *gin.
 	contentType := context.GetHeader("Content-Type")
 
 	if strings.Split(contentType, ";")[0] == "multipart/form-data" {
-		discussion := new(models.Discussion)
+		discussion := new(dtos.DiscussionDTO)
 		userAuthorID := utils.GetUserAuthorID(context)
-		discussion.CreatorAuthorID = userAuthorID
+		discussion.Creator = new(dtos.AuthorDTO)
+		discussion.Creator.AuthorID = userAuthorID
 		discussion.Name = context.PostForm("name")
 		discussion.Description = context.PostForm("description")
+	
+		err := json.Unmarshal([]byte(context.PostForm("members")), &discussion.Members )
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, dtos.Error{
+				Status:    "error",
+				ErrorCode: "INTERNAL_SERVER_ERROR",
+				Message:   err.Error(),
+			})
+		}
 
 		discussionIcon, err := context.FormFile("background_image")
 		if err != nil {

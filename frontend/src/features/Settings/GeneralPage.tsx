@@ -43,7 +43,7 @@ const GeneralPage = () => {
 						/>
 					</Box>,
 				]}
-
+				listItemTextStyle={{flexGrow:1}}
 				disableRipple
 				divider
 			/>

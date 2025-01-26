@@ -71,7 +71,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 interface Prop {
 	thread: ThreadDTO;
-	handleDeleteThread?: ()=>void
+	handleDeleteThread?: () => void;
 }
 
 const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
@@ -122,7 +122,7 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 								toolTipText="View Profile"
 								handleMenuIconClick={(event) => {
 									event.stopPropagation();
-									navigate(`../Profile/${thread.author.authorID}`);
+									navigate(`/Profile/${thread.author.authorID}`);
 								}}
 							/>
 						}
@@ -248,7 +248,7 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 								marginRight: 1,
 							}}
 							handleButtonClick={(event) => {
-								navigate(`../Thread/${thread.threadID}`, {
+								navigate(`/Thread/${thread.threadID}`, {
 									state: { isCommenting: true },
 								});
 								event.stopPropagation();
@@ -284,10 +284,7 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 							<ExpandMoreIcon
 								sx={{
 									color: "primary.dark",
-									display:
-										thread.content
-											? "block"
-											: "none",
+									display: thread.content ? "block" : "none",
 								}}
 							/>
 						</ExpandMore>
@@ -368,13 +365,10 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 						},
 						(event) => {
 							setOpenShareDialog(false);
-							const currentPathObject = new URL(window.location.href);
-							const parentPathRelative = currentPathObject.pathname.substring(
-								0,
-								currentPathObject.pathname.lastIndexOf("/")
-							);
-							const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
-							window.location.href = `whatsapp://send?text=${parentPathAbsolute}/Thread/${thread.threadID}`;
+							const domain = window.location.hostname;
+							const protocol = window.location.protocol;
+
+							window.location.href = `whatsapp://send?text=${protocol}${domain}/Thread/${thread.threadID}`;
 							event.stopPropagation();
 						},
 						() => setOpenShareDialog(false),
@@ -386,14 +380,10 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 				setOpenSnackbar={setOpenSnackbar}
 				message="Link copied to clipboard"
 				handleSnackbarClose={() => {
-					const currentPathObject = new URL(window.location.href);
-					const parentPathRelative = currentPathObject.pathname.substring(
-						0,
-						currentPathObject.pathname.lastIndexOf("/")
-					);
-					const parentPathAbsolute = `${currentPathObject.origin}${parentPathRelative}`;
+					const domain = window.location.hostname;
+					const protocol = window.location.protocol;
 					navigator.clipboard.writeText(
-						`${parentPathAbsolute}/Thread/${thread.threadID}`
+						`${protocol}${domain}/Thread/${thread.threadID}`
 					);
 				}}
 				duration={1500}

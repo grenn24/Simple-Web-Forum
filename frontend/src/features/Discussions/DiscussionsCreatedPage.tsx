@@ -47,7 +47,7 @@ const DiscussionsCreatedPage = () => {
 					>
 						Discussions Created By You
 					</Typography>
-					<Box width={360}>
+					<Box width={300}>
 						<Divider />
 					</Box>
 

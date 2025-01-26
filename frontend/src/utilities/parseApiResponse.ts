@@ -6,6 +6,7 @@ import LikeDTO from "../dtos/LikeDTO";
 import { ThreadDTO } from "../dtos/ThreadDTO";
 import { TopicDTO } from "../dtos/TopicDTO";
 import { convertFromRaw, EditorState } from "draft-js";
+import { arrayContains } from "./arrayManipulation";
 
 export function parseThread(thread: any): ThreadDTO {
 	return {
@@ -28,21 +29,26 @@ export function parseThread(thread: any): ThreadDTO {
 		archiveStatus: thread.archive_status,
 		commentCount: thread.comment_count,
 		popularity: thread.popularity,
+		visibility: thread.visibility,
 		author: parseAuthor(thread.author),
-		comments: parseComments(thread.comments),
+		comments: parseComments(thread.comments, false, ["private", "public"]),
 		topicsTagged: parseTopicNames(thread.topics_tagged),
+		discussion: thread.discussion && parseDiscussion(thread.discussion),
 	};
 }
 
 export function parseThreads(
 	threads: any,
-	removeArchivedThreads: boolean = false
+	hideArchived: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
 ): ThreadDTO[] {
 	return threads
 		? threads
 				.map((thread: any) => parseThread(thread))
 				.filter(
-					(thread: any) => !removeArchivedThreads || !thread.archiveStatus
+					(thread: any) =>
+						(!hideArchived || !thread.archiveStatus) &&
+						arrayContains(visibility, thread.visibility, (x, y) => x === y)
 				)
 		: [];
 }
@@ -58,13 +64,19 @@ export function parseLike(like: any): LikeDTO {
 
 export function parseLikes(
 	likes: any,
-	removeArchivedThreads: boolean = false
+	hideArchived: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
 ): LikeDTO[] {
 	return likes
 		? likes
 				.map((like: any) => parseLike(like))
-				.filter(
-					(like: any) => !removeArchivedThreads || !like.thread.archiveStatus
+				.filter((like: LikeDTO)=>
+					(!hideArchived || !like.thread.archiveStatus) &&
+						arrayContains(
+							visibility,
+							like.thread.visibility,
+							(x, y) => x === y
+						)
 				)
 		: [];
 }
@@ -120,8 +132,20 @@ export function parseAuthors(authors: any): AuthorDTO[] {
 	return authors ? authors.map((author: any) => parseAuthor(author)) : [];
 }
 
-export function parseComments(comments: any): CommentDTO[] {
-	return comments ? comments.map((comment: any) => parseComment(comment)) : [];
+export function parseComments(
+	comments: any,
+	hideArchived: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
+): CommentDTO[] {
+	return comments
+		? comments
+				.map((comment: any) => parseComment(comment))
+				.filter(
+					(comment:CommentDTO) =>
+						(!hideArchived || !comment.thread.archiveStatus) &&
+						arrayContains(visibility, comment.thread.visibility, (x, y) => x === y)
+				)
+		: [];
 }
 
 export function parseComment(comment: any): CommentDTO {
@@ -143,8 +167,24 @@ export function parseArchive(archive: any): ArchiveDTO {
 	};
 }
 
-export function parseArchives(archives: any): ArchiveDTO[] {
-	return archives ? archives.map((archive: any) => parseArchive(archive)) : [];
+export function parseArchives(
+	archives: any,
+	hideArchived: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
+): ArchiveDTO[] {
+	return archives
+		? archives
+				.map((archive: any) => parseArchive(archive))
+				.filter(
+					(archive: ArchiveDTO) =>
+						(!hideArchived || !archive.thread.archiveStatus) &&
+						arrayContains(
+							visibility,
+							archive.thread.visibility,
+							(x, y) => x === y
+						)
+				)
+		: [];
 }
 
 export function parseDiscussion(discussion: any): DiscussionDTO {
@@ -168,16 +208,20 @@ export function parseDiscussions(discussions: any): DiscussionDTO[] {
 		: [];
 }
 
-export function parseDiscussionJoinRequest(request: any) : DiscussionJoinRequestDTO {
+export function parseDiscussionJoinRequest(
+	request: any
+): DiscussionJoinRequestDTO {
 	return {
 		requestID: request.request_id,
 		author: parseAuthor(request.author),
 		discussionID: request.discussion_id,
-		createdAt: new Date(request.created_at)
+		createdAt: new Date(request.created_at),
 	};
 }
 
-export function parseDiscussionJoinRequests(requests: any): DiscussionJoinRequestDTO[] {
+export function parseDiscussionJoinRequests(
+	requests: any
+): DiscussionJoinRequestDTO[] {
 	return requests
 		? requests.map((request: any) => parseDiscussionJoinRequest(request))
 		: [];
