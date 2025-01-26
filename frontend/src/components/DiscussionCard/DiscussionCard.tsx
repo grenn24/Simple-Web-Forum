@@ -45,6 +45,8 @@ const DiscussionCard = ({ discussion, style }: Prop) => {
 		event.stopPropagation();
 		if (!discussion.isJoined) {
 			isRequested ? handleRemoveRequestJoin() : handleRequestJoin();
+		} else {
+			navigate(`/Discussions/${discussion.discussionID}`);
 		}
 	};
 	return (
