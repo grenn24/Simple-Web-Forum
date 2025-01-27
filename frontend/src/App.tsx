@@ -1,9 +1,9 @@
 import "./styles/App.css";
 import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import WelcomeLayout from "./Layouts/WelcomeLayout/WelcomeLayout";
+import WelcomeLayout from "./layouts/WelcomeLayout/WelcomeLayout";
 import Following from "./pages/Following";
-import MainLayout from "./Layouts/MainLayout/MainLayout";
+import MainLayout from "./layouts/MainLayout/MainLayout";
 //import Error from "./pages/Error";
 import Home from "./pages/Home";
 import Topics from "./pages/Topics";
@@ -26,7 +26,7 @@ import SignUpStage2 from "./features/Welcome/SignUpStage2";
 import SignUpStage3 from "./features/Welcome/SignUpStage3";
 import Search from "./pages/Search";
 import Discussions from "./pages/Discussions";
-import DiscussionLayout from "./Layouts/DiscussionLayout/DiscussionLayout";
+import DiscussionLayout from "./layouts/DiscussionLayout/DiscussionLayout";
 import DiscussionTabs from "./pages/DiscussionTabs";
 import DiscussionJoinRequests from "./pages/DiscussionJoinRequests";
 import CreateDiscussion from "./pages/CreateDiscussion";
@@ -81,7 +81,10 @@ function App() {
 								<Route path="Bookmarked" element={<Bookmarked />} />
 								<Route path="Discussions">
 									<Route path="" element={<Discussions />} />
-									<Route path="Create-Discussion" element={<CreateDiscussion />} />
+									<Route
+										path="Create-Discussion"
+										element={<CreateDiscussion />}
+									/>
 									<Route path=":discussionID" element={<DiscussionLayout />}>
 										<Route path="" element={<DiscussionTabs />} />
 										<Route

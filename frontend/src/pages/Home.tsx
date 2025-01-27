@@ -23,13 +23,13 @@ const Home = () => {
 	useEffect(()=>{
 		get("/threads/trending",(res)=>{
 			const responseBody = res.data.data;
-			setTrendingThreads(parseThreads(responseBody))
+			setTrendingThreads(parseThreads(responseBody,true,["public"]))
 			setIsLoading(false);
 		},err=>console.log(err))
 		get("/topics/trending", (res) => {
 			const responseBody = res.data.data;
 			console.log(responseBody)
-			setTrendingTopics(parseTopics(responseBody));
+			setTrendingTopics(parseTopics(responseBody,true,["public"]));
 			
 		},err=>console.log(err));
 	},[])

@@ -84,11 +84,12 @@ export function parseLikes(
 // After removing archived threads, topic with no threads may exists, which is not desired
 export function parseTopics(
 	topics: any,
-	removeArchivedThreads: boolean = false
+	removeArchivedThreads: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
 ): TopicDTO[] {
 	return topics
 		? topics
-				.map((topic: any) => parseTopic(topic, removeArchivedThreads))
+				.map((topic: any) => parseTopic(topic, removeArchivedThreads,visibility))
 				.filter((topic: any) => topic.threads.length != 0)
 		: [];
 }
@@ -99,14 +100,15 @@ export function parseTopicNames(topics: any): TopicDTO[] {
 
 export function parseTopic(
 	topic: any,
-	removeArchivedThreads: boolean = false
+	hideArchived: boolean = false,
+	visibility: ("public" | "private")[] = ["public"]
 ): TopicDTO {
 	return {
 		topicID: topic.topic_id,
 		name: topic.name,
 		followStatus: topic.follow_status,
 		popularity: topic.popularity,
-		threads: parseThreads(topic.threads, removeArchivedThreads),
+		threads: parseThreads(topic.threads, hideArchived,visibility),
 	};
 }
 

@@ -26,9 +26,9 @@ const Topics = () => {
 			(res) => {
 				const responseBody = res.data.data;
 				if (topicID) {
-					setTopicsWithThreads([parseTopic(responseBody,true)]);
+					setTopicsWithThreads([parseTopic(responseBody,true,["public"])]);
 				} else {
-					setTopicsWithThreads(parseTopics(responseBody,true));
+					setTopicsWithThreads(parseTopics(responseBody,true,["public"]));
 				}
 				setIsLoading(false);
 			},
