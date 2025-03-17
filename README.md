@@ -1,4 +1,4 @@
-# NUS Gossips
+# NUS Gossips (CVWO Winter Assignment)
 Creator: Hoo Di Heng  
 
 ### Tech Stack  
