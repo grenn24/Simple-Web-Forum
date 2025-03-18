@@ -1,6 +1,8 @@
 # NUS Gossips (CVWO Winter Assignment)
 Creator: Hoo Di Heng  
 
+University Forum Web App with file hosting capabilities.
+
 ### Tech Stack  
 **Front-End:**  
 React, TypeScript, Axios, Redux, MUI, Framer Motion, react-oauth/google, draft-js  
