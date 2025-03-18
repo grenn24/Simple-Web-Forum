@@ -1,7 +1,7 @@
 # NUS Gossips (CVWO Winter Assignment)
 Creator: Hoo Di Heng  
 
-University Forum Web App with file hosting capabilities.
+University forum website with file hosting capabilities.
 
 ### Tech Stack  
 **Front-End:**  
