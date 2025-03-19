@@ -41,7 +41,7 @@ const SignUpStage3 = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [openFileInput, setOpenFileInput] = useState(false);
 	const handleUploadAvatarIcon = (files: FileList) => {
-		compressImageFile(files[0], 2)
+		compressImageFile(files[0], 1)
 			.then((avatar) => dispatch(changeAvatarIcon(avatar)))
 			.catch((err) => console.log(err));
 	};

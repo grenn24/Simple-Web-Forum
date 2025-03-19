@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "motion/react";
 interface Prop {
 	imageLinks: string[];
 	videoLinks?: string[];
+	images?: HTMLImageElement[]
 	borderRadius?: number;
 	backgroundColor?: string;
 	fullScreenMode?: boolean;
@@ -97,6 +98,7 @@ const MediaViewer = ({
 					>
 						<video
 							src={video}
+							rel="preload"
 							style={{
 								maxWidth: "100%",
 								maxHeight: "100%",
@@ -106,6 +108,7 @@ const MediaViewer = ({
 							autoPlay
 							muted
 							loop
+							playsInline
 						/>
 					</Box>
 				))}
@@ -126,6 +129,8 @@ const MediaViewer = ({
 								objectFit: "contain",
 								width: "auto",
 							}}
+							rel="preload"
+				
 						/>
 					</Box>
 				))}

@@ -1,5 +1,5 @@
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material";
-import {Grid2 as Grid} from "@mui/material";
+import { Grid2 as Grid } from "@mui/material";
 import ThreadCard from "../components/ThreadCard";
 import { useWindowSize } from "@uidotdev/usehooks";
 import { useEffect, useState } from "react";
@@ -17,22 +17,28 @@ const Home = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [trendingThreads, setTrendingThreads] = useState<ThreadDTO[]>([]);
 	const [trendingTopics, setTrendingTopics] = useState<TopicDTO[]>([]);
-		const { username } = useAppSelector((state) => ({
-			username: state.userInfo.username,
-		}));
-	useEffect(()=>{
-		get("/threads/trending",(res)=>{
-			const responseBody = res.data.data;
-			setTrendingThreads(parseThreads(responseBody,true,["public"]))
-			setIsLoading(false);
-		},err=>console.log(err))
-		get("/topics/trending", (res) => {
-			const responseBody = res.data.data;
-			console.log(responseBody)
-			setTrendingTopics(parseTopics(responseBody,true,["public"]));
-			
-		},err=>console.log(err));
-	},[])
+	const { username } = useAppSelector((state) => ({
+		username: state.userInfo.username,
+	}));
+	useEffect(() => {
+		get(
+			"/threads/trending",
+			(res) => {
+				const responseBody = res.data.data;
+				setTrendingThreads(parseThreads(responseBody, true, ["public"]));
+				setIsLoading(false);
+			},
+			(err) => console.log(err)
+		);
+		get(
+			"/topics/trending",
+			(res) => {
+				const responseBody = res.data.data;
+				setTrendingTopics(parseTopics(responseBody, true, ["public"]));
+			},
+			(err) => console.log(err)
+		);
+	}, []);
 	return (
 		<Box
 			sx={{
@@ -119,7 +125,26 @@ const Home = () => {
 										: 12
 								}
 							>
-								<ThreadCard thread={thread} />
+								<ThreadCard
+									thread={thread}
+									handleDeleteThread={(threadID) => {
+										setTrendingThreads(
+											trendingThreads.filter(
+												(thread) => thread.threadID !== threadID
+											)
+										);
+										setTrendingTopics(
+											trendingTopics
+												.map((topic) => {
+													topic.threads = topic.threads.filter(
+														(thread) => thread.threadID !== threadID
+													);
+													return topic;
+												})
+												.filter((topic: any) => topic.threads.length != 0)
+										);
+									}}
+								/>
 							</Grid>
 						))}
 					</Grid>

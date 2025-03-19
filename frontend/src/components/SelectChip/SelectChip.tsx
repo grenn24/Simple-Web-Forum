@@ -124,6 +124,7 @@ export default function SelectChip({
 														removeElementFromArray(topicsSelected, value)
 													);
 												}}
+												
 											/>
 										))}
 									</Box>

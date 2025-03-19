@@ -15,7 +15,6 @@ import { ThreadDTO } from "../dtos/ThreadDTO";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";
-import { removeFromArray } from "../utilities/arrayManipulation";
 
 const Following = () => {
 	const [isLoading, setIsLoading] = useState(true);
@@ -140,9 +139,9 @@ const Following = () => {
 							<ThreadCardLoading bodyHeight={180} />
 						</Box>
 					) : followedThreads.length !== 0 ? (
-						followedThreads.map((followedThread,index) => (
+						followedThreads.map((followedThread) => (
 							<Box width="100%" key={followedThread.threadID}>
-								<ThreadCard thread={followedThread}  handleDeleteThread={()=>setFollowedThreads(removeFromArray(followedThreads,index))} />
+								<ThreadCard thread={followedThread}  handleDeleteThread={(threadID)=>setFollowedThreads(followedThreads.filter((thread)=>thread.threadID !== threadID))} />
 								<Divider sx={{ my: 3 }} />
 							</Box>
 						))

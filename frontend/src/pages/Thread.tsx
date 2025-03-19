@@ -113,13 +113,14 @@ const Thread = () => {
 					setBookmarkStatus(thread.bookmarkStatus);
 					setIsLoading(false);
 					// Check if isEditing or isCommenting was passed in during navigation
-					location.state && setIsCommenting(location.state?.isCommenting);
-					location.state && setIsEditing(location.state?.isEditing);
+					location.state?.isCommenting && setIsCommenting(location.state?.isCommenting);
+					location.state?.isEditing &&
+						setIsEditing(location.state?.isEditing);
 					setThreadContent(thread.content);
 				},
 				(err) => console.log(err)
 			),
-		[isUploadingThread, isUploadingComment, commentSort, isEditing]
+		[isUploadingComment, commentSort, isEditing]
 	);
 
 	const {
@@ -132,6 +133,9 @@ const Thread = () => {
 
 	const handleCommentSubmit = handleSubmit((data) => {
 		setIsUploadingComment(true);
+		const currentState = location.state;
+		delete currentState["isCommenting"];
+		window.history.replaceState(currentState, "", location.pathname);
 		postJSON(
 			`/threads/${thread.threadID}/comments/user`,
 			{
@@ -168,6 +172,21 @@ const Thread = () => {
 			}
 		);
 	});
+
+	const handleDiscardEdit = () => {
+		setIsEditing(false);
+		const currentState = location.state;
+		delete currentState["isEditing"];
+		window.history.replaceState(currentState, "", location.pathname);
+	};
+
+	const handleCloseCommentBox = () => {
+		setIsCommenting(false);
+		const currentState = location.state;
+		delete currentState["isCommenting"];
+		window.history.replaceState(currentState, "", location.pathname);
+		reset();
+	};
 
 	return (
 		<>
@@ -341,9 +360,7 @@ const Thread = () => {
 												marginLeft: 1,
 												marginRight: 1,
 											}}
-											handleButtonClick={() => {
-												setIsEditing(false);
-											}}
+											handleButtonClick={handleDiscardEdit}
 										>
 											Discard
 										</Button>
@@ -392,7 +409,7 @@ const Thread = () => {
 													}
 													fontFamily="Open Sans"
 													buttonStyle={{
-														p: 0,
+														py: 0,
 														marginLeft: 0,
 														marginRight: 1.5,
 													}}
@@ -615,10 +632,7 @@ const Thread = () => {
 															<CancelRoundedIcon sx={{ padding: 0 }} />
 														}
 														color="primary.dark"
-														handleButtonClick={() => {
-															setIsCommenting(false);
-															reset();
-														}}
+														handleButtonClick={handleCloseCommentBox}
 													/>
 													<Button
 														buttonIcon={<SendRoundedIcon />}
@@ -660,7 +674,15 @@ const Thread = () => {
 										)}
 										menuStyle={{ fontFamily: "Open Sans" }}
 									>
-										{commentSortOrder[commentSort ? commentSortOrder.findIndex(element=>element===commentSort): 0]}
+										{
+											commentSortOrder[
+												commentSort
+													? commentSortOrder.findIndex(
+															(element) => element === commentSort
+													  )
+													: 0
+											]
+										}
 									</Menu>
 								</Box>
 								<List

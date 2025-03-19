@@ -9,7 +9,7 @@ export function generateFileURL(file: File | null, timeout: number = 3000) {
 
 export function openFileInNewWindow(file: File) {
 	const url = generateFileURL(file);
-    console.log(url)
+	console.log(url);
 	window.open(url);
 }
 
@@ -26,10 +26,10 @@ export async function compressImageFile(
 	try {
 		// Wait for promise to be resolved before returning
 		const compressedBlob = await imageCompression(file, options);
-			const compressedFile = new File([compressedBlob], file.name, {
-				type: file.type,
-				lastModified: file.lastModified,
-			});
+		const compressedFile = new File([compressedBlob], file.name, {
+			type: file.type,
+			lastModified: file.lastModified,
+		});
 		return compressedFile;
 	} catch (error) {
 		throw error;
@@ -56,10 +56,38 @@ export async function compressImageFiles(
 			});
 			return compressedFile;
 		});
-        // Wait for all the promises to resolve before returning
+		// Wait for all the promises to resolve before returning
 		const compressedFiles = await Promise.all(promises);
-		
+
 		return compressedFiles;
+	} catch (error) {
+		throw error;
+	}
+}
+
+export async function cacheImageUrl(
+	imageUrl: string
+): Promise<HTMLImageElement> {
+	return new Promise((resolve, reject) => {
+		try {
+			const image = new Image();
+			image.src = imageUrl;
+			image.onload = () => resolve(image);
+
+			image.onerror = (err) => reject(err);
+		} catch (error) {
+			reject(error);
+		}
+	});
+}
+
+export async function cacheImageUrls(
+	imageUrls: string[]
+): Promise<HTMLImageElement[]> {
+	try {
+		const promises = imageUrls.map((url) => cacheImageUrl(url));
+		const images = await Promise.all(promises);
+		return images;
 	} catch (error) {
 		throw error;
 	}

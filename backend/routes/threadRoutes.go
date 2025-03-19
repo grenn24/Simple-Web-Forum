@@ -19,7 +19,9 @@ var (
 )
 
 func ThreadRoutes(router *gin.RouterGroup, db *sql.DB) {
+	
 	threadRouter := router.Group("/threads")
+	
 	threadRouter.Use(middlewares.Authenticate)
 	// Initialise controller handlers
 	threadController := &controllers.ThreadController{ThreadService: &services.ThreadService{

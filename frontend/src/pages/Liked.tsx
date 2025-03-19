@@ -15,7 +15,6 @@ import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import LikeDTO from "../dtos/LikeDTO";
 import { parseLikes } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";
-import { removeFromArray } from "../utilities/arrayManipulation";
 
 const Liked = () => {
 	const [isLoading, setIsLoading] = useState(true);
@@ -116,9 +115,7 @@ const Liked = () => {
 				>
 					{
 						sortOrder[
-							sort
-								? sortOrder.findIndex((element) => element === sort)
-								: 0
+							sort ? sortOrder.findIndex((element) => element === sort) : 0
 						]
 					}
 				</Menu>
@@ -142,9 +139,18 @@ const Liked = () => {
 						<ThreadCardLoading bodyHeight={180} />
 					</Box>
 				) : likes.length !== 0 ? (
-					likes.map((like,index) => (
+					likes.map((like) => (
 						<Box key={like.likeID} width="100%">
-							<ThreadCard thread={like.thread} handleDeleteThread={()=>setLikes(removeFromArray(likes,index))}/>
+							<ThreadCard
+								thread={like.thread}
+								handleDeleteThread={(threadID) =>
+									setLikes(
+										likes.filter(
+											(like) => like.thread.threadID !== threadID
+										)
+									)
+								}
+							/>
 							<Divider sx={{ my: 3 }} />
 						</Box>
 					))

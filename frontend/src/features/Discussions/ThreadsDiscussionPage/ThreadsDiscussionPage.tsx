@@ -5,7 +5,6 @@ import sortOrder from "./sortOrder";
 import sortIcons from "./sortIcons";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ThreadCard from "../../../components/ThreadCard";
-import { removeFromArray } from "../../../utilities/arrayManipulation";
 import cryingCat from "../../../assets/image/crying-cat.png";
 import { SortRounded as SortRoundedIcon } from "@mui/icons-material";
 import { get } from "../../../utilities/api";
@@ -34,9 +33,8 @@ const ThreadsDiscussionPage = () => {
 			(err) => console.log(err)
 		);
 	}, [sort]);
-	const handleDeleteThread = (index: number) =>
-		setThreads(removeFromArray(threads, index));
-
+	const handleDeleteThread = (threadID: number) =>
+		setThreads(threads.filter((thread) => thread.threadID !== threadID));
 	return (
 		<Box width="100%">
 			<Box
@@ -60,7 +58,9 @@ const ThreadsDiscussionPage = () => {
 					}}
 					handleMenuExpandedItemsClick={Array(sortOrder.length).fill(
 						(event: React.MouseEvent<HTMLElement>) =>
-							navigate(`?type=Threads&sort=${event.currentTarget.dataset?.value}`)
+							navigate(
+								`?type=Threads&sort=${event.currentTarget.dataset?.value}`
+							)
 					)}
 					toolTipText="Sort Options"
 					menuExpandedPosition={{
@@ -112,7 +112,7 @@ const ThreadsDiscussionPage = () => {
 							<Box key={index} width="100%">
 								<ThreadCard
 									thread={thread}
-									handleDeleteThread={() => handleDeleteThread(index)}
+									handleDeleteThread={handleDeleteThread}
 								/>
 								<Divider sx={{ my: 3 }} />
 							</Box>

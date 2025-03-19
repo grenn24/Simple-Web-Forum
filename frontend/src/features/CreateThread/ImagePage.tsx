@@ -1,4 +1,4 @@
-import {  Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import FileInput from "../../components/FileInput";
 import { useState } from "react";
 import Button from "../../components/Button";
@@ -6,9 +6,12 @@ import Snackbar from "../../components/Snackbar";
 import UploadedImagesList from "./UploadedFilesList";
 import { compressImageFiles } from "../../utilities/fileManipulation";
 import { useAppDispatch, useAppSelector } from "../../utilities/redux";
-import { addImage, changeImagesSelected, changeIsCompressingImages, changeOpenImageUploadedSnackbar } from "./createThreadSlice";
-
-
+import {
+	addImage,
+	changeImagesSelected,
+	changeIsCompressingImages,
+	changeOpenImageUploadedSnackbar,
+} from "./createThreadSlice";
 
 const ImagePage = () => {
 	const { imagesSelected } = useAppSelector((state) => ({
@@ -22,15 +25,20 @@ const ImagePage = () => {
 	const handleUploadImages = (files: FileList) => {
 		dispatch(changeIsCompressingImages(true));
 		const newImages = Array.from(files);
-		compressImageFiles(newImages, 3)
+		compressImageFiles(newImages, 1)
 			.then((compressedImages) => {
-				compressedImages.forEach((compressedImage) =>
-					imagesSelected.length < 30
-						? dispatch(addImage(compressedImage))
-						: setOpenImageLimitSnackbar(true)
-				);
+				let counter = 0;
+				for (const compressedImage of compressedImages) {
+					if (counter < 30) {
+						dispatch(addImage(compressedImage));
+						counter++;
+					} else {
+						setOpenImageLimitSnackbar(true);
+						break;
+					}
+				}
 				dispatch(changeIsCompressingImages(false));
-				dispatch(changeOpenImageUploadedSnackbar(true));
+				setTimeout(() => dispatch(changeOpenImageUploadedSnackbar(true)), 2000);
 			})
 			.catch((err) => console.log(err));
 	};
@@ -72,7 +80,6 @@ const ImagePage = () => {
 				acceptedFileTypes="image/jpeg, image/png, image/gif"
 				multiple
 			/>
-	
 
 			{/*Image Number Limit Snackbar*/}
 			<Snackbar

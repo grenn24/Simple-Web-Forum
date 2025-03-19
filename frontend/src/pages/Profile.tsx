@@ -179,7 +179,7 @@ const Profile = () => {
 	const handleUploadAvatarIcon = (files: FileList) => {
 		setOpenUploadAvatarDialog(false);
 		const avatarIcon = files[0];
-		compressImageFile(avatarIcon, 2)
+		compressImageFile(avatarIcon, 1)
 			.then((compressedAvatarIcon) => {
 				const formData = new FormData();
 				formData.append("avatar_icon", compressedAvatarIcon);

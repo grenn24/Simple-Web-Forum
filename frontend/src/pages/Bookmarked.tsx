@@ -15,7 +15,6 @@ import { get } from "../utilities/api";
 import ThreadCardLoading from "../components/ThreadCard/ThreadCardLoading";
 import { parseThreads } from "../utilities/parseApiResponse";
 import cryingCat from "../assets/image/crying-cat.png";
-import { removeFromArray } from "../utilities/arrayManipulation";
 
 const Bookmarked = () => {
 	const [isLoading, setIsLoading] = useState(true);
@@ -139,9 +138,18 @@ const Bookmarked = () => {
 						<ThreadCardLoading bodyHeight={180} />
 					</Box>
 				) : bookmarkedThreads.length !== 0 ? (
-					bookmarkedThreads.map((bookmarkedThread,index) => (
+					bookmarkedThreads.map((bookmarkedThread) => (
 						<Box width="100%" key={bookmarkedThread.threadID}>
-							<ThreadCard thread={bookmarkedThread}  handleDeleteThread={()=>setBookmarkedThreads(removeFromArray(bookmarkedThreads,index))} />
+							<ThreadCard
+								thread={bookmarkedThread}
+								handleDeleteThread={(threadID) =>
+									setBookmarkedThreads(
+										bookmarkedThreads.filter(
+											(thread) => thread.threadID !== threadID
+										)
+									)
+								}
+							/>
 							<Divider sx={{ my: 3 }} />
 						</Box>
 					))

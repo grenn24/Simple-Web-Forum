@@ -64,6 +64,8 @@ const DiscussionCard = ({ discussion, style }: Prop) => {
 				<Box height={150} width="100%">
 					<img
 						src={discussion.BackgroundImageLink}
+						rel="preload"
+	
 						width="100%"
 						height="100%"
 						style={{

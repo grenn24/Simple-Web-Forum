@@ -5,7 +5,6 @@ const apiClient = axios.create({
 	baseURL: "https://nus-gossips-6a2501962208.herokuapp.com/api",
 });
 
-
 export function get<T>(
 	url: string,
 	handleSuccessResponse: (res: AxiosResponse<any, any>) => void,
@@ -27,7 +26,12 @@ export function get<T>(
 				const responseBody = err.response.data;
 				// Make another request with the refreshed jwt tokens
 				if (responseBody.error_code === "TOKEN_REFRESHED") {
-					get(url, handleSuccessResponse, handleErrorResponse, headers);
+					get(
+						url,
+						handleSuccessResponse,
+						handleErrorResponse,
+						headers
+					);
 					return;
 				}
 				handleErrorResponse && handleErrorResponse(err);
@@ -152,7 +156,12 @@ export function putJSON<T>(
 				const responseBody = err.response.data;
 				// Make another request with the refreshed jwt tokens
 				if (responseBody.error_code === "TOKEN_REFRESHED") {
-					putJSON(url, requestBody, handleSuccessResponse, handleErrorResponse);
+					putJSON(
+						url,
+						requestBody,
+						handleSuccessResponse,
+						handleErrorResponse
+					);
 					return;
 				}
 				handleErrorResponse && handleErrorResponse(err.response);
@@ -191,7 +200,12 @@ export function putFormData<T>(
 				const responseBody = err.response.data;
 				// Make another request with the refreshed jwt tokens
 				if (responseBody.error_code === "TOKEN_REFRESHED") {
-					putFormData(url, formData, handleSuccessResponse, handleErrorResponse);
+					putFormData(
+						url,
+						formData,
+						handleSuccessResponse,
+						handleErrorResponse
+					);
 					return;
 				}
 				handleErrorResponse && handleErrorResponse(err.response);
@@ -241,10 +255,10 @@ export function Delete(
 				handleErrorResponse && handleErrorResponse(err);
 			} else if (err.request) {
 				// Request was made but no response was received
-				console.log("No response from server:" + err.request);
+				console.error("No response from server:" + err.request);
 			} else {
 				// An error occurred while setting up the request
-				console.log(
+				console.error(
 					"Error while setting up request or handling the response:" +
 						err.message
 				);
@@ -252,7 +266,6 @@ export function Delete(
 		});
 	return;
 }
-
 
 /*
 apiClient.interceptors.response.use(

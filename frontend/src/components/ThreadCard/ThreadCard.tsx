@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Card,
 	CardHeader,
@@ -40,6 +40,9 @@ import handleMenuExpandedItemsClick from "./TopRightMenu/handleMenuExpandedItems
 import { ThreadDTO } from "../../dtos/ThreadDTO";
 import MediaViewer from "../MediaViewer";
 import RichTextField from "../RichTextField";
+import {
+	cacheImageUrls,
+} from "../../utilities/fileManipulation";
 
 interface ExpandMoreProps extends IconButtonProps {
 	expand: boolean;
@@ -71,7 +74,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 interface Prop {
 	thread: ThreadDTO;
-	handleDeleteThread?: () => void;
+	handleDeleteThread?: (threadID : number) => void;
 }
 
 const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
@@ -92,6 +95,12 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 		{ default: [90, 3000] },
 		"default"
 	);
+
+	useEffect(() => {
+		cacheImageUrls(thread.imageLink)
+			.then(() => {})
+			.catch((err) => console.log(err));
+	}, []);
 
 	return (
 		<>
@@ -329,8 +338,9 @@ const ThreadCard = ({ thread, handleDeleteThread }: Prop) => {
 								() => {},
 								(err) => console.log(err)
 							);
-							handleDeleteThread && handleDeleteThread();
 							setOpenDeleteThreadDialog(false);
+							handleDeleteThread && handleDeleteThread(thread.threadID);
+							
 						},
 						(event) => {
 							event.stopPropagation();

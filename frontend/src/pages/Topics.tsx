@@ -73,7 +73,7 @@ const Topics = () => {
 					<Divider />
 				</Box>
 				<Box
-					marginTop={2}
+					my={2}
 					width="100%"
 					display="flex"
 					justifyContent="space-between"

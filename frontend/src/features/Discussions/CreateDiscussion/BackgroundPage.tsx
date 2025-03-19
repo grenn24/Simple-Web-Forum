@@ -19,7 +19,7 @@ const BackgroundPage = () => {
 	const dispatch = useAppDispatch();
 	const handleUploadBackground = (files: FileList) => {
 		dispatch(changeIsCompressingImage(true));
-		compressImageFile(files[0], 4)
+		compressImageFile(files[0], 1)
 			.then((file) => {
 				dispatch(changeBackgroundImage(file));
 				dispatch(changeIsCompressingImage(false));

@@ -1,5 +1,5 @@
 /// <reference types="redux-persist/types" />
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import signUpSliceReducer from "./features/Welcome/signUpSlice";
 import createThreadSliceReducer from "./features/CreateThread/createThreadSlice";
 import userInfoSliceReducer from "./layouts/MainLayout/TopHeader/userInfoSlice";
@@ -17,13 +17,17 @@ const persistConfig = {
 	whitelist: ["userInfo"],
 };
 
+
+const rootReducer = combineReducers({
+	signUp: signUpSliceReducer,
+	createThread: createThreadSliceReducer,
+	userInfo: userInfoSliceReducer,
+	createDiscussion: createDiscussionSliceReducer,
+});
+
+
 const store = configureStore({
-	reducer: {
-		signUp: signUpSliceReducer,
-		createThread: createThreadSliceReducer,
-		userInfo: persistReducer(persistConfig, userInfoSliceReducer),
-		createDiscussion: createDiscussionSliceReducer,
-	},
+	reducer: persistReducer(persistConfig, rootReducer)
 });
 
 export default store;

@@ -64,6 +64,7 @@ const TrendingTopics = ({ topics }: Prop) => {
 		<>
 			<Box width="100%" height="100%" position="relative" ref={topicsViewer}>
 				<Box
+				position="relative"
 					display="flex"
 					maxWidth="100%"
 					height={30}
